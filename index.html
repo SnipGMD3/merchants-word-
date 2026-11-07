@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Карточная игра — каркас</title>
+<title>Честное Купеческое!</title>
 <style>
 :root{--bg:#141a26;--felt:#1f3b4d;--felt2:#16293a;--ink:#eef1f6;--mute:#8b97ab;--acc:#ffb703;--red:#e63946;--blue:#3a86ff;--green:#2a9d5c;--yellow:#ffb703}
 *{box-sizing:border-box}
@@ -28,13 +28,19 @@ ul.players li{padding:10px 12px;background:rgba(255,255,255,.06);border-radius:8
 ul.players .tag{color:var(--acc);font-size:.8rem}
 
 /* ================= карты ================= */
-/* Картинки лежат в папке cards/ рядом с index.html. Размер карты 90x140 (пропорции как у арта). */
-.card{width:90px;height:140px;position:relative;background-size:100% 100%;background-repeat:no-repeat;
-  filter:drop-shadow(0 6px 8px rgba(0,0,0,.55));user-select:none;-webkit-user-drag:none}
-.card[data-k="bread"]{background-image:url(cards/bread.webp)}
-.card[data-k="wheat"]{background-image:url(cards/wheat.webp)}
-.card[data-k="rich"]{background-image:url(cards/rich.webp)}
-.card[data-k="moldy"]{background-image:url(cards/moldy.webp)}
+/* Арт лежит в cards/<ключ>.<расширение> (см. IMG в скрипте). Карты без арта рисуются текстом (.txt). Пропорции 90x140. */
+.card{--w:90px;width:var(--w);height:calc(var(--w)*1.5556);position:relative;background-size:100% 100%;background-repeat:no-repeat;
+  filter:drop-shadow(0 6px 8px rgba(0,0,0,.55));user-select:none;-webkit-user-drag:none;flex:none}
+.card.sm{--w:78px}
+.card.txt{background:#efe6d0;border:3px solid var(--tc,#7b8794);border-radius:8px;color:#2a2217;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;text-align:center;padding:4px;gap:6px;font-size:calc(var(--w)*.16)}
+.card.txt b{line-height:1.1;overflow-wrap:anywhere}
+.card.txt small{font-size:.62em;opacity:.7;font-weight:400;line-height:1.1}
+.card.txt[data-t="gentry"]{--tc:#1f9d9a}
+.card.txt[data-t="royal"]{--tc:#d4a017}
+.card.txt[data-t="spoiled"]{--tc:#7f8230}
+.card.txt[data-t="rat"],.card.txt[data-t="pest"]{--tc:#a02830}
+.card.txt[data-t="cat"],.card.txt[data-t="auditor"]{--tc:#3a6ea5}
 
 /* рубашка */
 .back{background:url(cards/back.webp) center/100% 100% no-repeat;filter:drop-shadow(0 3px 4px rgba(0,0,0,.55))}
@@ -45,7 +51,10 @@ ul.players .tag{color:var(--acc);font-size:.8rem}
 #game{padding:0;position:relative;overflow:hidden;height:100vh}
 .hud{position:absolute;top:10px;left:12px;right:12px;display:flex;justify-content:space-between;align-items:flex-start;gap:10px;z-index:6}
 .hud .code{font-size:1rem;letter-spacing:.2em;display:inline}
-.hud .hint{flex:1;padding-top:6px}
+.hud .dayinfo{flex:1;text-align:center;padding-top:2px;font-weight:700}
+.hud .dayinfo small{display:block;color:var(--mute);font-weight:400;font-size:.78rem}
+.hud button{padding:6px 12px;font-size:.85rem}
+.hud .btns{display:flex;gap:6px}
 
 .table{position:absolute;top:64px;bottom:235px;left:50%;width:min(1000px,96vw);transform:translateX(-50%);min-height:240px}
 .felt{position:absolute;left:4%;right:4%;top:14%;bottom:0;border-radius:50%;
@@ -53,31 +62,44 @@ ul.players .tag{color:var(--acc);font-size:.8rem}
   box-shadow:0 14px 0 #08101a,0 34px 50px rgba(0,0,0,.55),inset 0 0 70px rgba(0,0,0,.5)}
 .felt::after{content:"";position:absolute;inset:6%;border:2px solid rgba(255,255,255,.07);border-radius:50%}
 
-.deck{position:absolute;left:calc(50% - 104px);top:57%;width:64px;height:100px;margin:-50px 0 0 -32px;cursor:pointer;z-index:2;
-  transition:transform .15s;
+.deck{position:absolute;left:calc(50% - 200px);top:54%;width:64px;height:100px;margin:-50px 0 0 -32px;z-index:2;
   filter:drop-shadow(2px 2px 0 #3a1010) drop-shadow(4px 4px 0 #2a0b0b) drop-shadow(6px 8px 8px rgba(0,0,0,.55))}
-.deck:hover{transform:translateY(-4px)}
-.deck.empty{opacity:.25;cursor:default;pointer-events:none}
-.deck-l{position:absolute;left:calc(50% - 104px);top:57%;margin-top:58px;transform:translateX(-50%);font-size:.72rem;color:var(--mute);pointer-events:none;z-index:2;white-space:nowrap}
+.deck.empty{opacity:.25}
+.disc{position:absolute;left:calc(50% + 200px);top:54%;width:64px;height:100px;margin:-50px 0 0 -32px;z-index:2;border:2px dashed rgba(255,255,255,.2);border-radius:8px;
+  display:flex;align-items:center;justify-content:center}
+.disc .card{--w:60px;position:absolute;left:0;top:0}
+.deck-l,.disc-l{position:absolute;top:54%;margin-top:58px;transform:translateX(-50%);font-size:.72rem;color:var(--mute);pointer-events:none;z-index:2;white-space:nowrap}
+.deck-l{left:calc(50% - 200px)}
+.disc-l{left:calc(50% + 200px)}
 
-.pile{position:absolute;left:50%;top:57%;width:0;height:0;z-index:2}
-.pile .card{position:absolute;left:0;top:0;margin:-70px 0 0 -45px;
-  transform:translate(var(--ox,0px),var(--oy,0px)) rotate(var(--rot,0deg)) scale(.72)}
+.lotzone{position:absolute;left:50%;top:54%;transform:translate(-50%,-55%);z-index:3;display:flex;flex-direction:column;align-items:center;gap:8px;width:max-content;max-width:92%}
+.banner{background:rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.2);border-radius:999px;padding:4px 14px;font-size:.85rem;text-align:center;min-height:1.6em}
+.slots{display:flex;gap:10px;min-height:20px;padding-top:16px}
+.slot{position:relative;border-radius:8px}
+.slot.pick{cursor:pointer;filter:drop-shadow(0 0 5px var(--acc)) drop-shadow(0 0 12px rgba(255,183,3,.8))}
+.slot .sn{position:absolute;left:50%;top:-17px;transform:translateX(-50%);font-size:.75rem;color:var(--mute)}
+.slot .pk{position:absolute;left:4px;right:4px;bottom:6px;text-align:center;font-size:.66rem;background:rgba(0,0,0,.75);color:#ffe08a;border-radius:6px;padding:2px;line-height:1.1}
+.card.flip{animation:flipin .5s}
+@keyframes flipin{from{transform:rotateY(90deg)}to{transform:none}}
+.lotinfo{font-size:.8rem;text-align:center;max-width:430px;background:rgba(0,0,0,.45);border-radius:10px;padding:5px 10px;min-height:1.6em}
+.lotinfo div{margin:1px 0}
+.lotinfo .qa{color:#ffe08a}
 
 .seats{position:absolute;inset:0;pointer-events:none;z-index:3}
 .seat{position:absolute;width:0;height:0;transform:scale(var(--s,1));transition:left .4s,top .4s}
 .fan{position:absolute;left:0;top:0;width:0;height:0}
 .fan .b{position:absolute;left:-22.5px;top:-100px;width:45px;height:70px;transform-origin:22.5px 100px;
-  transform:rotate(var(--a,0deg)) translateY(var(--t,0px));
-  transition:transform .28s cubic-bezier(.2,.8,.2,1),filter .28s}
-.fan .b.s{--t:-28px;filter:drop-shadow(0 0 3px var(--acc)) drop-shadow(0 0 9px rgba(255,183,3,.9));z-index:2}
+  transform:rotate(var(--a,0deg)) translateY(var(--t,0px));transition:transform .28s cubic-bezier(.2,.8,.2,1),filter .28s}
 .plate{position:absolute;left:0;top:0;transform:translate(-50%,-50%);z-index:3;background:rgba(0,0,0,.62);border:1px solid rgba(255,255,255,.22);
-  border-radius:999px;padding:5px 12px;white-space:nowrap;display:flex;gap:8px;align-items:center;font-size:.85rem;transition:box-shadow .25s,border-color .25s}
+  border-radius:12px;padding:5px 12px;white-space:nowrap;display:flex;gap:8px;align-items:center;font-size:.85rem;transition:box-shadow .25s,border-color .25s}
 .plate .cnt{background:rgba(255,255,255,.14);border-radius:999px;padding:0 8px;font-size:.78rem}
+.plate .coin{color:#ffd96a;font-size:.78rem}
+.plate .tg{color:var(--acc);font-size:.78rem}
 .plate .st{color:var(--acc);font-size:.78rem}
-.plate .st:empty{display:none}
-.plate .st::after{content:"…";animation:blink 1s steps(3) infinite}
+.plate .st:empty,.plate .tg:empty{display:none}
+.plate .st.on::after{content:"…";animation:blink 1s steps(3) infinite}
 .seat.pick .plate{border-color:var(--acc);box-shadow:0 0 16px rgba(255,183,3,.6)}
+.seat.sell .plate{border-color:#6fd3ff}
 .seat.flash .plate{animation:flash .7s}
 @keyframes flash{0%{box-shadow:0 0 0 0 rgba(255,255,255,.9)}100%{box-shadow:0 0 0 18px rgba(255,255,255,0)}}
 @keyframes blink{0%{opacity:.2}50%{opacity:1}100%{opacity:.2}}
@@ -86,7 +108,24 @@ ul.players .tag{color:var(--acc);font-size:.8rem}
 .fly>*{position:absolute;left:0;top:0;width:90px;height:140px;backface-visibility:hidden;-webkit-backface-visibility:hidden;filter:none}
 .fly .bk{transform:rotateY(180deg)}
 
-.mebar{position:absolute;left:12px;bottom:228px;z-index:6;background:rgba(0,0,0,.5);border:1px solid var(--acc);border-radius:999px;padding:5px 14px;font-size:.88rem}
+.act{position:absolute;left:50%;bottom:240px;transform:translateX(-50%);z-index:9;width:min(540px,92vw);background:rgba(10,14,22,.93);
+  border:1px solid rgba(255,183,3,.55);border-radius:14px;padding:12px 14px;display:none;flex-direction:column;gap:8px}
+.act.on{display:flex}
+.act .t{font-weight:800;color:var(--acc)}
+.act .m{color:var(--mute);font-size:.88rem}
+.act .m b{color:var(--ink)}
+.act .row{align-items:center;flex-wrap:wrap}
+.act input{width:96px;padding:8px 10px}
+.act input.wide{width:100%}
+.act button{padding:8px 13px}
+.act .chips{display:flex;gap:6px;flex-wrap:wrap}
+.act .chips button{font-weight:400;font-size:.78rem;padding:4px 9px}
+.act .aerr{color:#ff8a93;font-size:.85rem;min-height:0}
+.act .aerr:empty{display:none}
+
+.mebar{position:absolute;left:12px;bottom:228px;z-index:6;background:rgba(0,0,0,.5);border:1px solid var(--acc);border-radius:14px;padding:5px 14px;font-size:.88rem;display:flex;flex-direction:column;gap:1px}
+.mebar.turn{box-shadow:0 0 16px rgba(255,183,3,.6)}
+.mebar small{color:var(--mute);font-size:.76rem}
 .hand{position:absolute;bottom:10px;left:0;right:0;height:210px;display:flex;justify-content:center;align-items:flex-end;perspective:700px;z-index:5}
 .hand .card{transform-origin:50% 120%;transition:transform .18s ease,filter .18s;cursor:pointer;
   transform:rotate(var(--r)) translateY(calc(var(--by,0px) + var(--y,0px))) rotateX(var(--tx,0deg)) rotateY(var(--ty,0deg))}
@@ -94,17 +133,34 @@ ul.players .tag{color:var(--acc);font-size:.8rem}
 .hand .card.sel{--y:-92px;z-index:8;filter:drop-shadow(0 0 4px var(--acc)) drop-shadow(0 0 12px rgba(255,183,3,.85)) drop-shadow(0 16px 16px rgba(0,0,0,.6))}
 .hand .card.new{animation:pop .4s .5s backwards}
 @keyframes pop{from{opacity:0;filter:brightness(2.2)}to{opacity:1;filter:none}}
-.log{position:absolute;right:12px;bottom:235px;width:min(260px,70vw);max-height:130px;overflow:auto;font-size:.82rem;color:var(--mute);background:rgba(0,0,0,.35);border-radius:10px;padding:8px 10px;z-index:6}
+
+.chat{position:absolute;right:12px;bottom:228px;width:min(280px,70vw);z-index:6;display:flex;flex-direction:column;gap:4px}
+.log{max-height:150px;overflow:auto;font-size:.8rem;color:var(--mute);background:rgba(0,0,0,.4);border-radius:10px;padding:7px 10px}
 .log div{margin:2px 0}
-@media (prefers-reduced-motion:reduce){.hand .card,.fan .b,.seat{transition:none}}
+.log .c b{color:var(--ink)}
+.log .c{color:#cfe3ff}
+.chat input{padding:7px 10px;font-size:.85rem}
+
+.modal{position:fixed;inset:0;background:rgba(5,8,14,.8);display:none;align-items:center;justify-content:center;z-index:100;padding:16px}
+.modal.on{display:flex}
+.sheet{background:#18202f;border:1px solid rgba(255,255,255,.18);border-radius:14px;padding:18px 22px;max-width:min(900px,96vw);max-height:92vh;overflow:auto;display:flex;flex-direction:column;gap:10px}
+.sheet h3{margin:0}
+.sheet p{margin:0;font-size:.9rem}
+.sheet table{border-collapse:collapse;font-size:.88rem}
+.sheet th,.sheet td{padding:6px 10px;border-bottom:1px solid rgba(255,255,255,.1);text-align:center}
+.sheet td:first-child,.sheet th:first-child{text-align:left}
+.sheet td small{display:block;color:var(--mute);font-size:.68rem}
+.sheet tr.win td{background:rgba(255,183,3,.12)}
+.sheet .big{font-size:1.2rem;font-weight:800;color:var(--acc)}
+@media (prefers-reduced-motion:reduce){.hand .card,.fan .b,.seat{transition:none}.card.flip{animation:none}}
 </style>
 </head>
 <body>
 
 <!-- ЭКРАН 1: вход -->
 <section id="home" class="screen on">
-  <h1>Карточная игра</h1>
-  <p class="sub">Создай лобби или зайди по коду друга</p>
+  <h1>Честное Купеческое!</h1>
+  <p class="sub">Торговля вслепую. Создай лобби или зайди по коду друга</p>
   <div class="panel">
     <input id="name" maxlength="16" placeholder="Твоё имя" autocomplete="off">
     <button id="create">Создать лобби</button>
@@ -128,35 +184,512 @@ ul.players .tag{color:var(--acc);font-size:.8rem}
     <div class="hint" id="lobbyHint"></div>
     <button id="leave" class="ghost">Выйти</button>
   </div>
+  <div class="ver" id="ver2"></div>
 </section>
 
 <!-- ЭКРАН 3: стол -->
 <section id="game" class="screen">
   <div class="hud">
-    <div>Код: <span class="code" id="gameCode"></span></div>
-    <div class="hint">Клик по карте — выбрать, второй клик — бросить. Колода — взять карту.</div>
-    <button id="ping" class="ghost">Тест связи</button>
+    <div>Код: <span class="code" id="gameCode"></span><div class="hint" id="ver3" style="text-align:left"></div></div>
+    <div class="dayinfo" id="dayinfo"></div>
+    <div class="btns">
+      <button id="cheat" class="ghost">Памятка</button>
+      <button id="ping" class="ghost">Тест связи</button>
+      <button id="exit" class="ghost">Выйти</button>
+    </div>
   </div>
   <div class="table" id="table">
     <div class="felt"></div>
-    <div class="deck back" id="deck" title="Взять карту"></div>
+    <div class="deck back" id="deck"></div>
     <div class="deck-l" id="deckL">колода</div>
-    <div class="pile" id="pile"></div>
+    <div class="disc" id="disc"></div>
+    <div class="disc-l" id="discL">сброс</div>
+    <div class="lotzone" id="lotzone">
+      <div class="banner" id="banner"></div>
+      <div class="slots" id="slots"></div>
+      <div class="lotinfo" id="lotinfo"></div>
+    </div>
     <div class="seats" id="seats"></div>
   </div>
-  <div class="log" id="log"></div>
+  <div class="act" id="act"></div>
+  <div class="chat">
+    <div class="log" id="log"></div>
+    <input id="chatIn" maxlength="140" placeholder="Слухи и разговоры (Enter)" autocomplete="off">
+  </div>
   <div class="mebar" id="mebar"></div>
   <div class="hand" id="hand"></div>
+  <div class="modal" id="cheatM"><div class="sheet" id="cheatS"></div></div>
+  <div class="modal" id="finalM"><div class="sheet" id="finalS"></div></div>
 </section>
 
 <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <script>
 /* =========================================================
+   ДВИЖОК ИГРЫ «Честное Купеческое!» (работает только у хоста, DOM не трогает).
+   S — публичное состояние (его получают все), H — тайное (колода, руки, содержимое лота).
+   Любое действие игрока приходит в handle(pid, m) → меняет S/H → commit() рассылает всё.
+   ========================================================= */
+/*ENGINE-START*/
+const VERSION = 'alpha 0.0.2';
+
+/* Числа из правил. Если что-то захочется подкрутить — это здесь. */
+const RULES = {
+  startCoins: 20,        // монет на старте
+  morningCoins: 5,       // монет за утренний подвоз
+  supplyCards: 2,        // карт за каждый подвоз (утром и вечером)
+  buyCost: 4, buyMax: 2, // докупка карт после продажи
+  askCost: 2,            // Расспрос
+  openCost: 3,           // Вскрытие
+  sealFee: 10,           // пошлина Печати купца (+ последняя ставка)
+  coinPoints: 0,         // очков богатства за 1 монету (по «Подсчёту очков» монеты очков не дают → 0; монеты — только при ничьей)
+  byPlayers: {           // игроков → стартовых карт, ярмарочных дней
+    2: {hand:14, days:5},   // тестовый режим (в правилах его нет)
+    3: {hand:13, days:5},
+    4: {hand:12, days:4},
+    5: {hand:10, days:3}
+  }
+};
+
+const PRODUCTS = [
+  {id:'cheese', name:'Сыр'}, {id:'bread', name:'Хлеб'}, {id:'apple', name:'Яблоки'},
+  {id:'spice', name:'Пряности'}, {id:'silk', name:'Шёлк'}, {id:'banana', name:'Бананы'}
+];
+const PORD = PRODUCTS.map(p => p.id);
+const prodName = id => PRODUCTS.find(p => p.id === id).name;
+
+/* Карты: ключ → {name, kind, prod, n}. kind: simple/gentry/royal/spoiled — товары; rat/pest — Напасти; cat/auditor — помощники. */
+const CARDS = {};
+const defCard = (k, name, kind, prod, n) => { CARDS[k] = {k, name, kind, prod: prod || null, n}; };
+[ // товар, [простой], [господский], [королевский], [испорченный], [вредитель]
+  ['cheese', ['cheese','Сыр'],    ['gouda','Гауда'],         ['blue','Голубой сыр'],   ['wormy','Червивый сыр'],        ['pest_cheese','Сырный клещ']],
+  ['bread',  ['bread','Хлеб'],    ['wheat','Пшеничный хлеб'],['rich','Сдобный хлеб'],  ['moldy','Заплесневелый хлеб'],  ['pest_bread','Амбарный долгоносик']],
+  ['apple',  ['apple','Яблоки'],  ['green','Зелёные яблоки'],['gold','Золотые яблоки'],['rotten','Гнилые яблоки'],      ['pest_apple','Яблонная плодожорка']],
+  ['spice',  ['pepper','Перец'],  ['cinnamon','Корица'],     ['saffron','Шафран'],      ['damp','Отсыревшие пряности'],  ['pest_spice','Жук-точильщик']],
+  ['silk',   ['silk','Шёлк'],     ['wild','Дикий шёлк'],     ['spider','Паучий шёлк'],  ['soaked','Мочёный шёлк'],       ['pest_silk','Платяная моль']],
+  ['banana', ['banana','Банан'],  ['cavendish','Кавендиш'],  ['gros','Гро Мишель'],     ['black','Чёрные бананы'],       ['pest_banana','Панамская болезнь']]
+].forEach(([prod, s, g, r, sp, pe]) => {
+  defCard(s[0], s[1], 'simple', prod, 10);
+  defCard(g[0], g[1], 'gentry', prod, 2);
+  defCard(r[0], r[1], 'royal', prod, 1);
+  defCard(sp[0], sp[1], 'spoiled', prod, 4);
+  defCard(pe[0], pe[1], 'pest', prod, 1);
+});
+defCard('rat', 'Крыса', 'rat', null, 4);
+defCard('cat', 'Кот', 'cat', null, 4);
+defCard('auditor', 'Ревизор', 'auditor', null, 4);
+
+const isGood = c => { const k = CARDS[c.k].kind; return k === 'simple' || k === 'gentry' || k === 'royal' || k === 'spoiled'; };
+const isNap  = c => { const k = CARDS[c.k].kind; return k === 'rat' || k === 'pest'; };
+const RANK = {simple:0, gentry:1, royal:2, spoiled:3};
+const SORT_SPECIAL = {rat:0, pest:1, cat:2, auditor:3};
+const sortKey = c => { const d = CARDS[c.k]; return d.kind in RANK ? PORD.indexOf(d.prod) * 10 + RANK[d.kind] : 100 + SORT_SPECIAL[d.kind] * 10 + (d.prod ? PORD.indexOf(d.prod) : 0); };
+
+function shuffle(a){ for (let i = a.length - 1; i > 0; i--){ const j = Math.random() * (i + 1) | 0; [a[i], a[j]] = [a[j], a[i]]; } return a; }
+function makeDeck(){
+  const d = []; let id = 1;
+  Object.values(CARDS).forEach(c => { for (let i = 0; i < c.n; i++) d.push({id: id++, k: c.k}); });
+  return shuffle(d);
+}
+
+/* ---------- подсчёт очков ---------- */
+const tri = n => n * (n + 1) / 2;       // 1, 3, 6, 10, 15, 21, 28, 36, 45, 55
+function partyStats(cards, prod){
+  let s = 0, c = 0, g = 0, r = 0;
+  cards.forEach(x => {
+    const d = CARDS[x.k]; if (d.prod !== prod) return;
+    if (d.kind === 'simple') s++; else if (d.kind === 'spoiled') c++; else if (d.kind === 'gentry') g++; else if (d.kind === 'royal') r++;
+  });
+  const n = Math.max(0, s - c), base = tri(n), mult = Math.pow(2, g) * Math.pow(3, r);
+  return {prod, s, c, g, r, n, base, mult, value: base * mult};
+}
+
+/* ---------- состояния ---------- */
+const HOOK = {broadcast(){}, hand(id, cards, newIds){}, peek(id, data){}};   // сюда подключается сеть
+const newState = () => ({phase:'lobby', players:[], log:[], gid:0, seq:0, evts:[], deckN:0, discN:0, discTop:null,
+  day:0, days:0, round:'m', starost:null, seller:null, step:null, turn:null, lot:null, auction:null, info:null, final:null, notice:''});
+const newH = () => ({deck:[], discard:[], hands:{}, sentIds:{}, peeks:[], lotCards:[], lotNo:0, insp:null, auc:null, res:null, turns:0});
+let S = newState();
+let H = newH();
+
+const pl = id => S.players.find(p => p.id === id);
+const hand = id => H.hands[id] || (H.hands[id] = []);
+const cnt = (id, f) => hand(id).filter(f).length;
+const idxOf = id => S.players.findIndex(p => p.id === id);
+const leftOf = id => S.players[(idxOf(id) + 1) % S.players.length].id;
+function orderFrom(startId, skipFirst){          // по часовой, начиная со startId (порядок игроков = порядок за столом)
+  const n = S.players.length, s = idxOf(startId), out = [];
+  for (let k = 0; k < n; k++) out.push(S.players[(s + k) % n].id);
+  return skipFirst ? out.slice(1) : out;
+}
+const sortHand = id => hand(id).sort((a, b) => sortKey(a) - sortKey(b) || a.id - b.id);
+const hasAuditor = id => hand(id).some(c => c.k === 'auditor');
+const cname = c => CARDS[c.k].name;
+
+function addLog(s){ S.log.push({c:0, s}); if (S.log.length > 80) S.log.splice(0, S.log.length - 80); }
+function addChat(name, s){ S.log.push({c:1, n:name, s}); if (S.log.length > 80) S.log.splice(0, S.log.length - 80); }
+function emit(type, o){ S.evts.push(Object.assign({seq: ++S.seq, type}, o || {})); }
+function peek(to, data){ H.peeks.push({to, data}); }
+
+function draw(pid, n){
+  let got = 0;
+  for (let i = 0; i < n; i++){ if (!H.deck.length) break; hand(pid).push(H.deck.pop()); got++; }
+  if (got){ sortHand(pid); emit('draw', {by: pid, n: got}); }
+  return got;
+}
+
+/* Разослать всё: сначала руки и тайные подсказки, потом общее состояние. */
+function commit(){
+  S.players.forEach(p => { p.count = hand(p.id).length; });
+  S.deckN = H.deck.length; S.discN = H.discard.length;
+  const top = H.discard[H.discard.length - 1]; S.discTop = top ? top.k : null;
+  S.players.forEach(p => {
+    const h = hand(p.id), prev = H.sentIds[p.id], sig = h.map(c => c.id).join(',');
+    if (prev && prev.sig === sig) return;
+    const old = new Set(prev ? prev.ids : []);
+    const newIds = prev ? h.filter(c => !old.has(c.id)).map(c => c.id) : [];
+    H.sentIds[p.id] = {sig, ids: h.map(c => c.id)};
+    HOOK.hand(p.id, h.map(c => ({id: c.id, k: c.k})), newIds);
+  });
+  H.peeks.splice(0).forEach(x => HOOK.peek(x.to, x.data));
+  HOOK.broadcast();
+}
+
+/* ---------- ход игры: день → подвоз → круг продавцов ---------- */
+function startGame(){
+  const n = S.players.length, cfg = RULES.byPlayers[n];
+  if (!cfg) return false;
+  const gid = S.gid + 1;
+  H = newH();
+  S.phase = 'game'; S.gid = gid; S.seq = 0; S.evts = []; S.log = []; S.final = null; S.notice = '';
+  S.lot = null; S.auction = null; S.info = null; S.step = null; S.turn = null;
+  H.deck = makeDeck();
+  S.players.forEach(p => {
+    H.hands[p.id] = H.deck.splice(-cfg.hand, cfg.hand);
+    p.coins = RULES.startCoins; p.sealUsed = false; p.selN = 0;
+    sortHand(p.id);
+  });
+  S.days = cfg.days; S.day = 1;
+  S.starost = S.players[Math.random() * n | 0].id;
+  addLog('Игра началась: ' + n + ' игроков, ' + cfg.days + ' дн., у каждого ' + cfg.hand + ' карт и ' + RULES.startCoins + ' монет');
+  beginDay();
+  return true;
+}
+
+function beginDay(){
+  const last = S.day === S.days;
+  addLog('— День ' + S.day + ' из ' + S.days + (last ? ' (последний: без добора карт)' : '') + '. Староста рынка: ' + pl(S.starost).name + ' —');
+  S.round = 'm';
+  if (!last) supply(true);
+  beginRound();
+}
+function supply(morning){
+  orderFrom(S.starost).forEach(id => { draw(id, RULES.supplyCards); if (morning) pl(id).coins += RULES.morningCoins; });
+  addLog((morning ? 'Утренний подвоз' : 'Вечерний подвоз') + ': +' + RULES.supplyCards + ' карты' + (morning ? ' и +' + RULES.morningCoins + ' монет' : '') + ' каждому');
+}
+function beginRound(){ H.turns = 0; nextSeller(); }
+function nextSeller(){
+  if (H.turns >= S.players.length) return endRound();
+  const sid = orderFrom(S.starost)[H.turns++];
+  S.lot = null; S.auction = null; S.info = null; H.lotCards = [];
+  if (hand(sid).length < 3){
+    addLog(pl(sid).name + ' пропускает торговый ход (меньше 3 карт)');
+    return nextSeller();
+  }
+  S.seller = sid; S.step = 'compose'; S.turn = sid;
+  addLog('Торгует ' + pl(sid).name + (S.round === 'm' ? ' (утро)' : ' (вечер)'));
+}
+function endRound(){
+  const last = S.day === S.days;
+  if (S.round === 'm'){
+    S.round = 'e';
+    if (!last) supply(false);
+    beginRound();
+  } else {
+    if (last) return finishGame();
+    S.day++; S.starost = leftOf(S.starost);
+    beginDay();
+  }
+}
+
+/* ---------- торговый ход ---------- */
+function doLot(pid, m){
+  if (S.step !== 'compose' || S.turn !== pid) return;
+  const ids = m.ids;
+  if (!Array.isArray(ids) || ids.length !== 3 || new Set(ids).size !== 3) return;
+  const price = Math.floor(Number(m.price));
+  if (!(price >= 1) || price > 9999) return;
+  const h = hand(pid), cards = ids.map(id => h.find(c => c.id === id));
+  if (cards.some(c => !c)) return;
+  H.hands[pid] = h.filter(c => !ids.includes(c.id));
+  H.lotCards = cards;
+  S.lot = {n: ++H.lotNo, price, cards: [{open:false}, {open:false}, {open:false}], opened: false, qa: []};
+  pl(pid).selN = 0;
+  emit('lot', {by: pid});
+  peek(pid, {lot: S.lot.n, own: true, cards: cards.map(c => c.k)});
+  addLog(pl(pid).name + ' выкладывает закрытый лот из 3 карт. Цена от ' + price);
+  S.step = 'showcase'; S.turn = pid;
+}
+function reveal(i){ S.lot.cards[i] = {open: true, k: H.lotCards[i].k}; }
+
+function doShowcase(pid, m){
+  if (S.step !== 'showcase' || S.turn !== pid) return;
+  const i = m.i;
+  if (i === -1){ addLog('Витрина: продавец ничего не открывает'); return startInspection(); }
+  if (!(i >= 0 && i < 3) || S.lot.cards[i].open) return;
+  reveal(i);
+  addLog('Витрина: карта ' + (i + 1) + ' лежит лицом вверх — «' + cname(H.lotCards[i]) + '»');
+  startInspection();
+}
+
+/* осмотр: каждый покупатель по очереди (слева от продавца) — одно действие или пропуск */
+function startInspection(){ H.insp = {order: orderFrom(S.seller, true), pos: 0}; nextInspector(); }
+const canInspect = id => pl(id).coins >= RULES.askCost || hasAuditor(id);
+function nextInspector(){
+  const I = H.insp;
+  while (I.pos < I.order.length && !canInspect(I.order[I.pos])) I.pos++;
+  if (I.pos >= I.order.length) return startAuction();
+  S.step = 'inspect'; S.turn = I.order[I.pos]; S.info = null;
+}
+function doInsp(pid, m){
+  if (S.step !== 'inspect' || S.turn !== pid) return;
+  const p = pl(pid), I = H.insp;
+  if (m.a === 'skip'){ I.pos++; return nextInspector(); }
+  if (m.a === 'ask'){
+    const q = String(m.q || '').trim().slice(0, 100);
+    if (!q || p.coins < RULES.askCost) return;
+    p.coins -= RULES.askCost;
+    S.step = 'answer'; S.turn = S.seller; S.info = {by: pid, q};
+    addLog(p.name + ' (расспрос, −' + RULES.askCost + '): «' + q + '»');
+    return;
+  }
+  if (m.a === 'open'){
+    const i = m.i;
+    if (p.coins < RULES.openCost || S.lot.opened || !(i >= 0 && i < 3) || S.lot.cards[i].open) return;
+    p.coins -= RULES.openCost; reveal(i); S.lot.opened = true;
+    addLog(p.name + ' вскрывает карту ' + (i + 1) + ' (−' + RULES.openCost + '): «' + cname(H.lotCards[i]) + '»');
+    I.pos++; return nextInspector();
+  }
+  if (m.a === 'auditor'){
+    const h = hand(pid), ix = h.findIndex(c => c.k === 'auditor');
+    if (ix < 0) return;
+    H.discard.push(h.splice(ix, 1)[0]);
+    peek(pid, {lot: S.lot.n, own: false, cards: H.lotCards.map(c => c.k)});
+    addLog(p.name + ' сбрасывает Ревизора и тайно смотрит весь лот');
+    I.pos++; return nextInspector();
+  }
+}
+function doAnswer(pid, m){
+  if (S.step !== 'answer' || S.turn !== pid) return;
+  const yes = !!m.yes, by = pl(S.info.by);
+  S.lot.qa.push({by: by.name, q: S.info.q, a: yes ? 'Да' : 'Нет'});
+  addLog('Продавец отвечает ' + by.name + ': ' + (yes ? 'ДА' : 'НЕТ'));
+  H.insp.pos++; S.info = null;
+  nextInspector();
+}
+
+/* торги */
+const minBid = () => S.auction.by === null ? S.lot.price : S.auction.high + 1;
+function startAuction(){
+  H.auc = {order: orderFrom(S.seller, true), i: -1};
+  S.auction = {high: 0, by: null, passed: []};
+  S.step = 'auction'; S.info = null;
+  addLog('Торги! Цена от ' + S.lot.price);
+  aucNext();
+}
+function aucNext(){
+  const A = S.auction, O = H.auc.order;
+  for (;;){
+    const active = O.filter(id => !A.passed.includes(id));
+    if (A.by !== null && active.every(id => id === A.by)) return sold(A.by, A.high, 0);
+    if (A.by === null && !active.length) return unsold();
+    let k = H.auc.i, found = null;
+    for (let t = 0; t < O.length; t++){ k = (k + 1) % O.length; if (!A.passed.includes(O[k])){ found = O[k]; break; } }
+    if (found === null || found === A.by) return A.by !== null ? sold(A.by, A.high, 0) : unsold();
+    H.auc.i = k;
+    if (pl(found).coins < minBid()){ A.passed.push(found); addLog(pl(found).name + ': не хватает монет — пас'); continue; }
+    S.turn = found; return;
+  }
+}
+function doBid(pid, m){
+  if (S.step !== 'auction' || S.turn !== pid) return;
+  const amt = Math.floor(Number(m.amount));
+  if (!(amt >= minBid()) || amt > pl(pid).coins) return;
+  S.auction.high = amt; S.auction.by = pid;
+  addLog(pl(pid).name + ' ставит ' + amt);
+  aucNext();
+}
+function doPass(pid){
+  if (S.step !== 'auction' || S.turn !== pid) return;
+  S.auction.passed.push(pid);
+  addLog(pl(pid).name + ' пасует');
+  aucNext();
+}
+function doSeal(pid){
+  const A = S.auction;
+  if (S.step !== 'auction' || pid === S.seller || A.by === null || A.passed.includes(pid) || !H.auc.order.includes(pid)) return;
+  const p = pl(pid);
+  if (p.sealUsed || p.coins < A.high + RULES.sealFee) return;
+  p.sealUsed = true;
+  addLog(p.name + ' применяет Печать купца: «Продано!»');
+  sold(pid, A.high, RULES.sealFee);
+}
+
+/* развязка: лот продан */
+function sold(bid, price, fee){
+  const b = pl(bid), s = pl(S.seller);
+  b.coins -= price + fee; s.coins += price;
+  addLog(b.name + ' покупает лот за ' + price + (fee ? ' (+' + fee + ' пошлина в Банк)' : '') + ' у ' + s.name);
+  const cards = H.lotCards; H.lotCards = [];
+  hand(bid).push(...cards); sortHand(bid);
+  emit('take', {by: bid});
+  S.lot = null; S.auction = null; S.info = null;
+  const naps = cards.filter(isNap).sort((a, b) => (CARDS[a.k].kind === 'pest' ? 0 : 1) - (CARDS[b.k].kind === 'pest' ? 0 : 1));
+  H.res = {buyer: bid, naps, ci: 0, queue: []};
+  if (naps.length) addLog('В лоте были Напасти: ' + naps.map(cname).join(', '));
+  catPhase();
+}
+function catPhase(){                 // шаг 1: можно ли отменить Напасть Котом
+  const R = H.res;
+  while (R.ci < R.naps.length){
+    const nap = R.naps[R.ci], cats = cnt(R.buyer, c => c.k === 'cat');
+    if (cats > 0){ S.step = 'cat'; S.turn = R.buyer; S.info = {nap: nap.k, cats}; return; }
+    R.queue.push(nap); R.ci++;
+  }
+  trigPhase();
+}
+function doCat(pid, m){
+  if (S.step !== 'cat' || S.turn !== pid) return;
+  const R = H.res, nap = R.naps[R.ci], h = hand(pid);
+  if (m.use){
+    const ci = h.findIndex(c => c.k === 'cat'), ni = h.findIndex(c => c.id === nap.id);
+    if (ci < 0 || ni < 0) return;
+    const cat = h.splice(ci, 1)[0]; const n2 = h.splice(h.findIndex(c => c.id === nap.id), 1)[0];
+    H.discard.push(cat, n2);
+    addLog(pl(pid).name + ' играет Кота: «' + cname(nap) + '» отменена, обе карты в сброс');
+  } else R.queue.push(nap);
+  R.ci++; S.info = null;
+  catPhase();
+}
+function ratCandidates(id){          // самая большая партия: больше простых → дороже; при полном равенстве выбирает покупатель
+  const st = PORD.map(p => partyStats(hand(id), p)).filter(x => x.s > 0);
+  if (!st.length) return [];
+  st.sort((a, b) => b.s - a.s || b.value - a.value);
+  return st.filter(x => x.s === st[0].s && x.value === st[0].value).map(x => x.prod);
+}
+function ratEat(B, nap, prod){
+  const h = hand(B);
+  if (prod){
+    let eaten = 0;
+    for (let i = h.length - 1; i >= 0 && eaten < 2; i--){
+      const d = CARDS[h[i].k];
+      if (d.kind === 'simple' && d.prod === prod){ H.discard.push(h.splice(i, 1)[0]); eaten++; }
+    }
+    addLog('Крыса съедает карт: ' + eaten + ' (' + prodName(prod) + '), Крыса замешана в колоду');
+  } else addLog('Крысе нечего есть (нет простых карт), Крыса замешана в колоду');
+  const ri = h.findIndex(c => c.id === nap.id);
+  if (ri >= 0) H.deck.push(h.splice(ri, 1)[0]);
+  shuffle(H.deck);
+}
+function trigPhase(){                // шаг 2: сначала Вредители, потом Крысы
+  const R = H.res, B = R.buyer;
+  while (R.queue.length){
+    const nap = R.queue[0], d = CARDS[nap.k];
+    if (d.kind === 'pest'){
+      const h = hand(B);
+      const gone = h.filter(c => (isGood(c) && CARDS[c.k].prod === d.prod) || c.id === nap.id);
+      H.hands[B] = h.filter(c => !gone.includes(c));
+      H.deck.push(...gone); shuffle(H.deck);
+      addLog(d.name + ': вся партия «' + prodName(d.prod) + '» (' + (gone.length - 1) + ' карт) замешана в колоду');
+      R.queue.shift(); continue;
+    }
+    const cands = ratCandidates(B);
+    if (cands.length > 1){ S.step = 'rat'; S.turn = B; S.info = {opts: cands}; return; }
+    ratEat(B, nap, cands[0]);
+    R.queue.shift();
+  }
+  afterSale();
+}
+function doRatPick(pid, m){
+  if (S.step !== 'rat' || S.turn !== pid || !S.info.opts.includes(m.prod)) return;
+  const R = H.res;
+  ratEat(pid, R.queue[0], m.prod); R.queue.shift(); S.info = null;
+  trigPhase();
+}
+
+/* продажа: карта за продажу + докупка */
+function afterSale(){
+  H.res = null; S.info = null;
+  const sid = S.seller;
+  if (S.day !== S.days){
+    if (draw(sid, 1)) addLog(pl(sid).name + ' получает карту за продажу');
+    const max = Math.min(RULES.buyMax, Math.floor(pl(sid).coins / RULES.buyCost), H.deck.length);
+    if (max > 0){ S.step = 'buy'; S.turn = sid; S.info = {max}; return; }
+  }
+  endTurn();
+}
+function doBuy(pid, m){
+  if (S.step !== 'buy' || S.turn !== pid) return;
+  const n = Math.floor(Number(m.n)) || 0;
+  if (n < 0 || n > S.info.max) return;
+  if (n > 0){ pl(pid).coins -= n * RULES.buyCost; draw(pid, n); addLog(pl(pid).name + ' докупает карт: ' + n + ' (−' + n * RULES.buyCost + ')'); }
+  endTurn();
+}
+
+/* развязка: лот не продан */
+function unsold(){
+  const cards = H.lotCards; H.lotCards = [];
+  const goods = cards.filter(isGood), specials = cards.filter(c => !isGood(c));
+  H.discard.push(...goods);
+  hand(S.seller).push(...specials); sortHand(S.seller);
+  addLog('Лот не продан. Испортились и ушли в сброс: ' + (goods.length ? goods.map(cname).join(', ') : 'ничего') +
+    '. Специальных карт вернулось продавцу: ' + specials.length);
+  endTurn();
+}
+function endTurn(){ S.lot = null; S.auction = null; S.info = null; H.res = null; nextSeller(); }
+
+/* ---------- конец игры ---------- */
+function finishGame(){
+  S.phase = 'over'; S.step = 'over'; S.turn = null; S.lot = null; S.auction = null; S.info = null;
+  const rows = S.players.map(p => {
+    const h = hand(p.id), parts = PORD.map(pr => partyStats(h, pr));
+    const total = parts.reduce((a, x) => a + x.value, 0);
+    return {id: p.id, name: p.name, coins: p.coins, parts, total, wealth: total + RULES.coinPoints * p.coins, simple: h.filter(c => CARDS[c.k].kind === 'simple').length};
+  });
+  rows.sort((a, b) => b.wealth - a.wealth || b.coins - a.coins || b.simple - a.simple);
+  const t = rows[0];
+  const winners = rows.filter(r => r.wealth === t.wealth && r.coins === t.coins && r.simple === t.simple).map(r => r.id);
+  S.final = {rows, winners, coinPoints: RULES.coinPoints};
+  addLog('Игра окончена. Побеждает: ' + winners.map(id => pl(id).name).join(', '));
+}
+
+/* ---------- вход для действий игроков ---------- */
+function handle(pid, m){
+  if (S.phase !== 'game') return;
+  S.evts = [];
+  switch (m.t){
+    case 'select': if (S.step === 'compose' && S.turn === pid) pl(pid).selN = Math.max(0, Math.min(3, m.n | 0)); break;
+    case 'lot': doLot(pid, m); break;
+    case 'showcase': doShowcase(pid, m); break;
+    case 'insp': doInsp(pid, m); break;
+    case 'answer': doAnswer(pid, m); break;
+    case 'bid': doBid(pid, m); break;
+    case 'pass': doPass(pid); break;
+    case 'seal': doSeal(pid); break;
+    case 'cat': doCat(pid, m); break;
+    case 'ratpick': doRatPick(pid, m); break;
+    case 'buy': doBuy(pid, m); break;
+    default: return;
+  }
+  commit();
+}
+/*ENGINE-END*/
+
+/* =========================================================
    СЕТЬ: P2P через WebRTC (PeerJS). Сервера у нас нет —
    хост лобби = «сервер», остальные подключаются к нему по коду.
-   Хост хранит состояние и рассылает его всем (state).
-   Руки игроков приватные: хост шлёт каждому только его карты (hand),
-   в общем state у всех только количество карт и выбранный индекс.
+   Хост ведёт игру (движок выше) и рассылает всем публичное состояние (state).
+   Руки приватные: каждому игроку хост шлёт только его карты (hand),
+   а тайные подсказки (содержимое своего лота, Ревизор) — отдельно (peek).
    ========================================================= */
 const PREFIX = 'mycardgame-v1-';           // ПОМЕНЯЙ на уникальное, чтобы не пересечься с чужими
 const ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -165,47 +698,42 @@ const $ = id => document.getElementById(id);
 let peer = null, isHost = false, code = '';
 let conns = {};                             // хост: peerId -> connection
 let hostConn = null;                        // клиент: соединение с хостом
-let state = { phase: 'lobby', players: [], log: [] };
 
-/* игровое */
-let hostHands = {};                         // только у хоста: id -> [карты]
-let myHand = [], selIdx = -1, mySrc = null;
-let lastSeq = 0, tableReady = false, hideN = -1;
+/* Арт карт: ключ -> расширение файла в папке cards/. Карты без арта рисуются просто названием.
+   Чтобы добавить арт: положи cards/<ключ>.webp (или .png) и допиши строчку сюда. Ключи — в CARDS выше. */
+const IMG = {bread:'webp', wheat:'webp', rich:'webp', moldy:'webp'};
+const CAP = {simple:'простой', gentry:'господский ×2', royal:'королевский ×3', spoiled:'порча', rat:'напасть', pest:'напасть', cat:'помощник', auditor:'помощник'};
+const STEP_MSG = {compose:'выкладывает лот', showcase:'решает про витрину', inspect:'осматривает лот', answer:'отвечает на вопрос',
+  auction:'торгуется', cat:'решает, играть ли Кота', rat:'выбирает партию для Крысы', buy:'докупает карты'};
+
+let myHand = [], selIds = new Set(), myPeek = null, mySrc = null;
+let lastSeq = 0, curGid = 0, tableReady = false, hideLot = false;
+let slotSig = '', prevLot = null, finalGid = 0;
+const ui = {price:'', q:'', bid:'', bidMin:-1, mode:null, actKey:''};
 const seatEls = {};
-const VERSION = 'alpha 0.0.1';
-/* Карты: ключ -> название и сколько штук в колоде. Картинки: cards/<ключ>.webp, рубашка: cards/back.webp */
-const CARDS = {
-  bread: {name:'Хлеб',            n:10},
-  wheat: {name:'Пшеничный хлеб',  n:2},
-  rich:  {name:'Сдобный хлеб',    n:1},
-  moldy: {name:'Заплесневелый хлеб', n:4}
-};
-let hostDeck = [];                          // только у хоста: оставшаяся колода
-const makeDeck = () => {
-  const d = [];
-  Object.keys(CARDS).forEach(k => { for (let i = 0; i < CARDS[k].n; i++) d.push({k}); });
-  for (let i = d.length - 1; i > 0; i--){ const j = Math.random()*(i+1)|0; [d[i], d[j]] = [d[j], d[i]]; }
-  return d;
-};
-['back', ...Object.keys(CARDS)].forEach(k => { new Image().src = 'cards/' + k + '.webp'; });   // прогрев кэша
 const reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-const randCode = () => Array.from({length:5},()=>ALPHABET[Math.random()*ALPHABET.length|0]).join('');
-const myName = () => ($('name').value.trim() || 'Игрок').slice(0,16);
+const randCode = () => Array.from({length:5}, () => ALPHABET[Math.random() * ALPHABET.length | 0]).join('');
+const myName = () => ($('name').value.trim() || 'Игрок').slice(0, 16);
 const myId = () => isHost ? 'host' : (peer && peer.id);
-const rnd = (a,b) => Math.round(a + Math.random()*(b-a));
-const show = id => document.querySelectorAll('.screen').forEach(s => s.classList.toggle('on', s.id===id));
+const show = id => document.querySelectorAll('.screen').forEach(s => s.classList.toggle('on', s.id === id));
 const homeErr = t => $('homeErr').textContent = t || '';
+function el(tag, cls, text){ const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+['back', ...Object.keys(IMG)].forEach(k => { new Image().src = 'cards/' + (k === 'back' ? 'back.webp' : k + '.' + IMG[k]); });   // прогрев кэша
 
 /* ---------- Хост ---------- */
-function createLobby(attempt=0){
+HOOK.broadcast = () => { Object.values(conns).forEach(c => c.open && c.send({t:'state', state:S})); applyState(S); };
+HOOK.hand = (id, cards, newIds) => { if (id === 'host') setHand(cards, newIds); else if (conns[id] && conns[id].open) conns[id].send({t:'hand', cards, newIds}); };
+HOOK.peek = (id, data) => { if (id === 'host') setPeek(data); else if (conns[id] && conns[id].open) conns[id].send(Object.assign({t:'peek'}, data)); };
+
+function createLobby(attempt = 0){
   homeErr('');
   code = randCode();
   peer = new Peer(PREFIX + code);
   peer.on('open', () => {
     isHost = true;
-    state = { phase:'lobby', players:[{id:'host', name:myName(), host:true, count:0, sel:-1}], log:[], pile:[], seq:0, evt:null, deckN:0 };
-    enterLobby(); broadcast();
+    S = newState(); H = newH();
+    S.players.push({id:'host', name:myName(), host:true, count:0, coins:0, sealUsed:false, selN:0});
+    enterLobby(); commit();
   });
   peer.on('connection', c => {
     c.on('data', m => hostReceive(c, m));
@@ -214,64 +742,40 @@ function createLobby(attempt=0){
     conns[c.peer] = c;
   });
   peer.on('error', e => {
-    if (e.type === 'unavailable-id' && attempt < 5) { peer.destroy(); createLobby(attempt+1); }
+    if (e.type === 'unavailable-id' && attempt < 5) { peer.destroy(); createLobby(attempt + 1); }
     else homeErr('Не удалось создать лобби: ' + netErr(e));
   });
-}
-function pushHand(id, newIdx){
-  const cards = hostHands[id] || [];
-  if (id === 'host') setHand(cards, newIdx);
-  else if (conns[id] && conns[id].open) conns[id].send({t:'hand', cards, newIdx});
 }
 function hostReceive(c, m){
   const pid = c.peer;
   if (m.t === 'hello'){
-    if (state.phase !== 'lobby') return c.send({t:'error', msg:'Игра уже идёт'});
-    if (state.players.length >= 8) return c.send({t:'error', msg:'Лобби заполнено'});
-    state.players.push({id:pid, name:String(m.name||'Игрок').slice(0,16), count:0, sel:-1});
-    return broadcast();
+    if (m.ver !== VERSION) return c.send({t:'error', msg:'Версия игры не совпадает (у тебя ' + m.ver + ', у хоста ' + VERSION + '). Обнови страницу: Ctrl+F5'});
+    if (S.phase !== 'lobby') return c.send({t:'error', msg:'Игра уже идёт'});
+    if (S.players.length >= 5) return c.send({t:'error', msg:'Лобби заполнено (максимум 5 игроков)'});
+    S.players.push({id:pid, name:String(m.name || 'Игрок').slice(0, 16), count:0, coins:0, sealUsed:false, selN:0});
+    return commit();
   }
-  const p = state.players.find(x => x.id === pid);
+  const p = S.players.find(x => x.id === pid);
   if (!p) return;
-  if (m.t === 'ping') addLog(p.name + ': пинг');
-
-  if (state.phase === 'game' && hostHands[pid]){
-    const h = hostHands[pid];
-    if (m.t === 'select'){
-      p.sel = (Number.isInteger(m.i) && m.i >= 0 && m.i < h.length) ? m.i : -1;
-    }
-    if (m.t === 'play' && Number.isInteger(m.i) && m.i >= 0 && m.i < h.length){
-      const card = h.splice(m.i, 1)[0];
-      const n = ++state.seq;
-      state.pile.push({n, k:card.k, rot:rnd(-28,28), ox:rnd(-16,16), oy:rnd(-12,12), by:pid});
-      state.pile = state.pile.slice(-8);
-      p.count = h.length; p.sel = -1;
-      state.evt = {seq:n, type:'play', by:pid, card:{k:card.k}};
-      addLog(p.name + ' бросил «' + CARDS[card.k].name + '»');
-      pushHand(pid);
-    }
-    if (m.t === 'draw'){
-      if (!hostDeck.length) addLog('Колода пуста');
-      else if (h.length < 15){
-        h.push(hostDeck.pop());
-        p.count = h.length; p.sel = -1; state.deckN = hostDeck.length;
-        state.evt = {seq:++state.seq, type:'draw', by:pid, card:null};
-        addLog(p.name + ' берёт карту');
-        pushHand(pid, h.length - 1);
-      }
-    }
-  }
-  broadcast();
+  if (m.t === 'ping'){ addLog(p.name + ': пинг'); return commit(); }
+  if (m.t === 'chat'){ const s = String(m.s || '').trim().slice(0, 140); if (s){ addChat(p.name, s); commit(); } return; }
+  if (m.t === 'restart'){ if (pid === 'host' && S.phase === 'over') backToLobby(); return; }
+  handle(pid, m);
+}
+function backToLobby(notice){
+  const keep = S.players.map(p => ({id:p.id, name:p.name, host:!!p.host, count:0, coins:0, sealUsed:false, selN:0}));
+  const gid = S.gid;
+  S = newState(); S.gid = gid; S.players = keep; S.notice = notice || ''; H = newH();
+  commit();
 }
 function dropPlayer(id){
-  delete conns[id]; delete hostHands[id];
-  state.players = state.players.filter(p => p.id !== id);
-  broadcast();
-}
-function addLog(s){ state.log.push(s); state.log = state.log.slice(-30); }
-function broadcast(){
-  Object.values(conns).forEach(c => c.open && c.send({t:'state', state}));
-  applyState(state);
+  delete conns[id];
+  const p = S.players.find(x => x.id === id);
+  if (!p) return;
+  const name = p.name, inGame = S.phase === 'game';
+  S.players = S.players.filter(x => x.id !== id); delete H.hands[id]; delete H.sentIds[id];
+  if (inGame) backToLobby('Игра прервана: ' + name + ' отключился(ась). Начните заново');
+  else commit();
 }
 
 /* ---------- Клиент ---------- */
@@ -283,17 +787,18 @@ function joinLobby(){
   peer = new Peer();
   peer.on('open', () => {
     hostConn = peer.connect(PREFIX + code, {reliable:true});
-    const timer = setTimeout(() => { if(!hostConn.open){ homeErr('Лобби не найдено'); leave(); } }, 8000);
-    hostConn.on('open', () => { clearTimeout(timer); hostConn.send({t:'hello', name:myName()}); });
+    const timer = setTimeout(() => { if (!hostConn.open){ homeErr('Лобби не найдено'); leave(); } }, 8000);
+    hostConn.on('open', () => { clearTimeout(timer); hostConn.send({t:'hello', name:myName(), ver:VERSION}); });
     hostConn.on('data', m => {
       if (m.t === 'state'){
-        if(!$('lobby').classList.contains('on') && !$('game').classList.contains('on')) enterLobby();
+        if (!$('lobby').classList.contains('on') && !$('game').classList.contains('on')) enterLobby();
         applyState(m.state);
       }
-      if (m.t === 'hand') setHand(m.cards, m.newIdx);
-      if (m.t === 'error'){ homeErr(m.msg); leave(); }
+      if (m.t === 'hand') setHand(m.cards, m.newIds);
+      if (m.t === 'peek') setPeek(m);
+      if (m.t === 'error'){ const msg = m.msg; leave(); homeErr(msg); }
     });
-    hostConn.on('close', () => { homeErr('Хост закрыл лобби'); leave(); });
+    hostConn.on('close', () => { leave(); homeErr('Хост закрыл лобби'); });
   });
   peer.on('error', e => { homeErr(e.type === 'peer-unavailable' ? 'Лобби с таким кодом нет' : 'Ошибка: ' + netErr(e)); });
 }
@@ -314,51 +819,77 @@ function netErr(e){
 function send(m){ isHost ? hostReceive({peer:'host', send(){}}, m) : hostConn && hostConn.open && hostConn.send(m); }
 function leave(){
   try{ peer && peer.destroy(); }catch(e){}
-  peer = null; hostConn = null; conns = {}; isHost = false; hostHands = {}; hostDeck = [];
-  myHand = []; selIdx = -1; lastSeq = 0; tableReady = false; hideN = -1;
+  peer = null; hostConn = null; conns = {}; isHost = false;
+  S = newState(); H = newH();
+  myHand = []; selIds = new Set(); myPeek = null; mySrc = null;
+  lastSeq = 0; curGid = 0; tableReady = false; hideLot = false; slotSig = ''; prevLot = null; finalGid = 0; ui.actKey = ''; ui.mode = null;
   Object.keys(seatEls).forEach(k => delete seatEls[k]);
-  $('seats').innerHTML = ''; $('pile').innerHTML = ''; $('hand').innerHTML = '';
+  $('seats').innerHTML = ''; $('slots').innerHTML = ''; $('hand').innerHTML = ''; $('act').innerHTML = '';
+  $('finalM').classList.remove('on'); $('cheatM').classList.remove('on');
   show('home');
 }
 function enterLobby(){ $('roomCode').textContent = code; $('gameCode').textContent = code; show('lobby'); }
 
-/* Принять новое состояние: заранее запоминаем, откуда полетит карта, потом рисуем и анимируем */
+/* Принять новое состояние: заранее запоминаем, откуда полетят карты, потом рисуем и анимируем */
 function applyState(ns){
-  const ev = ns.evt;
-  const fresh = !!(ev && tableReady && ev.seq > lastSeq);
-  const src = fresh ? srcFor(ev) : null;
-  state = ns;
-  hideN = (fresh && ev.type === 'play') ? ev.seq : -1;
+  if (ns.gid !== curGid){ curGid = ns.gid; lastSeq = 0; tableReady = false; slotSig = ''; prevLot = null; myPeek = null; selIds = new Set(); ui.actKey = ''; }
+  const evs = (ns.evts || []).filter(e => e.seq > lastSeq);
+  const fresh = tableReady ? evs : [];
+  const srcs = fresh.map(e => srcFor(e));
+  S = ns;
+  hideLot = fresh.some(e => e.type === 'lot');
+  if (!S.lot) myPeek = null;
   render();
-  if (ev && ev.seq > lastSeq){ if (fresh) animateEvent(ev, src); lastSeq = ev.seq; }
+  fresh.forEach((e, i) => animateEvent(e, srcs[i]));
+  if (evs.length) lastSeq = Math.max(lastSeq, ...evs.map(e => e.seq));
 }
+function setHand(cards, newIds){
+  myHand = cards;
+  selIds = new Set([...selIds].filter(id => cards.some(c => c.id === id)));
+  buildHand(newIds || []); ui.actKey = ''; if (S.phase === 'game') renderAct();
+}
+function setPeek(d){ myPeek = {lot:d.lot, own:d.own, cards:d.cards}; slotSig = ''; ui.actKey = ''; if (S.phase === 'game'){ renderLot(); renderAct(); } }
 
 /* ---------- Интерфейс ---------- */
 function render(){
+  if (S.phase === 'lobby'){ renderLobby(); show('lobby'); return; }
+  show('game');
+  if (S.phase !== 'over') $('finalM').classList.remove('on');
+  renderTable();
+}
+function renderLobby(){
   $('plist').innerHTML = '';
-  state.players.forEach(p => {
-    const li = document.createElement('li');
-    const n = document.createElement('span'); n.textContent = p.name;
-    const t = document.createElement('span'); t.className='tag';
-    t.textContent = p.host ? 'хост' : (p.id === (peer && peer.id) ? 'ты' : '');
+  S.players.forEach(p => {
+    const li = el('li'); const n = el('span', null, p.name); const t = el('span', 'tag', p.host ? 'хост' : (p.id === (peer && peer.id) ? 'ты' : ''));
     li.append(n, t); $('plist').append(li);
   });
+  const n = S.players.length;
   $('start').style.display = isHost ? '' : 'none';
-  $('start').disabled = state.players.length < 2;
-  $('lobbyHint').textContent = isHost ? (state.players.length < 2 ? 'Нужен хотя бы ещё один игрок' : '') : 'Ждём, пока хост начнёт игру…';
-  if (state.phase === 'game'){ show('game'); renderTable(); }
+  $('start').disabled = n < 2 || n > 5;
+  $('lobbyHint').textContent = (S.notice ? S.notice + '. ' : '') +
+    (isHost ? (n < 2 ? 'Нужен хотя бы ещё один игрок (по правилам 3–5)' : (n === 2 ? 'Вдвоём — тестовый режим (по правилам 3–5 игроков)' : '')) : 'Ждём, пока хост начнёт игру…');
 }
 
-function mkFace(c){
-  const d = document.createElement('div');
-  d.className = 'card'; d.dataset.k = c.k;
-  d.title = CARDS[c.k] ? CARDS[c.k].name : '';
-  return d;
+function mkFace(c, small){
+  const d = CARDS[c.k] || {name:'?', kind:'simple'};
+  const e = el('div', 'card' + (IMG[c.k] ? '' : ' txt') + (small ? ' sm' : ''));
+  e.dataset.k = c.k; e.dataset.t = d.kind; e.title = d.name;
+  if (IMG[c.k]) e.style.backgroundImage = 'url(cards/' + c.k + '.' + IMG[c.k] + ')';
+  else e.append(el('b', null, d.name), el('small', null, CAP[d.kind]));
+  return e;
+}
+const mkBack = small => el('div', 'card back' + (small ? ' sm' : ''));
+
+function statusOf(p){
+  if (S.phase !== 'game') return '';
+  if (S.turn === p.id && STEP_MSG[S.step]) return STEP_MSG[S.step];
+  if (S.auction && S.auction.passed.includes(p.id)) return 'пас';
+  if (S.auction && S.auction.by === p.id) return 'ставка ' + S.auction.high;
+  return '';
 }
 
 function renderTable(){
-  const me = myId();
-  const ps = state.players;
+  const me = myId(), ps = S.players;
   const meIdx = Math.max(0, ps.findIndex(p => p.id === me));
   const opps = [];
   for (let k = 1; k < ps.length; k++) opps.push(ps[(meIdx + k) % ps.length]);
@@ -370,175 +901,396 @@ function renderTable(){
     const t = (j + 1) / (opps.length + 1);          // 0..1 вдоль верхней дуги (слева направо)
     const x = 50 - 44 * Math.cos(Math.PI * t);
     const y = 57 - 40 * Math.sin(Math.PI * t);
-    let el = seatEls[p.id];
-    if (!el){
-      el = document.createElement('div'); el.className = 'seat';
-      el.innerHTML = '<div class="fan"></div><div class="plate"><span class="nm"></span><span class="cnt"></span><span class="st"></span></div>';
-      $('seats').append(el); seatEls[p.id] = el;
+    let e = seatEls[p.id];
+    if (!e){
+      e = el('div', 'seat');
+      e.innerHTML = '<div class="fan"></div><div class="plate"><span class="nm"></span><span class="tg"></span><span class="cnt"></span><span class="coin"></span><span class="st"></span></div>';
+      $('seats').append(e); seatEls[p.id] = e;
     }
-    el.style.left = x + '%'; el.style.top = y + '%';
-    el.style.setProperty('--s', (0.72 + y / 100 * 0.55).toFixed(3));   // дальние сидят «мельче»
-
+    e.style.left = x + '%'; e.style.top = y + '%';
+    e.style.setProperty('--s', (0.72 + y / 100 * 0.55).toFixed(3));   // дальние сидят «мельче»
     const ang = Math.round(Math.atan2((50 - x) / 100 * tw, -(57 - y) / 100 * th) * 180 / Math.PI);
     const shown = Math.min(p.count, 12);
-    const fan = el.querySelector('.fan');
-    const key = shown + '|' + ang;
-    if (el.dataset.k !== key){                       // перестраиваем веер, только если изменилось число карт/угол
-      el.dataset.k = key; fan.innerHTML = '';
+    const fan = e.querySelector('.fan'), key = shown + '|' + ang;
+    if (e.dataset.k !== key){                       // перестраиваем веер, только если изменилось число карт/угол
+      e.dataset.k = key; fan.innerHTML = '';
       fan.style.transform = 'rotate(' + ang + 'deg)';
       const step = shown > 1 ? Math.min(7, 70 / (shown - 1)) : 0;
       for (let i = 0; i < shown; i++){
-        const b = document.createElement('div'); b.className = 'b back';
+        const b = el('div', 'b back');
         b.style.setProperty('--a', ((i - (shown - 1) / 2) * step).toFixed(1) + 'deg');
-        b.style.zIndex = i;
-        fan.append(b);
+        b.style.zIndex = i; fan.append(b);
       }
     }
-    const selShown = p.sel >= 0 && p.count > 0
-      ? (p.count > shown ? Math.round(p.sel * (shown - 1) / Math.max(1, p.count - 1)) : p.sel) : -1;
-    [...fan.children].forEach((b, i) => b.classList.toggle('s', i === selShown));
-    el.classList.toggle('pick', p.sel >= 0);
-    el.querySelector('.nm').textContent = p.name;
-    el.querySelector('.cnt').textContent = p.count;
-    el.querySelector('.st').textContent = p.sel >= 0 ? 'выбирает' : '';
+    e.classList.toggle('pick', S.turn === p.id && S.phase === 'game');
+    e.classList.toggle('sell', S.seller === p.id && S.phase === 'game');
+    e.querySelector('.nm').textContent = p.name;
+    e.querySelector('.tg').textContent = S.starost === p.id ? '★' : '';
+    e.querySelector('.cnt').textContent = p.count;
+    e.querySelector('.coin').textContent = p.coins + ' мон.' + (p.sealUsed ? '' : ' · с печатью');
+    const st = e.querySelector('.st'), s = statusOf(p) + (p.selN && S.step === 'compose' && S.turn === p.id ? ' (' + p.selN + '/3)' : '');
+    st.textContent = s; st.classList.toggle('on', S.turn === p.id && !!STEP_MSG[S.step]);
   });
   Object.keys(seatEls).forEach(id => { if (!seen.has(id)){ seatEls[id].remove(); delete seatEls[id]; } });
 
-  renderPile();
-  $('deck').classList.toggle('empty', !state.deckN);
-  $('deckL').textContent = 'колода · ' + (state.deckN || 0);
+  $('deck').classList.toggle('empty', !S.deckN);
+  $('deckL').textContent = 'колода · ' + (S.deckN || 0);
+  const disc = $('disc'); disc.innerHTML = '';
+  if (S.discTop) disc.append(mkFace({k:S.discTop}));
+  $('discL').textContent = 'сброс · ' + (S.discN || 0);
+
+  $('dayinfo').innerHTML = '';
+  const di = $('dayinfo'); di.append('День ' + S.day + ' из ' + S.days + ' · ' + (S.round === 'm' ? 'утро' : 'вечер'));
+  const sm = el('small', null, 'Староста рынка: ' + (ps.find(p => p.id === S.starost) || {name:'—'}).name + (S.day === S.days ? ' · последний день: без добора карт' : ''));
+  di.append(sm);
+
+  renderBanner(); renderLot();
 
   const mp = ps.find(p => p.id === me);
-  $('mebar').textContent = (mp ? mp.name : 'Ты') + ' · карт: ' + myHand.length;
+  const mb = $('mebar'); mb.classList.toggle('turn', S.turn === me && S.phase === 'game');
+  mb.innerHTML = '';
+  mb.append(el('div', null, (mp ? mp.name : 'Ты') + ' · карт: ' + myHand.length + ' · ' + (mp ? mp.coins : 0) + ' мон.'));
+  mb.append(el('small', null, (mp && mp.sealUsed ? 'Печать использована' : 'Печать купца при тебе') + (S.starost === me ? ' · ты Староста' : '')));
+
   const lg = $('log'); lg.innerHTML = '';
-  state.log.forEach(s => { const d = document.createElement('div'); d.textContent = s; lg.append(d); });
+  S.log.forEach(it => {
+    const d = el('div', it.c ? 'c' : '');
+    if (it.c){ d.append(el('b', null, it.n + ': '), it.s); } else d.textContent = it.s;
+    lg.append(d);
+  });
   lg.scrollTop = lg.scrollHeight;
+
+  renderAct();
+  if (S.phase === 'over') renderFinal();
   tableReady = true;
 }
 
-function renderPile(){
-  const pile = $('pile');
-  const want = new Set((state.pile || []).map(c => c.n));
-  [...pile.children].forEach(el => { if (!want.has(+el.dataset.n)) el.remove(); });
-  (state.pile || []).forEach(c => {
-    if (pile.querySelector('[data-n="' + c.n + '"]')) return;
-    const el = mkFace(c);
-    el.dataset.n = c.n;
-    el.style.setProperty('--ox', c.ox + 'px'); el.style.setProperty('--oy', c.oy + 'px');
-    el.style.setProperty('--rot', c.rot + 'deg');
-    if (c.n === hideN) el.style.visibility = 'hidden';   // покажем, когда долетит
-    pile.append(el);
-  });
+function renderBanner(){
+  const nm = id => (S.players.find(p => p.id === id) || {name:'?'}).name;
+  let t = '';
+  if (S.phase === 'over') t = 'Игра окончена';
+  else if (S.step === 'compose') t = nm(S.seller) + ' выбирает лот';
+  else if (S.step === 'showcase') t = nm(S.seller) + ': открыть ли карту на витрине?';
+  else if (S.step === 'inspect') t = 'Осмотр лота: ' + nm(S.turn);
+  else if (S.step === 'answer') t = nm(S.turn) + ' отвечает на вопрос';
+  else if (S.step === 'auction') t = 'Торги: ' + nm(S.turn) + (S.auction && S.auction.by ? ' (ставка ' + S.auction.high + ')' : '');
+  else if (S.step === 'cat') t = nm(S.turn) + ': играть ли Кота?';
+  else if (S.step === 'rat') t = nm(S.turn) + ' выбирает партию для Крысы';
+  else if (S.step === 'buy') t = nm(S.turn) + ' решает, докупать ли карты';
+  $('banner').textContent = t;
 }
 
+/* лот на прилавке */
+const slotPickable = () => S.phase === 'game' && S.turn === myId() && (S.step === 'showcase' || (S.step === 'inspect' && ui.mode === 'open'));
+function renderLot(){
+  const L = S.lot, sl = $('slots'), nm = id => (S.players.find(p => p.id === id) || {name:'?'}).name;
+  const peekC = (L && myPeek && myPeek.lot === L.n) ? myPeek.cards : null;
+  const pick = slotPickable();
+  const sig = L ? [L.n, L.cards.map(c => c.open ? c.k : '-').join(), peekC ? peekC.join() : '', pick ? 1 : 0, hideLot ? 1 : 0].join('|') : '';
+  if (sig !== slotSig){
+    slotSig = sig; sl.innerHTML = '';
+    if (L){
+      L.cards.forEach((c, i) => {
+        const w = el('div', 'slot' + (pick && !c.open ? ' pick' : ''));
+        const card = c.open ? mkFace({k:c.k}, true) : mkBack(true);
+        if (c.open && prevLot && prevLot.n === L.n && !prevLot.open[i]) card.classList.add('flip');
+        w.append(card, el('span', 'sn', String(i + 1)));
+        if (!c.open && peekC) w.append(el('span', 'pk', CARDS[peekC[i]].name));
+        if (hideLot) w.style.visibility = 'hidden';
+        w.onclick = () => slotClick(i);
+        sl.append(w);
+      });
+    }
+    prevLot = L ? {n:L.n, open:L.cards.map(c => c.open)} : null;
+  }
+  const info = $('lotinfo'); info.innerHTML = '';
+  if (!L){ info.style.display = 'none'; return; }
+  info.style.display = '';
+  info.append(el('div', null, 'Продавец: ' + nm(S.seller) + ' · цена от ' + L.price));
+  if (S.auction) info.append(el('div', null, S.auction.by ? 'Текущая ставка: ' + S.auction.high + ' (' + nm(S.auction.by) + ')' : 'Ставок пока нет'));
+  L.qa.forEach(x => info.append(el('div', 'qa', x.by + ': «' + x.q + '» — ' + x.a)));
+  if (peekC) info.append(el('div', null, myPeek.own ? 'Ты знаешь свой лот (видно только тебе)' : 'Ревизор показал тебе весь лот (видно только тебе)'));
+}
+function slotClick(i){
+  if (!slotPickable() || !S.lot || S.lot.cards[i].open) return;
+  if (S.step === 'showcase') send({t:'showcase', i});
+  else { ui.mode = null; send({t:'insp', a:'open', i}); }
+}
+
+/* ---------- Панель действий ---------- */
+function btn(text, fn, o){
+  o = o || {};
+  const b = el('button', o.ghost ? 'ghost' : '', text); b.disabled = !!o.dis;
+  b.onclick = e => { e.stopPropagation(); fn(); }; return b;
+}
+function actMsg(t){ const e = $('act').querySelector('.aerr'); if (e) e.textContent = t || ''; }
+function actSig(){
+  const me = myId(), mp = S.players.find(p => p.id === me) || {};
+  const A = S.auction, L = S.lot;
+  return JSON.stringify([S.phase, S.step, S.turn, S.seller, L && L.n, L && L.opened, L && L.cards.map(c => c.open), A && [A.high, A.by, A.passed.includes(me)],
+    mp.coins, mp.sealUsed, selIds.size, ui.mode, S.info, myHand.filter(c => c.k === 'auditor').length]);
+}
+function renderAct(){
+  if (S.phase !== 'game'){ $('act').classList.remove('on'); $('act').innerHTML = ''; ui.actKey = ''; return; }
+  const me = myId(), turnMe = S.turn === me;
+  if (!(S.step === 'inspect' && turnMe)) ui.mode = null;
+  const key = actSig(); if (key === ui.actKey) return; ui.actKey = key;
+  const A = $('act'); A.innerHTML = ''; A.classList.remove('on');
+  const mp = S.players.find(p => p.id === me) || {coins:0};
+  const nm = id => (S.players.find(p => p.id === id) || {name:'?'}).name;
+  const add = (...n) => { A.append(...n); A.classList.add('on'); };
+  const row = (...n) => { const r = el('div', 'row'); r.append(...n); return r; };
+  const err = () => el('div', 'aerr');
+  const numInput = (get, set, min, ok) => {
+    const i = el('input'); i.type = 'number'; i.min = min; i.value = get(); i.oninput = () => set(i.value);
+    i.onkeydown = e => { if (e.key === 'Enter') ok(); }; return i;
+  };
+
+  if (S.step === 'compose' && turnMe){
+    const send3 = () => {
+      const price = Math.floor(Number(ui.price || 1));
+      if (selIds.size !== 3) return actMsg('Выбери ровно 3 карты');
+      if (!(price >= 1) || price > 9999) return actMsg('Цена — целое число от 1');
+      const first = $('hand').querySelector('.card.sel'); mySrc = first ? center(first) : null;
+      send({t:'lot', ids:[...selIds], price}); selIds = new Set();
+      $('hand').querySelectorAll('.sel').forEach(c => c.classList.remove('sel'));
+    };
+    const inp = numInput(() => ui.price || 1, v => ui.price = v, 1, send3);
+    add(el('div', 't', 'Твой ход: собери лот'), el('div', 'm', 'Кликай по картам в руке — выбрано ' + selIds.size + ' из 3. Цену потом менять нельзя.'),
+      row(el('span', 'm', 'Цена от'), inp, btn('Выложить лот', send3, {dis: selIds.size !== 3})), err());
+    return;
+  }
+  if (S.step === 'showcase' && turnMe){
+    add(el('div', 't', 'Витрина'), el('div', 'm', 'Можно бесплатно открыть одну карту лота лицом вверх — кликни по ней на прилавке. Закрыть обратно нельзя.'),
+      row(btn('Без витрины', () => send({t:'showcase', i:-1}), {ghost:true})));
+    return;
+  }
+  if (S.step === 'inspect' && turnMe){
+    const L = S.lot, aud = myHand.filter(c => c.k === 'auditor').length;
+    if (ui.mode === 'ask'){
+      const inp = el('input', 'wide'); inp.maxLength = 100; inp.value = ui.q; inp.placeholder = 'Вопрос про содержимое лота, ответ «да» или «нет»';
+      inp.oninput = () => ui.q = inp.value;
+      const go = () => { const q = ui.q.trim(); if (!q) return actMsg('Напиши вопрос'); ui.mode = null; ui.q = ''; send({t:'insp', a:'ask', q}); };
+      inp.onkeydown = e => { if (e.key === 'Enter') go(); };
+      const chips = el('div', 'chips');
+      ['В лоте есть Напасть?', 'В лоте есть Крыса?', 'В лоте есть испорченный товар?', 'В лоте есть помощник?'].forEach(t => chips.append(btn(t, () => { ui.q = t; inp.value = t; inp.focus(); }, {ghost:true})));
+      add(el('div', 't', 'Расспрос (−' + RULES.askCost + ' мон.)'), el('div', 'm', 'Вопрос про лот, а не про склад продавца; без «сколько». Продавец обязан ответить честно.'), inp, chips,
+        row(btn('Спросить', go), btn('Назад', () => { ui.mode = null; ui.actKey = ''; renderAct(); }, {ghost:true})), err());
+      setTimeout(() => inp.focus(), 0);
+      return;
+    }
+    if (ui.mode === 'open'){
+      add(el('div', 't', 'Вскрытие (−' + RULES.openCost + ' мон.)'), el('div', 'm', 'Кликни по закрытой карте лота на прилавке — она откроется для всех.'),
+        row(btn('Назад', () => { ui.mode = null; ui.actKey = ''; renderAct(); renderLot(); }, {ghost:true})));
+      renderLot(); return;
+    }
+    const canOpen = mp.coins >= RULES.openCost && !L.opened && L.cards.some(c => !c.open);
+    add(el('div', 't', 'Осмотр лота'), el('div', 'm', 'Одно действие или пропуск. Слухи — бесплатно, в любой момент (чат справа).'),
+      row(btn('Расспрос (−' + RULES.askCost + ')', () => { ui.mode = 'ask'; ui.actKey = ''; renderAct(); }, {dis: mp.coins < RULES.askCost}),
+          btn('Вскрытие (−' + RULES.openCost + ')', () => { ui.mode = 'open'; ui.actKey = ''; renderAct(); }, {dis: !canOpen}),
+          btn('Ревизор (сбросить)' + (aud ? ' ×' + aud : ''), () => send({t:'insp', a:'auditor'}), {dis: !aud}),
+          btn('Пропустить', () => send({t:'insp', a:'skip'}), {ghost:true})));
+    return;
+  }
+  if (S.step === 'answer' && turnMe){
+    add(el('div', 't', 'Вопрос от ' + nm(S.info.by)), el('div', 'm', '«' + S.info.q + '» — отвечай честно, ответ увидят все.'),
+      row(btn('Да', () => send({t:'answer', yes:true})), btn('Нет', () => send({t:'answer', yes:false}))));
+    return;
+  }
+  if (S.step === 'auction'){
+    const Au = S.auction, L = S.lot;
+    if (me === S.seller){ add(el('div', 'm', 'Твой лот на торгах. Ты в торгах не участвуешь.')); return; }
+    if (Au.passed.includes(me)){ add(el('div', 'm', 'Ты спасовал: в торгах за этот лот больше не участвуешь.')); return; }
+    const min = Au.by === null ? L.price : Au.high + 1;
+    if (ui.bidMin !== min){ ui.bidMin = min; ui.bid = String(min); }
+    const parts = [];
+    if (turnMe){
+      const go = () => {
+        const v = Math.floor(Number(ui.bid));
+        if (!(v >= min) || v > mp.coins) return actMsg('Ставка — от ' + min + ' до ' + mp.coins + ' (твои монеты)');
+        send({t:'bid', amount:v});
+      };
+      const inp = numInput(() => ui.bid, v => ui.bid = v, min, go);
+      const step = d => () => { ui.bid = String(Math.max(min, Math.floor(Number(ui.bid) || min) + d)); inp.value = ui.bid; };
+      parts.push(el('div', 't', 'Твоя очередь: ставка или пас'),
+        el('div', 'm', (Au.by ? 'Сейчас ' + Au.high + ' (' + nm(Au.by) + '), минимум ' + min : 'Ставок нет, минимум ' + min) + '. У тебя ' + mp.coins + ' мон.'),
+        row(btn('−1', step(-1), {ghost:true}), inp, btn('+1', step(1), {ghost:true}), btn('Ставка', go), btn('Пас', () => send({t:'pass'}), {ghost:true})));
+    } else parts.push(el('div', 'm', 'Торгуется ' + nm(S.turn) + '. Ждём…'));
+    if (Au.by !== null && !mp.sealUsed){
+      const cost = Au.high + RULES.sealFee;
+      parts.push(row(btn('Печать купца: «Продано!» (−' + cost + ')', () => {
+        if (confirm('Печать купца: торги закончатся сразу, лот достанется тебе. Заплатишь ' + cost + ' мон. (ставка ' + Au.high + ' + пошлина ' + RULES.sealFee + '). Печать одна на всю игру. Применить?')) send({t:'seal'});
+      }, {dis: mp.coins < cost, ghost:true})));
+    }
+    parts.push(err());
+    add(...parts); return;
+  }
+  if (S.step === 'cat' && turnMe){
+    add(el('div', 't', 'Напасть в купленном лоте!'),
+      el('div', 'm', '«' + CARDS[S.info.nap].name + '». У тебя Котов: ' + S.info.cats + '. Кот отменит эту Напасть (обе карты уйдут в сброс).'),
+      row(btn('Сыграть Кота', () => send({t:'cat', use:true})), btn('Не играть', () => send({t:'cat', use:false}), {ghost:true})));
+    return;
+  }
+  if (S.step === 'rat' && turnMe){
+    add(el('div', 't', 'Крыса: какая партия самая большая?'), el('div', 'm', 'Партии равны по числу простых карт и по цене — выбери, из какой Крыса съест две карты.'),
+      row(...S.info.opts.map(p => btn(prodName(p), () => send({t:'ratpick', prod:p})))));
+    return;
+  }
+  if (S.step === 'buy' && turnMe){
+    const mx = S.info.max, bs = [btn('Не докупать', () => send({t:'buy', n:0}), {ghost:true})];
+    for (let n = 1; n <= mx; n++) bs.push(btn('+' + n + ' карт' + (n === 1 ? 'а' : 'ы') + ' (−' + n * RULES.buyCost + ')', () => send({t:'buy', n})));
+    add(el('div', 't', 'Лот продан!'), el('div', 'm', 'Ты получил карту за продажу. Можно докупить ещё по ' + RULES.buyCost + ' мон. за карту.'), row(...bs));
+    return;
+  }
+}
+
+/* ---------- Итоги ---------- */
+function renderFinal(){
+  if (finalGid === S.gid) return; finalGid = S.gid;
+  const F = S.final, sh = $('finalS'); sh.innerHTML = '';
+  const names = F.winners.map(id => (S.players.find(p => p.id === id) || {name:'?'}).name).join(' и ');
+  sh.append(el('h3', null, 'Ярмарка закрыта'), el('div', 'big', (F.winners.length > 1 ? 'Победа делится: ' : 'Побеждает ') + names));
+  const tb = el('table'); const hr = el('tr');
+  ['Купец', ...PRODUCTS.map(p => p.name), 'Товар', 'Монеты'].concat(F.coinPoints ? ['Богатство'] : []).forEach(h => hr.append(el('th', null, h)));
+  tb.append(hr);
+  F.rows.forEach(r => {
+    const tr = el('tr', F.winners.includes(r.id) ? 'win' : '');
+    tr.append(el('td', null, r.name));
+    r.parts.forEach(x => {
+      const td = el('td'); td.append(el('b', null, x.value ? String(x.value) : '—'));
+      if (x.s || x.c || x.g || x.r) td.append(el('small', null, 'прост. ' + x.s + (x.c ? ' − порча ' + x.c : '') + (x.mult > 1 ? ' ×' + x.mult : '')));
+      tr.append(td);
+    });
+    tr.append(el('td', null, String(r.total)), el('td', null, String(r.coins)));
+    if (F.coinPoints) tr.append(el('td', null, String(r.wealth)));
+    tb.append(tr);
+  });
+  sh.append(tb, el('p', 'hint', 'Богатство = сумма партий. При ничьей: больше монет, потом больше простых карт.'));
+  const r = el('div', 'row');
+  if (isHost) r.append(btn('Вернуться в лобби', () => { $('finalM').classList.remove('on'); send({t:'restart'}); }));
+  r.append(btn('Выйти', leave, {ghost:true}));
+  sh.append(r);
+  $('finalM').classList.add('on');
+}
+$('finalM').addEventListener('click', e => { if (e.target === $('finalM')) $('finalM').classList.remove('on'); });
+
+/* ---------- Памятка ---------- */
+function openCheat(){
+  const s = $('cheatS'); s.innerHTML = '';
+  const tri10 = Array.from({length:10}, (_, i) => (i + 1) + ' → ' + tri(i + 1)).join(' · ');
+  s.innerHTML = '<h3>Памятка купца</h3>' +
+    '<p><b>Цена партии</b> (простых карт одного товара): ' + tri10 + '. Господская карта товара ×2, королевская ×3, множители перемножаются. ' +
+    'Каждая испорченная карта убирает 1 простую карту своего товара при подсчёте. Богатство — сумма партий всех шести товаров.</p>' +
+    '<p><b>День:</b> утренний подвоз (+' + RULES.supplyCards + ' карты, +' + RULES.morningCoins + ' мон.) → утренний торг → вечерний подвоз (+' + RULES.supplyCards + ' карты) → вечерний торг. В последний день подвозов и добора нет.</p>' +
+    '<p><b>Торговый ход продавца:</b> лот из 3 закрытых карт → цена (потом не менять) → витрина (по желанию) → осмотр → торги → развязка.</p>' +
+    '<p><b>Осмотр</b> (каждый покупатель — одно действие): Расспрос −' + RULES.askCost + ' (вопрос «да/нет», продавец отвечает честно), Вскрытие −' + RULES.openCost + ' (одна карта лота лицом вверх, один раз за лот), Ревизор (сбросить, тайно смотришь весь лот). Слухи — бесплатно, чат.</p>' +
+    '<p><b>Торги:</b> первая ставка не меньше цены, дальше минимум +1, нельзя ставить больше своих монет. Спасовал — вышел. <b>Печать купца</b> (один раз за игру, после первой ставки): торги сразу заканчиваются, лот твой, платишь ' + RULES.sealFee + ' + последняя ставка.</p>' +
+    '<p><b>Продан:</b> победитель платит ставку продавцу и забирает 3 карты. Напасти срабатывают сразу (Кот отменяет одну): сначала Вредители (вся партия товара в колоду), потом Крысы (две простые карты из самой большой партии в сброс). Продавец берёт карту и может докупить до ' + RULES.buyMax + ' по ' + RULES.buyCost + ' мон.</p>' +
+    '<p><b>Не продан:</b> товары лота (даже испорченные) в сброс, Напасти и помощники возвращаются продавцу.</p>';
+  const r = el('div', 'row'); r.append(btn('Закрыть', () => $('cheatM').classList.remove('on'))); s.append(r);
+  $('cheatM').classList.add('on');
+}
+$('cheatM').addEventListener('click', e => { if (e.target === $('cheatM')) $('cheatM').classList.remove('on'); });
+
 /* ---------- Моя рука ---------- */
-function setHand(cards, newIdx){ myHand = cards; selIdx = -1; buildHand(newIdx); }
-function buildHand(newIdx){
+function buildHand(newIds){
   const h = $('hand'); h.innerHTML = '';
-  const n = myHand.length;
+  const n = myHand.length, nw = new Set(newIds || []);
   const avail = Math.min(innerWidth - 40, 900);
   const step = n > 1 ? Math.min(74, (avail - 90) / (n - 1)) : 74;
   const gap = (step - 90) / 2;
   myHand.forEach((card, i) => {
     const c = mkFace(card);
-    const k = i - (n-1)/2;
+    c.dataset.id = card.id;
+    const k = i - (n - 1) / 2;
     c.style.margin = '0 ' + gap + 'px';
     c.style.setProperty('--r', (k * Math.min(7, 40 / Math.max(1, n - 1))) + 'deg');
-    c.style.setProperty('--by', (k*k * 3) + 'px');
-    if (i === selIdx) c.classList.add('sel');
-    if (i === newIdx) c.classList.add('new');
+    c.style.setProperty('--by', (k * k * 3 * Math.min(1, 12 / Math.max(1, n))) + 'px');
+    if (selIds.has(card.id)) c.classList.add('sel');
+    if (nw.has(card.id)) c.classList.add('new');
     c.addEventListener('mousemove', e => {           // наклон карты за курсором
       const r = c.getBoundingClientRect();
-      c.style.setProperty('--ty', (((e.clientX-r.left)/r.width-.5)*30) + 'deg');
-      c.style.setProperty('--tx', (-((e.clientY-r.top)/r.height-.5)*30) + 'deg');
+      c.style.setProperty('--ty', (((e.clientX - r.left) / r.width - .5) * 30) + 'deg');
+      c.style.setProperty('--tx', (-((e.clientY - r.top) / r.height - .5) * 30) + 'deg');
     });
-    c.addEventListener('mouseleave', () => { c.style.setProperty('--tx','0deg'); c.style.setProperty('--ty','0deg'); });
-    c.addEventListener('click', e => {
-      e.stopPropagation();
-      if (selIdx === i){ mySrc = center(c); send({t:'play', i}); }   // второй клик — бросить
-      else setSel(i);                                                 // первый — выбрать
-    });
+    c.addEventListener('mouseleave', () => { c.style.setProperty('--tx', '0deg'); c.style.setProperty('--ty', '0deg'); });
+    c.addEventListener('click', e => { e.stopPropagation(); onHandClick(card, c); });
     h.append(c);
   });
-  if (state.phase === 'game') $('mebar').textContent = ($('mebar').textContent.split(' · ')[0] || 'Ты') + ' · карт: ' + myHand.length;
 }
-function setSel(i){
-  selIdx = i;
-  [...$('hand').children].forEach((el, k) => el.classList.toggle('sel', k === i));
-  send({t:'select', i});
+function onHandClick(card, c){
+  if (!(S.phase === 'game' && S.step === 'compose' && S.turn === myId())) return;     // карты в руке кликаются только при выборе лота
+  if (selIds.has(card.id)){ selIds.delete(card.id); c.classList.remove('sel'); }
+  else if (selIds.size < 3){ selIds.add(card.id); c.classList.add('sel'); }
+  else return actMsg('Уже выбрано 3 карты — сними одну');
+  send({t:'select', n:selIds.size});
+  renderAct();
 }
+function clearSel(){ if (!selIds.size) return; selIds = new Set(); [...$('hand').children].forEach(c => c.classList.remove('sel')); send({t:'select', n:0}); renderAct(); }
 
 /* ---------- Анимации полёта карт ---------- */
-function center(el){ const r = el.getBoundingClientRect(); return {x: r.left + r.width/2, y: r.top + r.height/2}; }
+function center(e){ const r = e.getBoundingClientRect(); return {x: r.left + r.width / 2, y: r.top + r.height / 2}; }
 function seatAnchor(id){
-  const el = seatEls[id];
-  if (!el) return {x: innerWidth/2, y: 90};
-  const kids = el.querySelectorAll('.b');
-  const b = el.querySelector('.b.s') || kids[kids.length >> 1];
-  return center(b || el.querySelector('.plate'));
+  const e = seatEls[id];
+  if (!e) return {x: innerWidth / 2, y: 90};
+  const kids = e.querySelectorAll('.b');
+  return center(kids[kids.length >> 1] || e.querySelector('.plate'));
 }
-function srcFor(ev){
-  if (ev.type === 'play') return ev.by === myId() ? (mySrc || {x: innerWidth/2, y: innerHeight - 100}) : seatAnchor(ev.by);
+const myAnchor = () => ({x: innerWidth / 2, y: innerHeight - 90});
+const whereIs = id => id === myId() ? myAnchor() : seatAnchor(id);
+function srcFor(e){
+  if (e.type === 'lot') return e.by === myId() ? (mySrc || myAnchor()) : seatAnchor(e.by);
+  if (e.type === 'take') return center($('slots'));
   return center($('deck'));
 }
-function animateEvent(ev, src){
-  const mine = ev.by === myId();
-  const se = seatEls[ev.by];
+function animateEvent(e, src){
+  const mine = e.by === myId(), se = seatEls[e.by];
   if (se){ se.classList.add('flash'); setTimeout(() => se.classList.remove('flash'), 750); }
-  if (ev.type === 'play'){
-    const pe = $('pile').querySelector('[data-n="' + ev.seq + '"]');
-    const pc = (state.pile || []).find(c => c.n === ev.seq);
-    if (!pe){ return; }
-    const dst = center(pe);
-    fly({face: ev.card, from: src, to: dst, s0: mine ? 1 : 0.51, s1: 0.72, r0: 0, r1: pc ? pc.rot : 0,
-         flip: !mine, dur: 640, done: () => { pe.style.visibility = ''; }});
-  } else if (ev.type === 'draw'){
-    const dst = mine ? {x: innerWidth/2, y: innerHeight - 90} : seatAnchor(ev.by);
-    fly({face: null, from: src, to: dst, s0: 0.7, s1: mine ? 1 : 0.51, dur: 520});
+  if (e.type === 'lot'){
+    const slots = [...$('slots').children];
+    const reveal = () => slots.forEach(s => { s.style.visibility = ''; });
+    slots.forEach((s, i) => fly({face:null, from:{x: src.x + (i - 1) * 16, y: src.y}, to: center(s), s0: mine ? 1 : 0.51, s1: 0.87, dur: 600, delay: i * 120, done: () => { s.style.visibility = ''; }}));
+    setTimeout(reveal, 1500);
+  } else if (e.type === 'draw'){
+    for (let i = 0; i < Math.min(e.n, 4); i++) fly({face:null, from:src, to: whereIs(e.by), s0: 0.7, s1: mine ? 1 : 0.51, dur: 520, delay: i * 130});
+  } else if (e.type === 'take'){
+    for (let i = 0; i < 3; i++) fly({face:null, from:{x: src.x + (i - 1) * 40, y: src.y}, to: whereIs(e.by), s0: 0.87, s1: mine ? 1 : 0.51, dur: 560, delay: i * 90});
   }
 }
 function fly(o){
-  const f = document.createElement('div'); f.className = 'fly';
+  const f = el('div', 'fly');
   if (o.face) f.append(mkFace(o.face));
-  const bk = document.createElement('div'); bk.className = 'back bk'; f.append(bk);
+  f.append(el('div', 'back bk'));
   document.body.append(f);
-  const T = (p, s, r, ry, lift) => 'perspective(900px) translate(' + (p.x-45) + 'px,' + (p.y-70-(lift||0)) + 'px) rotate(' + r + 'deg) rotateY(' + ry + 'deg) scale(' + s + ')';
+  const T = (p, s, r, ry, lift) => 'perspective(900px) translate(' + (p.x - 45) + 'px,' + (p.y - 70 - (lift || 0)) + 'px) rotate(' + r + 'deg) rotateY(' + ry + 'deg) scale(' + s + ')';
   const ry0 = (!o.face || o.flip) ? 180 : 0, ry1 = o.face ? 0 : 180;
-  const mid = {x: (o.from.x + o.to.x)/2, y: (o.from.y + o.to.y)/2};
+  const mid = {x: (o.from.x + o.to.x) / 2, y: (o.from.y + o.to.y) / 2};
   const kf = [
-    {transform: T(o.from, o.s0, o.r0||0, ry0, 0), offset: 0},
-    {transform: T(mid, Math.max(o.s0, o.s1) * 1.12, ((o.r0||0)+(o.r1||0))/2, o.flip ? 90 : ry0, 70), offset: .5},
-    {transform: T(o.to, o.s1, o.r1||0, ry1, 0), offset: 1}
+    {transform: T(o.from, o.s0, o.r0 || 0, ry0, 0), offset: 0},
+    {transform: T(mid, Math.max(o.s0, o.s1) * 1.12, ((o.r0 || 0) + (o.r1 || 0)) / 2, o.flip ? 90 : ry0, 70), offset: .5},
+    {transform: T(o.to, o.s1, o.r1 || 0, ry1, 0), offset: 1}
   ];
-  const dur = reduce ? 1 : (o.dur || 600);
-  const a = f.animate(kf, {duration: dur, easing: 'cubic-bezier(.25,.7,.25,1)', fill: 'forwards'});
+  const dur = reduce ? 1 : (o.dur || 600), delay = reduce ? 0 : (o.delay || 0);
+  const a = f.animate(kf, {duration: dur, delay, easing: 'cubic-bezier(.25,.7,.25,1)', fill: 'both'});
   let ended = false;
   const fin = () => { if (ended) return; ended = true; f.remove(); o.done && o.done(); };
-  a.onfinish = fin; setTimeout(fin, dur + 300);
+  a.onfinish = fin; setTimeout(fin, dur + delay + 300);
 }
 
 /* ---------- Кнопки ---------- */
-$('ver').textContent = VERSION;
+['ver', 'ver2', 'ver3'].forEach(id => { $(id).textContent = VERSION; });
 $('create').onclick = () => createLobby();
 $('join').onclick = joinLobby;
 $('joinCode').addEventListener('keydown', e => { if (e.key === 'Enter') joinLobby(); });
 $('leave').onclick = leave;
+$('exit').onclick = () => { if (confirm('Выйти из игры?')) leave(); };
+$('cheat').onclick = openCheat;
 $('ping').onclick = () => send({t:'ping'});
-$('deck').onclick = e => { e.stopPropagation(); send({t:'draw'}); };
-$('game').addEventListener('click', () => { if (selIdx >= 0) setSel(-1); });   // клик мимо — снять выбор
-document.addEventListener('keydown', e => { if (e.key === 'Escape' && selIdx >= 0) setSel(-1); });
-window.addEventListener('resize', () => { if (state.phase === 'game'){ renderTable(); buildHand(); } });
+$('chatIn').addEventListener('keydown', e => { if (e.key === 'Enter'){ const s = $('chatIn').value.trim(); if (s){ send({t:'chat', s}); $('chatIn').value = ''; } } });
+document.addEventListener('keydown', e => { if (e.key === 'Escape'){ clearSel(); $('cheatM').classList.remove('on'); } });
+window.addEventListener('resize', () => { if (S.phase === 'game'){ renderTable(); buildHand(); } });
 $('roomCode').onclick = () => navigator.clipboard && navigator.clipboard.writeText(code);
-$('start').onclick = () => {
-  state.phase = 'game'; state.seq = 0; state.evt = null; lastSeq = 0; hostHands = {};
-  state.pile = [];
-  hostDeck = makeDeck();
-  const per = Math.max(1, Math.min(5, Math.floor((hostDeck.length - 1) / state.players.length)));   // карт в руку при раздаче
-  state.players.forEach(p => { hostHands[p.id] = hostDeck.splice(-per, per); p.count = per; p.sel = -1; });
-  state.deckN = hostDeck.length;
-  state.players.forEach(p => pushHand(p.id));        // сначала раздаём руки…
-  addLog('Игра началась'); broadcast();               // …потом переключаем всех на стол
-};
+$('start').onclick = () => { if (startGame()) commit(); };
 </script>
 </body>
 </html>
