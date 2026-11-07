@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Карточная игра — каркас</title>
+<style>
+:root{--bg:#141a26;--felt:#1f3b4d;--felt2:#16293a;--ink:#eef1f6;--mute:#8b97ab;--acc:#ffb703;--red:#e63946;--blue:#3a86ff;--green:#2a9d5c;--yellow:#ffb703}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:radial-gradient(ellipse at 50% 0%,#22304a,var(--bg) 70%);color:var(--ink);font:16px/1.4 "Trebuchet MS","Segoe UI",sans-serif;overflow-x:hidden}
+.screen{display:none;min-height:100%;padding:24px}
+.screen.on{display:flex;flex-direction:column;align-items:center}
+h1{font-size:clamp(2rem,6vw,3.2rem);margin:6vh 0 4px;letter-spacing:.5px}
+p.sub{color:var(--mute);margin:0 0 28px;text-align:center}
+.panel{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:20px;width:min(420px,100%);display:flex;flex-direction:column;gap:12px}
+input{font:inherit;padding:12px 14px;border-radius:10px;border:1px solid rgba(255,255,255,.18);background:#0e1420;color:var(--ink);width:100%}
+input:focus-visible,button:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+button{font:inherit;font-weight:700;padding:12px 16px;border-radius:10px;border:0;cursor:pointer;background:var(--acc);color:#1a1300}
+button.ghost{background:transparent;color:var(--ink);border:1px solid rgba(255,255,255,.25)}
+button:disabled{opacity:.45;cursor:not-allowed}
+.row{display:flex;gap:10px}
+.err{color:#ff8a93;min-height:1.2em;font-size:.9rem}
+.code{font-size:2.6rem;font-weight:800;letter-spacing:.3em;text-align:center;color:var(--acc);cursor:pointer;user-select:all}
+.hint{color:var(--mute);font-size:.85rem;text-align:center}
+ul.players{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+ul.players li{padding:10px 12px;background:rgba(255,255,255,.06);border-radius:8px;display:flex;justify-content:space-between}
+ul.players .tag{color:var(--acc);font-size:.8rem}
+
+/* ---- игровой стол (псевдо-3D на CSS) ---- */
+#game{padding:0;position:relative;overflow:hidden;height:100vh}
+.scene{perspective:1000px;width:100%;flex:1;display:flex;justify-content:center;align-items:flex-start;padding-top:6vh;position:relative}
+.felt{width:min(900px,94vw);height:min(520px,52vh);border-radius:50%/42%;background:radial-gradient(ellipse at 50% 40%,var(--felt),var(--felt2));border:10px solid #0d1622;box-shadow:0 40px 60px rgba(0,0,0,.55),inset 0 0 60px rgba(0,0,0,.45);transform:rotateX(52deg);transform-style:preserve-3d;position:relative}
+.pile{position:absolute;left:50%;top:50%;width:90px;height:130px;margin:-65px 0 0 -45px;transform-style:preserve-3d}
+.seats{position:absolute;top:2vh;left:0;right:0;display:flex;justify-content:center;gap:18px;flex-wrap:wrap;z-index:2;pointer-events:none}
+.seat{background:rgba(0,0,0,.45);border:1px solid rgba(255,255,255,.15);border-radius:999px;padding:6px 14px;font-size:.9rem;display:flex;gap:8px;align-items:center}
+.seat.me{border-color:var(--acc)}
+.seat i{display:inline-block;width:14px;height:20px;border-radius:3px;background:linear-gradient(135deg,#3a4a66,#222c40);border:1px solid #556}
+.card{width:90px;height:130px;border-radius:10px;position:relative;color:#fff;font-weight:800;font-size:2.2rem;display:flex;align-items:center;justify-content:center;border:4px solid #fff;box-shadow:0 8px 18px rgba(0,0,0,.45);user-select:none}
+.card::after{content:"";position:absolute;inset:14px 10px;border-radius:50%/40%;background:rgba(255,255,255,.2);transform:rotate(-24deg)}
+.card b{position:relative;z-index:1;text-shadow:0 2px 0 rgba(0,0,0,.3)}
+.hand{position:absolute;bottom:-20px;left:0;right:0;height:210px;display:flex;justify-content:center;align-items:flex-end;perspective:700px;z-index:3}
+.hand .card{margin:0 -16px;transform-origin:50% 120%;transition:transform .18s ease,box-shadow .18s;cursor:pointer;transform:rotate(var(--r)) translateY(var(--y)) rotateX(var(--tx,0deg)) rotateY(var(--ty,0deg))}
+.hand .card:hover{--y:-46px;z-index:5;box-shadow:0 18px 30px rgba(0,0,0,.6)}
+.hud{position:absolute;top:10px;left:12px;right:12px;display:flex;justify-content:space-between;align-items:flex-start;gap:10px;z-index:4}
+.hud .code{font-size:1rem;letter-spacing:.2em;display:inline}
+.log{position:absolute;right:12px;bottom:225px;width:min(260px,70vw);max-height:130px;overflow:auto;font-size:.82rem;color:var(--mute);background:rgba(0,0,0,.35);border-radius:10px;padding:8px 10px;z-index:4}
+.log div{margin:2px 0}
+@media (prefers-reduced-motion:reduce){.hand .card{transition:none}}
+</style>
+</head>
+<body>
+
+<!-- ЭКРАН 1: вход -->
+<section id="home" class="screen on">
+  <h1>Карточная игра</h1>
+  <p class="sub">Создай лобби или зайди по коду друга</p>
+  <div class="panel">
+    <input id="name" maxlength="16" placeholder="Твоё имя" autocomplete="off">
+    <button id="create">Создать лобби</button>
+    <div class="row">
+      <input id="joinCode" maxlength="5" placeholder="КОД" autocomplete="off" style="text-transform:uppercase;letter-spacing:.3em;text-align:center">
+      <button id="join" class="ghost">Войти</button>
+    </div>
+    <div class="err" id="homeErr"></div>
+  </div>
+</section>
+
+<!-- ЭКРАН 2: лобби -->
+<section id="lobby" class="screen">
+  <h1>Лобби</h1>
+  <p class="sub">Код для друзей (нажми, чтобы выделить)</p>
+  <div class="panel">
+    <div class="code" id="roomCode">-----</div>
+    <ul class="players" id="plist"></ul>
+    <button id="start" disabled>Начать игру</button>
+    <div class="hint" id="lobbyHint"></div>
+    <button id="leave" class="ghost">Выйти</button>
+  </div>
+</section>
+
+<!-- ЭКРАН 3: стол -->
+<section id="game" class="screen">
+  <div class="hud">
+    <div>Код: <span class="code" id="gameCode"></span></div>
+    <button id="ping" class="ghost">Тест связи</button>
+  </div>
+  <div class="seats" id="seats"></div>
+  <div class="scene"><div class="felt"><div class="pile" id="pile"></div></div></div>
+  <div class="log" id="log"></div>
+  <div class="hand" id="hand"></div>
+</section>
+
+<script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<script>
+/* =========================================================
+   СЕТЬ: P2P через WebRTC (PeerJS). Сервера у нас нет —
+   хост лобби = «сервер», остальные подключаются к нему по коду.
+   Хост хранит состояние и рассылает его всем (state).
+   ========================================================= */
+const PREFIX = 'mycardgame-v1-';           // ПОМЕНЯЙ на уникальное, чтобы не пересечься с чужими
+const ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+const $ = id => document.getElementById(id);
+
+let peer = null, isHost = false, code = '';
+let conns = {};                             // хост: peerId -> connection
+let hostConn = null;                        // клиент: соединение с хостом
+let state = { phase: 'lobby', players: [], log: [] };
+
+const randCode = () => Array.from({length:5},()=>ALPHABET[Math.random()*ALPHABET.length|0]).join('');
+const myName = () => ($('name').value.trim() || 'Игрок').slice(0,16);
+const show = id => document.querySelectorAll('.screen').forEach(s => s.classList.toggle('on', s.id===id));
+const homeErr = t => $('homeErr').textContent = t || '';
+
+/* ---------- Хост ---------- */
+function createLobby(attempt=0){
+  homeErr('');
+  code = randCode();
+  peer = new Peer(PREFIX + code);
+  peer.on('open', () => {
+    isHost = true;
+    state = { phase:'lobby', players:[{id:'host', name:myName(), host:true}], log:[] };
+    enterLobby(); broadcast();
+  });
+  peer.on('connection', c => {
+    c.on('data', m => hostReceive(c, m));
+    c.on('close', () => dropPlayer(c.peer));
+    c.on('error', () => dropPlayer(c.peer));
+    conns[c.peer] = c;
+  });
+  peer.on('error', e => {
+    if (e.type === 'unavailable-id' && attempt < 5) { peer.destroy(); createLobby(attempt+1); }
+    else homeErr('Не удалось создать лобби: ' + netErr(e));
+  });
+}
+function hostReceive(c, m){
+  if (m.t === 'hello'){
+    if (state.phase !== 'lobby') return c.send({t:'error', msg:'Игра уже идёт'});
+    if (state.players.length >= 8) return c.send({t:'error', msg:'Лобби заполнено'});
+    state.players.push({id:c.peer, name:String(m.name||'Игрок').slice(0,16)});
+  }
+  if (m.t === 'ping'){
+    const p = state.players.find(p => p.id === c.peer);
+    addLog((p?p.name:'?') + ': пинг');
+  }
+  broadcast();
+}
+function dropPlayer(id){
+  delete conns[id];
+  state.players = state.players.filter(p => p.id !== id);
+  broadcast();
+}
+function addLog(s){ state.log.push(s); state.log = state.log.slice(-30); }
+function broadcast(){
+  Object.values(conns).forEach(c => c.open && c.send({t:'state', state}));
+  render();
+}
+
+/* ---------- Клиент ---------- */
+function joinLobby(){
+  homeErr('');
+  const c = $('joinCode').value.trim().toUpperCase();
+  if (c.length !== 5) return homeErr('Код состоит из 5 символов');
+  code = c;
+  peer = new Peer();
+  peer.on('open', () => {
+    hostConn = peer.connect(PREFIX + code, {reliable:true});
+    const timer = setTimeout(() => { if(!hostConn.open){ homeErr('Лобби не найдено'); leave(); } }, 8000);
+    hostConn.on('open', () => { clearTimeout(timer); hostConn.send({t:'hello', name:myName()}); });
+    hostConn.on('data', m => {
+      if (m.t === 'state'){ state = m.state; if(!$('lobby').classList.contains('on') && !$('game').classList.contains('on')) enterLobby(); render(); }
+      if (m.t === 'error'){ homeErr(m.msg); leave(); }
+    });
+    hostConn.on('close', () => { homeErr('Хост закрыл лобби'); leave(); });
+  });
+  peer.on('error', e => { homeErr(e.type === 'peer-unavailable' ? 'Лобби с таким кодом нет' : 'Ошибка: ' + netErr(e)); });
+}
+/* Понятное описание ошибки. 'network' = браузер не достучался до сервера-посредника PeerJS (0.peerjs.com). */
+function netErr(e){
+  const hints = {
+    'network': 'нет связи с сервером PeerJS (0.peerjs.com). Проверь VPN, блокировщик рекламы/защиту от слежки, антивирус',
+    'server-error': 'сервер PeerJS недоступен',
+    'socket-error': 'сокет к серверу PeerJS не открылся',
+    'socket-closed': 'соединение с сервером PeerJS оборвалось',
+    'webrtc': 'браузер не смог установить WebRTC-соединение'
+  };
+  console.error('PeerJS error', e);
+  return e.type + (hints[e.type] ? ' — ' + hints[e.type] : '') + (e.message ? ' [' + e.message + ']' : '');
+}
+
+/* ---------- Общее ---------- */
+function send(m){ isHost ? hostReceive({peer:'host', send(){}}, m) : hostConn && hostConn.open && hostConn.send(m); }
+function leave(){
+  try{ peer && peer.destroy(); }catch(e){}
+  peer = null; hostConn = null; conns = {}; isHost = false;
+  show('home');
+}
+function enterLobby(){ $('roomCode').textContent = code; $('gameCode').textContent = code; show('lobby'); }
+
+/* ---------- Интерфейс ---------- */
+function render(){
+  $('plist').innerHTML = '';
+  state.players.forEach(p => {
+    const li = document.createElement('li');
+    const n = document.createElement('span'); n.textContent = p.name;
+    const t = document.createElement('span'); t.className='tag';
+    t.textContent = p.host ? 'хост' : (p.id === (peer && peer.id) ? 'ты' : '');
+    li.append(n, t); $('plist').append(li);
+  });
+  $('start').style.display = isHost ? '' : 'none';
+  $('start').disabled = state.players.length < 2;
+  $('lobbyHint').textContent = isHost ? (state.players.length < 2 ? 'Нужен хотя бы ещё один игрок' : '') : 'Ждём, пока хост начнёт игру…';
+  if (state.phase === 'game'){ show('game'); renderTable(); }
+}
+
+function renderTable(){
+  const seats = $('seats'); seats.innerHTML = '';
+  state.players.forEach(p => {
+    const d = document.createElement('div'); d.className = 'seat' + (p.id === (isHost?'host':peer.id) ? ' me' : '');
+    d.append(document.createTextNode(p.name + ' '));
+    for (let i=0;i<3;i++) d.append(document.createElement('i'));
+    seats.append(d);
+  });
+  const lg = $('log'); lg.innerHTML = '';
+  state.log.forEach(s => { const d = document.createElement('div'); d.textContent = s; lg.append(d); });
+  lg.scrollTop = lg.scrollHeight;
+}
+
+/* Демо-рука: просто чтобы почувствовать «полу-3D». Настоящую логику карт сделаем позже. */
+const COLORS = ['var(--red)','var(--blue)','var(--green)','var(--yellow)','var(--red)'];
+function buildHand(){
+  const h = $('hand'); h.innerHTML = '';
+  const n = 7;
+  for (let i=0;i<n;i++){
+    const c = document.createElement('div'); c.className = 'card';
+    const k = i - (n-1)/2;
+    c.style.setProperty('--r', (k*7) + 'deg');
+    c.style.setProperty('--y', (Math.abs(k)*Math.abs(k)*3) + 'px');
+    c.style.background = COLORS[i % COLORS.length];
+    c.innerHTML = '<b>' + ((i*3+2) % 10) + '</b>';
+    c.addEventListener('mousemove', e => {           // наклон карты за курсором
+      const r = c.getBoundingClientRect();
+      c.style.setProperty('--ty', (((e.clientX-r.left)/r.width-.5)*30) + 'deg');
+      c.style.setProperty('--tx', (-((e.clientY-r.top)/r.height-.5)*30) + 'deg');
+    });
+    c.addEventListener('mouseleave', () => { c.style.setProperty('--tx','0deg'); c.style.setProperty('--ty','0deg'); });
+    h.append(c);
+  }
+}
+
+$('create').onclick = () => createLobby();
+$('join').onclick = joinLobby;
+$('joinCode').addEventListener('keydown', e => { if (e.key === 'Enter') joinLobby(); });
+$('leave').onclick = leave;
+$('ping').onclick = () => send({t:'ping'});
+$('start').onclick = () => { state.phase = 'game'; addLog('Игра началась'); broadcast(); };
+$('roomCode').onclick = () => navigator.clipboard && navigator.clipboard.writeText(code);
+buildHand();
+</script>
+</body>
+</html>
