@@ -28,18 +28,18 @@ ul.players li{padding:10px 12px;background:rgba(255,255,255,.06);border-radius:8
 ul.players .tag{color:var(--acc);font-size:.8rem}
 
 /* ================= карты ================= */
-.card{width:90px;height:130px;border-radius:10px;position:relative;color:#fff;font-weight:800;font-size:2.2rem;display:flex;align-items:center;justify-content:center;border:4px solid #fff;box-shadow:0 8px 18px rgba(0,0,0,.45);user-select:none}
-.card::after{content:"";position:absolute;inset:14px 10px;border-radius:50%/40%;background:rgba(255,255,255,.2);transform:rotate(-24deg)}
-.card b{position:relative;z-index:1;text-shadow:0 2px 0 rgba(0,0,0,.3)}
-.card[data-c="3"]{color:#2a1c00}
-.card[data-c="3"] b{text-shadow:none}
+/* Картинки лежат в папке cards/ рядом с index.html. Размер карты 90x140 (пропорции как у арта). */
+.card{width:90px;height:140px;position:relative;background-size:100% 100%;background-repeat:no-repeat;
+  filter:drop-shadow(0 6px 8px rgba(0,0,0,.55));user-select:none;-webkit-user-drag:none}
+.card[data-k="bread"]{background-image:url(cards/bread.webp)}
+.card[data-k="wheat"]{background-image:url(cards/wheat.webp)}
+.card[data-k="rich"]{background-image:url(cards/rich.webp)}
+.card[data-k="moldy"]{background-image:url(cards/moldy.webp)}
 
 /* рубашка */
-.back{--k:1;border:2px solid #fff;border-radius:6px;box-shadow:0 4px 8px rgba(0,0,0,.45);
-  background:
-   radial-gradient(circle at 50% 50%,var(--acc) 0 calc(8px*var(--k)),#1b2547 calc(8px*var(--k)) calc(10px*var(--k)),transparent calc(10px*var(--k))),
-   repeating-linear-gradient(45deg,#2f4078 0 calc(5px*var(--k)),#243263 calc(5px*var(--k)) calc(10px*var(--k)))}
-.back.big{--k:2;border-width:4px;border-radius:10px}
+.back{background:url(cards/back.webp) center/100% 100% no-repeat;filter:drop-shadow(0 3px 4px rgba(0,0,0,.55))}
+
+.ver{color:var(--mute);font-size:.8rem;text-align:center;margin-top:18px;letter-spacing:.08em}
 
 /* ================= игровой стол ================= */
 #game{padding:0;position:relative;overflow:hidden;height:100vh}
@@ -53,23 +53,24 @@ ul.players .tag{color:var(--acc);font-size:.8rem}
   box-shadow:0 14px 0 #08101a,0 34px 50px rgba(0,0,0,.55),inset 0 0 70px rgba(0,0,0,.5)}
 .felt::after{content:"";position:absolute;inset:6%;border:2px solid rgba(255,255,255,.07);border-radius:50%}
 
-.deck{position:absolute;left:calc(50% - 104px);top:57%;width:63px;height:91px;margin:-46px 0 0 -31px;cursor:pointer;z-index:2;
-  transition:transform .15s;border-radius:8px;--k:1.4;border-width:3px;
-  box-shadow:2px 2px 0 #1a2340,4px 4px 0 #1a2340,6px 6px 0 #141c36,8px 12px 14px rgba(0,0,0,.5)}
+.deck{position:absolute;left:calc(50% - 104px);top:57%;width:64px;height:100px;margin:-50px 0 0 -32px;cursor:pointer;z-index:2;
+  transition:transform .15s;
+  filter:drop-shadow(2px 2px 0 #3a1010) drop-shadow(4px 4px 0 #2a0b0b) drop-shadow(6px 8px 8px rgba(0,0,0,.55))}
 .deck:hover{transform:translateY(-4px)}
-.deck-l{position:absolute;left:calc(50% - 104px);top:57%;margin-top:54px;transform:translateX(-50%);font-size:.72rem;color:var(--mute);pointer-events:none;z-index:2;white-space:nowrap}
+.deck.empty{opacity:.25;cursor:default;pointer-events:none}
+.deck-l{position:absolute;left:calc(50% - 104px);top:57%;margin-top:58px;transform:translateX(-50%);font-size:.72rem;color:var(--mute);pointer-events:none;z-index:2;white-space:nowrap}
 
 .pile{position:absolute;left:50%;top:57%;width:0;height:0;z-index:2}
-.pile .card{position:absolute;left:0;top:0;margin:-65px 0 0 -45px;
+.pile .card{position:absolute;left:0;top:0;margin:-70px 0 0 -45px;
   transform:translate(var(--ox,0px),var(--oy,0px)) rotate(var(--rot,0deg)) scale(.72)}
 
 .seats{position:absolute;inset:0;pointer-events:none;z-index:3}
 .seat{position:absolute;width:0;height:0;transform:scale(var(--s,1));transition:left .4s,top .4s}
 .fan{position:absolute;left:0;top:0;width:0;height:0}
-.fan .b{position:absolute;left:-23px;top:-96px;width:46px;height:66px;transform-origin:23px 96px;
+.fan .b{position:absolute;left:-22.5px;top:-100px;width:45px;height:70px;transform-origin:22.5px 100px;
   transform:rotate(var(--a,0deg)) translateY(var(--t,0px));
-  transition:transform .28s cubic-bezier(.2,.8,.2,1),box-shadow .28s}
-.fan .b.s{--t:-28px;box-shadow:0 0 0 2px var(--acc),0 0 18px 5px rgba(255,183,3,.65);z-index:2}
+  transition:transform .28s cubic-bezier(.2,.8,.2,1),filter .28s}
+.fan .b.s{--t:-28px;filter:drop-shadow(0 0 3px var(--acc)) drop-shadow(0 0 9px rgba(255,183,3,.9));z-index:2}
 .plate{position:absolute;left:0;top:0;transform:translate(-50%,-50%);z-index:3;background:rgba(0,0,0,.62);border:1px solid rgba(255,255,255,.22);
   border-radius:999px;padding:5px 12px;white-space:nowrap;display:flex;gap:8px;align-items:center;font-size:.85rem;transition:box-shadow .25s,border-color .25s}
 .plate .cnt{background:rgba(255,255,255,.14);border-radius:999px;padding:0 8px;font-size:.78rem}
@@ -81,16 +82,16 @@ ul.players .tag{color:var(--acc);font-size:.8rem}
 @keyframes flash{0%{box-shadow:0 0 0 0 rgba(255,255,255,.9)}100%{box-shadow:0 0 0 18px rgba(255,255,255,0)}}
 @keyframes blink{0%{opacity:.2}50%{opacity:1}100%{opacity:.2}}
 
-.fly{position:fixed;left:0;top:0;width:90px;height:130px;z-index:50;pointer-events:none;transform-style:preserve-3d;will-change:transform}
-.fly>*{position:absolute;left:0;top:0;width:90px;height:130px;backface-visibility:hidden;-webkit-backface-visibility:hidden}
+.fly{position:fixed;left:0;top:0;width:90px;height:140px;z-index:50;pointer-events:none;transform-style:preserve-3d;will-change:transform}
+.fly>*{position:absolute;left:0;top:0;width:90px;height:140px;backface-visibility:hidden;-webkit-backface-visibility:hidden;filter:none}
 .fly .bk{transform:rotateY(180deg)}
 
 .mebar{position:absolute;left:12px;bottom:228px;z-index:6;background:rgba(0,0,0,.5);border:1px solid var(--acc);border-radius:999px;padding:5px 14px;font-size:.88rem}
-.hand{position:absolute;bottom:-20px;left:0;right:0;height:210px;display:flex;justify-content:center;align-items:flex-end;perspective:700px;z-index:5}
-.hand .card{transform-origin:50% 120%;transition:transform .18s ease,box-shadow .18s;cursor:pointer;
+.hand{position:absolute;bottom:10px;left:0;right:0;height:210px;display:flex;justify-content:center;align-items:flex-end;perspective:700px;z-index:5}
+.hand .card{transform-origin:50% 120%;transition:transform .18s ease,filter .18s;cursor:pointer;
   transform:rotate(var(--r)) translateY(calc(var(--by,0px) + var(--y,0px))) rotateX(var(--tx,0deg)) rotateY(var(--ty,0deg))}
-.hand .card:hover{--y:-46px;z-index:7;box-shadow:0 18px 30px rgba(0,0,0,.6)}
-.hand .card.sel{--y:-92px;z-index:8;box-shadow:0 0 0 3px var(--acc),0 22px 34px rgba(0,0,0,.6)}
+.hand .card:hover{--y:-46px;z-index:7;filter:drop-shadow(0 14px 14px rgba(0,0,0,.65))}
+.hand .card.sel{--y:-92px;z-index:8;filter:drop-shadow(0 0 4px var(--acc)) drop-shadow(0 0 12px rgba(255,183,3,.85)) drop-shadow(0 16px 16px rgba(0,0,0,.6))}
 .hand .card.new{animation:pop .4s .5s backwards}
 @keyframes pop{from{opacity:0;filter:brightness(2.2)}to{opacity:1;filter:none}}
 .log{position:absolute;right:12px;bottom:235px;width:min(260px,70vw);max-height:130px;overflow:auto;font-size:.82rem;color:var(--mute);background:rgba(0,0,0,.35);border-radius:10px;padding:8px 10px;z-index:6}
@@ -113,6 +114,7 @@ ul.players .tag{color:var(--acc);font-size:.8rem}
     </div>
     <div class="err" id="homeErr"></div>
   </div>
+  <div class="ver" id="ver"></div>
 </section>
 
 <!-- ЭКРАН 2: лобби -->
@@ -138,7 +140,7 @@ ul.players .tag{color:var(--acc);font-size:.8rem}
   <div class="table" id="table">
     <div class="felt"></div>
     <div class="deck back" id="deck" title="Взять карту"></div>
-    <div class="deck-l">колода</div>
+    <div class="deck-l" id="deckL">колода</div>
     <div class="pile" id="pile"></div>
     <div class="seats" id="seats"></div>
   </div>
@@ -170,14 +172,28 @@ let hostHands = {};                         // только у хоста: id ->
 let myHand = [], selIdx = -1, mySrc = null;
 let lastSeq = 0, tableReady = false, hideN = -1;
 const seatEls = {};
-const COLORS = ['var(--red)','var(--blue)','var(--green)','var(--yellow)'];
+const VERSION = 'alpha 0.0.1';
+/* Карты: ключ -> название и сколько штук в колоде. Картинки: cards/<ключ>.webp, рубашка: cards/back.webp */
+const CARDS = {
+  bread: {name:'Хлеб',            n:10},
+  wheat: {name:'Пшеничный хлеб',  n:2},
+  rich:  {name:'Сдобный хлеб',    n:1},
+  moldy: {name:'Заплесневелый хлеб', n:4}
+};
+let hostDeck = [];                          // только у хоста: оставшаяся колода
+const makeDeck = () => {
+  const d = [];
+  Object.keys(CARDS).forEach(k => { for (let i = 0; i < CARDS[k].n; i++) d.push({k}); });
+  for (let i = d.length - 1; i > 0; i--){ const j = Math.random()*(i+1)|0; [d[i], d[j]] = [d[j], d[i]]; }
+  return d;
+};
+['back', ...Object.keys(CARDS)].forEach(k => { new Image().src = 'cards/' + k + '.webp'; });   // прогрев кэша
 const reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 const randCode = () => Array.from({length:5},()=>ALPHABET[Math.random()*ALPHABET.length|0]).join('');
 const myName = () => ($('name').value.trim() || 'Игрок').slice(0,16);
 const myId = () => isHost ? 'host' : (peer && peer.id);
 const rnd = (a,b) => Math.round(a + Math.random()*(b-a));
-const rndCard = () => ({c: Math.random()*4|0, v: Math.random()*10|0});
 const show = id => document.querySelectorAll('.screen').forEach(s => s.classList.toggle('on', s.id===id));
 const homeErr = t => $('homeErr').textContent = t || '';
 
@@ -188,7 +204,7 @@ function createLobby(attempt=0){
   peer = new Peer(PREFIX + code);
   peer.on('open', () => {
     isHost = true;
-    state = { phase:'lobby', players:[{id:'host', name:myName(), host:true, count:0, sel:-1}], log:[], pile:[], seq:0, evt:null };
+    state = { phase:'lobby', players:[{id:'host', name:myName(), host:true, count:0, sel:-1}], log:[], pile:[], seq:0, evt:null, deckN:0 };
     enterLobby(); broadcast();
   });
   peer.on('connection', c => {
@@ -227,19 +243,22 @@ function hostReceive(c, m){
     if (m.t === 'play' && Number.isInteger(m.i) && m.i >= 0 && m.i < h.length){
       const card = h.splice(m.i, 1)[0];
       const n = ++state.seq;
-      state.pile.push({n, c:card.c, v:card.v, rot:rnd(-28,28), ox:rnd(-16,16), oy:rnd(-12,12), by:pid});
+      state.pile.push({n, k:card.k, rot:rnd(-28,28), ox:rnd(-16,16), oy:rnd(-12,12), by:pid});
       state.pile = state.pile.slice(-8);
       p.count = h.length; p.sel = -1;
-      state.evt = {seq:n, type:'play', by:pid, card:{c:card.c, v:card.v}};
-      addLog(p.name + ' бросил карту');
+      state.evt = {seq:n, type:'play', by:pid, card:{k:card.k}};
+      addLog(p.name + ' бросил «' + CARDS[card.k].name + '»');
       pushHand(pid);
     }
-    if (m.t === 'draw' && h.length < 15){
-      h.push(rndCard());
-      p.count = h.length; p.sel = -1;
-      state.evt = {seq:++state.seq, type:'draw', by:pid, card:null};
-      addLog(p.name + ' берёт карту');
-      pushHand(pid, h.length - 1);
+    if (m.t === 'draw'){
+      if (!hostDeck.length) addLog('Колода пуста');
+      else if (h.length < 15){
+        h.push(hostDeck.pop());
+        p.count = h.length; p.sel = -1; state.deckN = hostDeck.length;
+        state.evt = {seq:++state.seq, type:'draw', by:pid, card:null};
+        addLog(p.name + ' берёт карту');
+        pushHand(pid, h.length - 1);
+      }
     }
   }
   broadcast();
@@ -295,7 +314,7 @@ function netErr(e){
 function send(m){ isHost ? hostReceive({peer:'host', send(){}}, m) : hostConn && hostConn.open && hostConn.send(m); }
 function leave(){
   try{ peer && peer.destroy(); }catch(e){}
-  peer = null; hostConn = null; conns = {}; isHost = false; hostHands = {};
+  peer = null; hostConn = null; conns = {}; isHost = false; hostHands = {}; hostDeck = [];
   myHand = []; selIdx = -1; lastSeq = 0; tableReady = false; hideN = -1;
   Object.keys(seatEls).forEach(k => delete seatEls[k]);
   $('seats').innerHTML = ''; $('pile').innerHTML = ''; $('hand').innerHTML = '';
@@ -332,8 +351,8 @@ function render(){
 
 function mkFace(c){
   const d = document.createElement('div');
-  d.className = 'card'; d.dataset.c = c.c; d.style.background = COLORS[c.c];
-  d.innerHTML = '<b>' + c.v + '</b>';
+  d.className = 'card'; d.dataset.k = c.k;
+  d.title = CARDS[c.k] ? CARDS[c.k].name : '';
   return d;
 }
 
@@ -386,6 +405,8 @@ function renderTable(){
   Object.keys(seatEls).forEach(id => { if (!seen.has(id)){ seatEls[id].remove(); delete seatEls[id]; } });
 
   renderPile();
+  $('deck').classList.toggle('empty', !state.deckN);
+  $('deckL').textContent = 'колода · ' + (state.deckN || 0);
 
   const mp = ps.find(p => p.id === me);
   $('mebar').textContent = (mp ? mp.name : 'Ты') + ' · карт: ' + myHand.length;
@@ -479,9 +500,9 @@ function animateEvent(ev, src){
 function fly(o){
   const f = document.createElement('div'); f.className = 'fly';
   if (o.face) f.append(mkFace(o.face));
-  const bk = document.createElement('div'); bk.className = 'back big bk'; f.append(bk);
+  const bk = document.createElement('div'); bk.className = 'back bk'; f.append(bk);
   document.body.append(f);
-  const T = (p, s, r, ry, lift) => 'perspective(900px) translate(' + (p.x-45) + 'px,' + (p.y-65-(lift||0)) + 'px) rotate(' + r + 'deg) rotateY(' + ry + 'deg) scale(' + s + ')';
+  const T = (p, s, r, ry, lift) => 'perspective(900px) translate(' + (p.x-45) + 'px,' + (p.y-70-(lift||0)) + 'px) rotate(' + r + 'deg) rotateY(' + ry + 'deg) scale(' + s + ')';
   const ry0 = (!o.face || o.flip) ? 180 : 0, ry1 = o.face ? 0 : 180;
   const mid = {x: (o.from.x + o.to.x)/2, y: (o.from.y + o.to.y)/2};
   const kf = [
@@ -497,6 +518,7 @@ function fly(o){
 }
 
 /* ---------- Кнопки ---------- */
+$('ver').textContent = VERSION;
 $('create').onclick = () => createLobby();
 $('join').onclick = joinLobby;
 $('joinCode').addEventListener('keydown', e => { if (e.key === 'Enter') joinLobby(); });
@@ -509,8 +531,11 @@ window.addEventListener('resize', () => { if (state.phase === 'game'){ renderTab
 $('roomCode').onclick = () => navigator.clipboard && navigator.clipboard.writeText(code);
 $('start').onclick = () => {
   state.phase = 'game'; state.seq = 0; state.evt = null; lastSeq = 0; hostHands = {};
-  state.pile = [{n:0, ...rndCard(), rot:rnd(-15,15), ox:0, oy:0, by:'host'}];
-  state.players.forEach(p => { hostHands[p.id] = Array.from({length:7}, rndCard); p.count = 7; p.sel = -1; });
+  state.pile = [];
+  hostDeck = makeDeck();
+  const per = Math.max(1, Math.min(5, Math.floor((hostDeck.length - 1) / state.players.length)));   // карт в руку при раздаче
+  state.players.forEach(p => { hostHands[p.id] = hostDeck.splice(-per, per); p.count = per; p.sel = -1; });
+  state.deckN = hostDeck.length;
   state.players.forEach(p => pushHand(p.id));        // сначала раздаём руки…
   addLog('Игра началась'); broadcast();               // …потом переключаем всех на стол
 };
