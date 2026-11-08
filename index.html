@@ -61,7 +61,7 @@ ul.players .tag{color:var(--acc);font-size:.8rem}
 .pile .coin+.coin{margin-bottom:calc(var(--w)*-.74)}
 .pc{font-size:.72rem;color:#ffe08a;line-height:1;font-weight:700}
 .purse{display:flex;gap:8px;align-items:flex-end}
-.purse.mini{--k:.62;gap:5px}
+.purse.mini{--k:.8;gap:6px}
 .purse.mini .pc{font-size:.62rem}
 .purse.big{--k:1}
 .purse .pw.can{cursor:pointer}
@@ -70,7 +70,7 @@ ul.players .tag{color:var(--acc);font-size:.8rem}
 
 .seal{display:inline-flex;vertical-align:middle;position:relative}
 .seal svg{width:calc(46px*var(--k,1));height:calc(46px*var(--k,1));display:block;filter:drop-shadow(0 2px 2px rgba(0,0,0,.6))}
-.seal.mini{--k:.55}
+.seal.mini{--k:.75}
 .seal.used{opacity:.28;filter:grayscale(1)}
 .seal.used::after{content:"";position:absolute;left:-2px;right:-2px;top:50%;border-top:3px solid #ff8a93;transform:rotate(-35deg)}
 .seal.can{cursor:pointer;animation:bob 1.1s ease-in-out infinite}
@@ -93,6 +93,7 @@ ul.players .tag{color:var(--acc);font-size:.8rem}
 .directive.me{border-color:var(--acc);background:rgba(70,46,0,.82);color:#ffe9a8;animation:glow 1.8s ease-in-out infinite}
 .directive b{color:#fff}
 .directive:empty{display:none}
+.directive.big{font-size:1.6rem;font-weight:900;letter-spacing:.05em;padding:10px 18px}
 .directive.blink{font-size:1.2rem;letter-spacing:.04em;animation:dblink .9s ease-in-out infinite}
 @keyframes dblink{50%{opacity:.25}}
 @keyframes glow{50%{box-shadow:0 0 18px rgba(255,183,3,.55)}}
@@ -117,18 +118,21 @@ ul.players .tag{color:var(--acc);font-size:.8rem}
 .pulse::after{content:"";position:absolute;inset:-7px;border-radius:12px;border:3px solid var(--acc);animation:ring 1.1s ease-out infinite;pointer-events:none}
 @keyframes ring{0%{opacity:1;transform:scale(.96)}100%{opacity:0;transform:scale(1.18)}}
 
-.bank,.sealpile{position:absolute;top:79%;z-index:2;display:flex;flex-direction:column;align-items:center;gap:3px;transform:translate(-50%,-50%);padding:6px 10px 4px;border-radius:12px;
-  background:rgba(0,0,0,.28);border:1px solid rgba(255,255,255,.12)}
-.bank{left:calc(50% - 425px);top:62%}
-.sealpile{left:calc(50% + 425px);top:62%;min-width:88px}
-.bank .bl,.sealpile .bl{font-size:.7rem;color:var(--mute);white-space:nowrap}
-.bank .purse{--k:.82}
+.bank,.sealpile{position:absolute;top:79%;z-index:2;display:flex;flex-direction:column;align-items:center;gap:6px;transform:translate(-50%,-50%);padding:0;background:none;border:0}
+.bank{left:calc(50% - 425px);top:52%}
+.sealpile{left:calc(50% + 425px);top:52%;min-width:88px}
+.bank .bl,.sealpile .bl{font-size:.8rem;color:rgba(255,255,255,.6);white-space:nowrap;text-shadow:0 1px 3px #000}
+.bank .purse{--k:1.2;gap:14px;filter:drop-shadow(0 4px 4px rgba(0,0,0,.55))}
 .bank .pw{cursor:default}
 .bank.pulse .pw,.bank.pulse .pw .coin{cursor:pointer}
 .bank.pulse .pw:hover .coin:last-child{transform:translateY(-4px)}
 .bank .pw .pc{display:none}
-.sealpile .stack{display:flex;position:relative;min-height:40px;min-width:46px;align-items:center;justify-content:center}
-.sealpile .stack .seal+.seal{margin-left:-30px}
+.sealpile .stack{display:flex;position:relative;min-height:64px;min-width:70px;align-items:center;justify-content:center}
+.sealpile .stack .seal{--k:1.3}
+.sealpile .stack .seal+.seal{margin-left:-46px}
+.sealpile .stack .seal:nth-child(1){transform:rotate(-9deg)}
+.sealpile .stack .seal:nth-child(2){transform:rotate(7deg) translateY(4px)}
+.sealpile .stack .seal:nth-child(3){transform:rotate(-3deg) translateY(-3px)}
 .sealpile .zero{color:var(--mute);font-size:.7rem}
 
 .lotzone{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:3;display:flex;flex-direction:column;align-items:center;gap:8px;width:max-content;max-width:92%}
@@ -160,6 +164,10 @@ ul.players .tag{color:var(--acc);font-size:.8rem}
   border-radius:12px;padding:5px 11px 6px;white-space:nowrap;display:flex;flex-direction:column;gap:3px;align-items:center;font-size:.85rem;transition:box-shadow .25s,border-color .25s}
 .plate .r1,.plate .r2{display:flex;gap:7px;align-items:center}
 .plate .r2{align-items:flex-end}
+.money{position:absolute;top:0;left:120px;transform:translateY(-50%);z-index:3;display:flex;flex-direction:column;align-items:center;gap:3px;filter:drop-shadow(0 3px 3px rgba(0,0,0,.6))}
+.seat.lft .money{left:auto;right:120px}
+.money .mrow{display:flex;align-items:flex-end;gap:8px}
+.money .sum{font-size:1.4rem;font-weight:900;line-height:1;color:#ffd96a;text-shadow:0 2px 3px rgba(0,0,0,.75)}
 .plate .cnt{background:rgba(255,255,255,.14);border-radius:999px;padding:0 8px;font-size:.78rem}
 .plate .st{color:var(--acc);font-size:.76rem;max-width:250px;white-space:normal;text-align:center;line-height:1.2}
 .plate .st:empty{display:none}
@@ -179,6 +187,10 @@ ul.players .tag{color:var(--acc);font-size:.8rem}
   border:1px solid rgba(255,183,3,.55);border-radius:14px;padding:12px 14px;display:none;flex-direction:column;gap:8px;max-height:46vh;overflow:auto}
 .act.on{display:flex}
 .act .t{font-weight:800;color:var(--acc)}
+.act .t.c{text-align:center;font-size:1.15rem}
+.act.cmp{width:min(360px,92vw)}
+.act .row.g2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.act .row.g2 button{width:100%;padding:8px 6px;font-size:.88rem}
 .act .m{color:var(--mute);font-size:.88rem}
 .act .big{font-size:1.7rem;font-weight:800;color:#ffd23f;text-align:center;line-height:1.2;padding:4px 6px}
 .act .m b{color:var(--ink)}
@@ -201,10 +213,14 @@ ul.players .tag{color:var(--acc);font-size:.8rem}
 .tray .tsum{font-weight:800;color:#ffe08a;white-space:nowrap}
 .tray .tsum.ok{color:#6fe39a}
 
-.mebar{position:absolute;left:12px;bottom:calc(var(--hb) + 16px);z-index:6;background:rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.2);border-radius:14px;padding:7px 12px;font-size:.88rem;display:flex;flex-direction:column;gap:5px;max-width:300px}
-.mebar.turn{border-color:var(--acc);box-shadow:0 0 16px rgba(255,183,3,.6)}
+.mebar{position:absolute;left:12%;top:70%;z-index:6;display:flex;flex-direction:column;align-items:center;gap:4px;max-width:300px;filter:drop-shadow(0 2px 4px rgba(0,0,0,.6))}
+.mebar .mcol{display:flex;flex-direction:column;align-items:center;gap:5px}
+.mebar .sum{font-size:1.9rem;font-weight:900;line-height:1;color:#ffd96a;text-shadow:0 2px 4px rgba(0,0,0,.75)}
+.mebar>.top{justify-content:center;font-weight:700;text-shadow:0 1px 3px #000}
+.mebar.turn{filter:drop-shadow(0 0 12px rgba(255,183,3,.8))}
+
 .mebar .top{display:flex;align-items:center;gap:8px;justify-content:space-between}
-.mebar .mid{display:flex;align-items:flex-end;gap:12px}
+.mebar .mid{display:flex;align-items:flex-start;gap:16px}
 .mebar small{color:var(--mute);font-size:.74rem}
 .mebar .chg{padding:2px 8px;font-size:.72rem;font-weight:600}
 .hand{position:absolute;bottom:10px;left:0;right:0;height:var(--hh,250px);display:flex;justify-content:center;align-items:flex-end;z-index:5;pointer-events:none}
@@ -281,7 +297,7 @@ ul.players .tag{color:var(--acc);font-size:.8rem}
 .btn-big{padding:14px 16px}
 
 @media (max-width:1050px){
-  .mebar{max-width:230px;bottom:calc(var(--hb) + 16px)}
+  .mebar{max-width:230px;left:5%}
   .chat{width:min(210px,44vw)}
   .log{max-height:96px}
   .act{bottom:calc(var(--hb) + 150px);max-height:36vh}
@@ -292,7 +308,7 @@ ul.players .tag{color:var(--acc);font-size:.8rem}
 @media (max-height:760px){
   .table{bottom:calc(var(--hb) + 20px);top:108px}
   .act{bottom:calc(var(--hb) + 6px)}
-  .mebar,.chat{bottom:calc(var(--hb) + 12px)}
+  .chat{bottom:calc(var(--hb) + 12px)}
 }
 @media (max-width:700px){
   .card.sm{--w:78px}
@@ -366,6 +382,7 @@ ul.players .tag{color:var(--acc);font-size:.8rem}
       <div class="lotinfo" id="lotinfo"></div>
     </div>
     <div class="seats" id="seats"></div>
+    <div class="mebar" id="mebar"></div>
   </div>
   <div class="toast" id="toast"></div>
   <div class="act" id="act"></div>
@@ -373,7 +390,6 @@ ul.players .tag{color:var(--acc);font-size:.8rem}
     <div class="log" id="log"></div>
     <input id="chatIn" maxlength="140" placeholder="Слухи и разговоры (Enter)" autocomplete="off">
   </div>
-  <div class="mebar" id="mebar"></div>
   <div class="hand" id="hand"></div>
   <div class="modal" id="priceM"><div class="sheet price" id="priceS"></div></div>
   <div class="modal" id="cheatM"><div class="sheet" id="cheatS"></div></div>
@@ -392,7 +408,7 @@ ul.players .tag{color:var(--acc);font-size:.8rem}
    Любое действие игрока приходит в handle(pid, m) → меняет S/H → commit() рассылает всё.
    ========================================================= */
 /*ENGINE-START*/
-const VERSION = 'alpha 0.0.3';
+const VERSION = 'alpha 0.0.4';
 
 /* Числа из правил. Если что-то захочется подкрутить — это здесь. */
 const RULES = {
@@ -1246,7 +1262,7 @@ function directive(){
       return S.turn === me ? {t:''}
                            : {t:'Продавец ' + B(nm(S.turn)) + ' решает, открыть ли одну карту на витрине'};
     case 'inspect':
-      return S.turn === me ? {me:true, t:'<b>ТВОЙ ОСМОТР ЛОТА:</b> одно действие — Расспрос, Вскрытие, Ревизор — или пропусти', sub:'Слухи (чат справа) — бесплатно и в любой момент'}
+      return S.turn === me ? {me:true, big:true, t:'<b>ТВОЯ ОЧЕРЕДЬ ОСМАТРИВАТЬ</b>'}
                            : {t:'Осмотр лота: ходит ' + B(nm(S.turn)), sub:'Слухи (чат справа) — бесплатно и в любой момент'};
     case 'answer':
       return S.turn === me ? {me:true, t:'<b>ТЫ:</b> ответь честно «да» или «нет» на вопрос игрока ' + B(nm(I.by))}
@@ -1295,10 +1311,10 @@ function renderTable(){
     if (!e){
       e = el('div', 'seat');
       e.innerHTML = '<div class="fan"></div><div class="plate"><div class="r1"><span class="sta" title="Жетон Старосты рынка">★</span><span class="nm"></span><span class="cnt" title="Карт на складе"></span></div>' +
-        '<div class="r2"><span class="pr"></span><span class="sum"></span><span class="sl"></span></div><span class="st"></span></div>';
+        '<span class="st"></span></div><div class="money"><div class="mrow"><span class="pr"></span><span class="sl"></span></div><span class="sum"></span></div>';
       $('seats').append(e); seatEls[p.id] = e;
     }
-    e.style.left = x + '%'; e.style.top = y + '%';
+    e.style.left = x + '%'; e.style.top = y + '%'; e.classList.toggle('lft', x > 55);
     e.style.setProperty('--s', (0.74 + y / 100 * 0.5).toFixed(3));   // дальние сидят «мельче»
     const ang = Math.round(Math.atan2((50 - x) / 100 * tw, -(50 - y) / 100 * th) * 180 / Math.PI);
     const shown = Math.min(p.count, 12);
@@ -1343,7 +1359,7 @@ function renderTable(){
 
   const dr = directive(), dv = $('directive');
   dv.innerHTML = dr.t + (dr.sub ? '<small>' + dr.sub + '</small>' : '');
-  dv.classList.toggle('me', !!dr.me); dv.classList.toggle('blink', !!dr.blink);
+  dv.classList.toggle('me', !!dr.me); dv.classList.toggle('blink', !!dr.blink); dv.classList.toggle('big', !!dr.big);
 
   renderLot(); renderMe();
 
@@ -1400,7 +1416,9 @@ function renderMe(){
   const mid = el('div', 'mid');
   const shown = {}; DEN.forEach(d => { shown[d] = p.purse[d] - (ui.trayAmt ? ui.tray[d] : 0); });
   const pu = purseEl(shown, {can: !!ui.trayAmt, click: purseClick}); pu.id = 'mePurse';
-  mid.append(pu);
+  const col = el('div', 'mcol');
+  col.append(pu, el('div', 'sum', String(DEN.reduce((a, d) => a + d * shown[d], 0))));
+  mid.append(col);
   const sealBox = el('div', 'pw');
   if (p.seal === 0){ sealBox.append(el('small', null, 'Печать ещё не взята')); }
   else {
@@ -1409,11 +1427,8 @@ function renderMe(){
     sealBox.append(s, el('span', 'pc', p.seal === 1 ? 'Печать' : 'использ.'));
   }
   mid.append(sealBox);
-  const bot = el('div', 'top');
-  const sum = el('span', 'sum', 'Всего: ' + p.coins + ' мон.');
   const chg = el('button', 'ghost chg', '⇄ Размен'); chg.onclick = openChange; chg.title = 'Поменять монеты в Банке без потерь';
-  bot.append(sum, chg);
-  mb.append(top, mid, bot);
+  mb.append(top, mid, chg);
   if ($('changeM').classList.contains('on')) openChange();
 }
 function sealCheck(){
@@ -1558,7 +1573,7 @@ function renderAct(){
   if (!(S.step === 'inspect' && S.turn === myId())) ui.mode = null;
   afterPurseChange();
   const key = actSig(); if (key === ui.actKey){ markHand(); return; } ui.actKey = key;
-  A.innerHTML = ''; A.classList.remove('on');
+  A.innerHTML = ''; A.classList.remove('on'); A.classList.remove('cmp');
   const used = buildAct(A);
   if (!used){ const had = ui.trayAmt; resetTray(); if (had) renderMe(); }
   markHand();
@@ -1652,11 +1667,13 @@ function buildAct(A){
       return false;
     }
     const canOpen = mp.coins >= RULES.openCost && !L.opened && L.cards.some(c => !c.open);
-    add(el('div', 't', 'Осмотр лота'), el('div', 'm', 'Одно действие или пропуск. Слухи — бесплатно, в любой момент (чат справа).'),
-      row(btn('Расспрос (−' + RULES.askCost + ')', () => { ui.mode = 'ask'; ui.actKey = ''; renderAct(); }, {dis: mp.coins < RULES.askCost}),
+    A.classList.add('cmp');
+    const g = row(btn('Расспрос (−' + RULES.askCost + ')', () => { ui.mode = 'ask'; ui.actKey = ''; renderAct(); }, {dis: mp.coins < RULES.askCost}),
           btn('Вскрытие (−' + RULES.openCost + ')', () => { ui.mode = 'open'; ui.actKey = ''; renderAct(); }, {dis: !canOpen}),
           btn('Ревизор' + (aud ? ' ×' + aud : ''), () => { ui.mode = 'auditor'; ui.actKey = ''; renderAct(); }, {dis: !aud}),
-          btn('Пропустить', () => send({t:'insp', a:'skip'}), {ghost:true})));
+          btn('Пропустить', () => send({t:'insp', a:'skip'}), {ghost:true}));
+    g.classList.add('g2');
+    add(el('div', 't c', 'Осмотр лота'), g);
     return false;
   }
   if (S.step === 'answer' && turnMe){
@@ -1929,7 +1946,7 @@ const whereIs = id => id === myId() ? myAnchor() : seatAnchor(id);
 function coinAnchor(id){
   if (id === 'bank') return center($('bank'));
   if (id === myId()){ const p = $('mePurse'); return p ? center(p) : myAnchor(); }
-  const e = seatEls[id]; return e ? center(e.querySelector('.plate')) : {x: innerWidth / 2, y: 90};
+  const e = seatEls[id]; return e ? center(e.querySelector('.money') || e.querySelector('.plate')) : {x: innerWidth / 2, y: 90};
 }
 function srcFor(e){
   if (e.type === 'lot') return e.by === myId() ? (mySrc || myAnchor()) : seatAnchor(e.by);
