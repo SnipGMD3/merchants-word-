@@ -490,7 +490,7 @@ ul.players .tag{color:var(--acc);font-size:.8rem}
    Любое действие игрока приходит в handle(pid, m) → меняет S/H → commit() рассылает всё.
    ========================================================= */
 /*ENGINE-START*/
-const VERSION = 'alpha 0.0.6';
+const VERSION = 'alpha 0.0.8';
 
 /* Числа из правил. Если что-то захочется подкрутить — это здесь. */
 const RULES = {
@@ -833,7 +833,7 @@ function doAnswer(pid, m){
 const minBid = () => S.auction.by === null ? S.lot.price : S.auction.high + 1;
 function startAuction(){
   H.auc = {order: orderFrom(S.seller, true), i: -1};
-  S.auction = {high: 0, by: null, passed: [], stake: null};
+  S.auction = {high: 0, by: null, passed: [], stakes: {}};
   S.step = 'auction'; S.info = null;
   addLog('Торги! Цена от ' + S.lot.price);
   aucNext();
@@ -848,7 +848,7 @@ function aucNext(){
     for (let t = 0; t < O.length; t++){ k = (k + 1) % O.length; if (!A.passed.includes(O[k])){ found = O[k]; break; } }
     if (found === null || found === A.by) return A.by !== null ? sold(A.by, A.high) : unsold();
     H.auc.i = k;
-    if (pl(found).coins < minBid()){ A.passed.push(found); addLog(pl(found).name + ': не хватает монет — пас'); continue; }
+    if (pl(found).coins < minBid()){ A.passed.push(found); delete A.stakes[found]; addLog(pl(found).name + ': не хватает монет — пас'); continue; }
     S.turn = found; return;
   }
 }
@@ -864,13 +864,13 @@ function doBid(pid, m){
     if (ok && sum === amt) stake = c;
   }
   if (!stake){ let r = amt; stake = {10: Math.floor(r / 10)}; r -= stake[10] * 10; stake[5] = Math.floor(r / 5); stake[1] = r - stake[5] * 5; }
-  S.auction.high = amt; S.auction.by = pid; S.auction.stake = stake;
+  S.auction.high = amt; S.auction.by = pid; S.auction.stakes[pid] = stake;   // у каждого торгующего его ставка лежит на столе, пока он не спасует
   addLog(pl(pid).name + ' ставит ' + amt);
   aucNext();
 }
 function doPass(pid){
   if (S.step !== 'auction' || S.turn !== pid) return;
-  S.auction.passed.push(pid);
+  S.auction.passed.push(pid); delete S.auction.stakes[pid];
   addLog(pl(pid).name + ' пасует');
   aucNext();
 }
@@ -1261,7 +1261,8 @@ const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;', '<':'&lt;', '
 const B = s => '<b>' + esc(s) + '</b>';
 const EMPTY_P = {id:null, name:'Ты', purse:{1:0, 5:0, 10:0}, coins:0, seal:0};
 /* Выложенная на стол ставка лидера торгов: эти монеты показываем уже не в кошельке, а на столе */
-const stakeOf = id => (S.step === 'auction' && S.auction && S.auction.by === id && S.auction.stake) ? S.auction.stake : null;
+const stakeOf = id => (S.step === 'auction' && S.auction && S.auction.stakes && S.auction.stakes[id]) || null;
+const freePurse = () => minusStake(meP().purse, stakeOf(myId()));   // кошелёк без монет, уже лежащих на столе в моей ставке
 const minusStake = (pu, sk) => { if (!sk) return pu; const r = {}; DEN.forEach(d => { r[d] = Math.max(0, pu[d] - (sk[d] || 0)); }); return r; };
 const meP = () => S.players.find(p => p.id === myId()) || EMPTY_P;
 const nm = id => (S.players.find(p => p.id === id) || {name:'?'}).name;
@@ -1342,7 +1343,7 @@ function statusOf(p){
   }
   if (S.turn === p.id && STEP_MSG[S.step]) return STEP_MSG[S.step];
   if (S.auction && S.auction.passed.includes(p.id)) return 'пас';
-  if (S.auction && S.auction.by === p.id) return 'ставка ' + S.auction.high;
+  if (stakeOf(p.id)) return 'ставка ' + coinSum(stakeOf(p.id));
   return '';
 }
 
@@ -1378,11 +1379,8 @@ function directive(){
     case 'answer':
       return S.turn === me ? {me:true, t:'<b>ТЫ:</b> ответь честно «да» или «нет» на вопрос игрока ' + B(nm(I.by))}
                            : {t:'Продавец ' + B(nm(S.turn)) + ' должен честно ответить на вопрос игрока ' + B(nm(I.by))};
-    case 'auction': {
-      const cur = A && A.by ? 'ставка ' + A.high + ' (' + esc(nm(A.by)) + ')' : 'ставок ещё нет';
-      if (S.turn === me) return {me:true, big:true, t:'<b>ТЫ СТАВИШЬ</b>'};
-      return {t:'Торги: ходит ' + B(nm(S.turn)), sub:'Сейчас: ' + cur + (A && A.by ? ' · Печать купца можно применить в любой момент' : '')};
-    }
+    case 'auction':
+      return S.turn === me ? {me:true, big:true, t:'<b>ТЫ СТАВИШЬ</b>'} : {big:true, t:'ХОДИТ: ' + B(nm(S.turn))};
     case 'pay':
       return S.turn === me ? {me:true, big:true, t:'<b>ТЫ ПЛАТИШЬ</b>'}
                            : {t:B(nm(S.turn)) + ' платит ' + S.pay.amount + ' ' + plural(S.pay.amount, 'монету', 'монеты', 'монет') + ' игроку ' + B(nm(S.pay.to))};
@@ -1510,13 +1508,13 @@ function renderBank(td){
 /* ---------- Мой кошелёк и Печать ---------- */
 const trayTotal = () => ui.tray[1] + 5 * ui.tray[5] + 10 * ui.tray[10];
 function resetTray(){ ui.tray = {1:0, 5:0, 10:0}; ui.trayKey = ''; ui.trayAmt = 0; ui.bag = null; ui.bagMode = false; }
-function clampTray(){ const pu = meP().purse; DEN.forEach(d => { ui.tray[d] = Math.max(0, Math.min(ui.tray[d], pu[d])); }); }
+function clampTray(){ const pu = freePurse(); DEN.forEach(d => { ui.tray[d] = Math.max(0, Math.min(ui.tray[d], pu[d])); }); }
 /* Стопка монет, выложенных на стол лидером торгов (рядом с его местом); при смене ставки выезжает заново */
 function fillStake(node, sk, id, fromEl){
   node.innerHTML = '';
   if (!sk){ delete ui.stakeSigs[id]; return; }
   DEN.forEach(d => { if (sk[d] > 0) node.append(pileEl(d, sk[d], {label:false, max:10})); });
-  const sig = [S.gid, S.lot && S.lot.n, S.auction.high].join('|');
+  const sig = [S.gid, S.lot && S.lot.n, coinSum(sk)].join('|');
   if (ui.stakeSigs[id] === sig) return;
   ui.stakeSigs[id] = sig;
   if (reduce || !node.animate || !fromEl) return;
@@ -1649,10 +1647,10 @@ function renderLot(){
     const an = ui.lpAnim, dur = 650;
     if (performance.now() - an.t0 < dur){
       bv.classList.add('bump');
-      const tick = () => {
+      const tick = () => {                          // кадры продолжаем всегда: при первом вызове плашка ещё не вставлена в страницу
         const p = Math.min(1, (performance.now() - an.t0) / dur);
         bv.textContent = String(Math.round(an.from + (an.to - an.from) * (1 - Math.pow(1 - p, 3))));
-        if (p < 1 && bv.isConnected) requestAnimationFrame(tick);
+        if (p < 1) requestAnimationFrame(tick);
       };
       tick();
     }
@@ -1723,9 +1721,9 @@ function bagWidget(key, need, onFull){
   const w = {bag, need, onFull, busy:false, label:null, guard:null};
   w.update = () => {
     clampTray(); bin.innerHTML = '';
-    const list = []; [10, 5, 1].forEach(d => { for (let i = 0; i < ui.tray[d]; i++) list.push(d); });
+    const list = []; [10, 5, 1].forEach(d => { for (let i = 0; i < ui.tray[d] + (w.base ? w.base[d] || 0 : 0); i++) list.push(d); });
     list.slice(0, 8).forEach(d => bin.append(coinEl(d)));
-    if (w.label) w.label.textContent = need ? trayTotal() + '/' + coinsWord(need) : coinsWord(trayTotal());   // «1/2 монеты»: сколько уже в мешке / сколько нужно
+    if (w.label) w.label.textContent = need ? trayTotal() + '/' + coinsWord(need) : coinsWord(trayTotal() + (w.base ? coinSum(w.base) : 0));   // «1/2 монеты»: сколько уже в мешке / сколько нужно
     bagFire(); renderMe();
   };
   ui.bag = w;
@@ -1734,7 +1732,7 @@ function bagWidget(key, need, onFull){
 function bagAnim(bag, cls){ bag.classList.remove('plop', 'shake'); void bag.offsetWidth; bag.classList.add(cls); }
 function bagTry(d){                          // true — монета легла в мешочек
   const w = ui.bag; if (!w || w.busy) return false;
-  if (ui.tray[d] >= meP().purse[d]) return false;
+  if (ui.tray[d] >= freePurse()[d]) return false;
   if (w.guard && !w.guard()) return false;
   if (w.need && trayTotal() + d > w.need) return false;       // крупнее остатка — не идёт
   ui.tray[d]++; bagAnim(w.bag, 'plop'); w.update();
@@ -1774,7 +1772,7 @@ $('mebar').addEventListener('pointerdown', e => {
   if (drag){ drag.g.remove(); drag = null; }             // прошлое перетаскивание «зависло» (кнопку отпустили вне окна) — сбрасываем
   const pw = e.target.closest('.pw[data-d]'); if (!pw) return;
   const d = Number(pw.dataset.d);
-  if (ui.tray[d] >= meP().purse[d]) return;
+  if (ui.tray[d] >= freePurse()[d]) return;
   const top = pw.querySelector('.coin:last-child');
   if (!top || top.classList.contains('ghost')) return;
   e.preventDefault();
@@ -1877,11 +1875,14 @@ function buildAct(A){
     const min = Au.by === null ? L.price : Au.high + 1;
     if (turnMe){                        // «Ставка или пас», две кнопки, мешочек и под ним сколько уже закинуто
       const w = bagWidget('bid|' + L.n + '|' + min, 0, null);
+      const base = stakeOf(me); w.base = base;          // моя прошлая ставка уже лежит на столе — нужно только доложить монет
+      const baseSum = base ? coinSum(base) : 0;
       const txt = el('div', 'bagtxt'); w.label = txt;
       const go = () => {
-        const v = trayTotal();
+        const v = baseSum + trayTotal();
         if (v < min || v > mp.coins) return bagAnim(w.bag, 'shake');     // меньше минимума — мешочек не уходит, просто трясётся
-        const coins = Object.assign({}, ui.tray); resetTray(); send({t:'bid', amount:v, coins});
+        const coins = {}; DEN.forEach(d => { coins[d] = ui.tray[d] + (base ? base[d] || 0 : 0); });
+        resetTray(); send({t:'bid', amount:v, coins});
       };
       A.classList.add('bagp');
       const br = el('div', 'bidrow'); br.append(btn('Ставка', go), w.bag, btn('Пас', () => { resetTray(); send({t:'pass'}); }, {ghost:true}));
