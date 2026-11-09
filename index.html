@@ -502,7 +502,7 @@ ul.players .tag{color:var(--acc);font-size:.8rem}
    Любое действие игрока приходит в handle(pid, m) → меняет S/H → commit() рассылает всё.
    ========================================================= */
 /*ENGINE-START*/
-const VERSION = 'alpha 0.1.0';
+const VERSION = 'alpha 0.1.1';
 
 /* Числа из правил. Если что-то захочется подкрутить — это здесь. */
 const RULES = {
@@ -1141,7 +1141,7 @@ let hostConn = null;                        // клиент: соединени�
 
 /* Арт карт: ключ -> расширение файла в папке cards/. Карты без арта рисуются просто названием.
    Чтобы добавить арт: положи cards/<ключ>.webp (или .png) и допиши строчку сюда. Ключи — в CARDS выше. */
-const IMG = {bread:'webp', wheat:'webp', rich:'webp', moldy:'webp'};
+const IMG = {bread:'webp', wheat:'webp', rich:'webp', moldy:'webp', cheese:'webp', gouda:'webp', blue:'webp', wormy:'webp', apple:'webp', green:'webp', gold:'webp', rotten:'webp', pepper:'webp', cinnamon:'webp', saffron:'webp', damp:'webp', silk:'webp', wild:'webp', spider:'webp', soaked:'webp', banana:'webp', cavendish:'webp', gros:'webp', black:'webp'};
 const CAP = {simple:'простой', gentry:'господский ×2', royal:'королевский ×3', spoiled:'порча', rat:'напасть', pest:'напасть', cat:'помощник', auditor:'помощник'};
 const STEP_MSG = {compose:'выкладывает лот', showcase:'решает про витрину', inspect:'осматривает лот', answer:'отвечает на вопрос',
   auction:'торгуется', pay:'платит за лот', takelot:'забирает лот', cat:'решает, играть ли Кота', rat:'выбирает карты для Крысы',
