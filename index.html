@@ -143,10 +143,22 @@ ul.players .tag{color:var(--acc);font-size:.8rem}
 .sealpile .stack .seal:nth-child(3){transform:rotate(-3deg) translateY(-3px)}
 .sealpile .zero{color:var(--mute);font-size:.7rem}
 
-.lotzone{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:3;display:flex;flex-direction:column;align-items:center;gap:8px;width:max-content;max-width:92%}
-.slots{display:flex;gap:10px;min-height:20px;padding-top:16px}
+.lotzone{--sh:168px;position:absolute;left:50%;top:50%;width:0;height:0;z-index:3}
+/* центр ряда из трёх карт — ровно центр стола (на одной линии с колодой и сбросом); плашка и кнопка висят под ним и не сдвигают карты */
+.slots{position:absolute;left:0;top:0;transform:translate(-50%,-50%);display:flex;gap:10px;justify-content:center}
 .slot{position:relative;border-radius:8px}
-.slot.empty{width:78px;height:121px;border:2px dashed rgba(255,208,80,.9);border-radius:8px;background:rgba(255,183,3,.08);animation:eblink 1s ease-in-out infinite}
+.slot.empty{width:108px;height:var(--sh);border:2px dashed rgba(255,208,80,.9);border-radius:8px;background:rgba(255,183,3,.08);animation:eblink 1s ease-in-out infinite;transition:transform .15s,background .15s}
+.slot.empty.drop,.slot.placed.drop{transform:scale(1.07);background:rgba(255,183,3,.32);animation:none;opacity:1;box-shadow:0 0 18px rgba(255,183,3,.9)}
+.slot.placed{cursor:pointer;transition:transform .15s;touch-action:none}
+.slot.placed:hover{transform:translateY(-4px)}
+.slot.placed.lifted .card{visibility:hidden}
+.slot .card.land{animation:landin .26s cubic-bezier(.2,1.5,.4,1)}
+@keyframes landin{from{transform:scale(1.18)}to{transform:none}}
+.lotgo{position:absolute;left:0;top:calc(var(--sh)/2 + 20px);transform:translateX(-50%);z-index:4;display:none}
+.lotgo button{background:linear-gradient(180deg,#ffd84a,#f2a900);color:#2b1c00;border:1px solid #fff2b3;font-weight:900;font-size:1.15rem;letter-spacing:.04em;padding:11px 34px;border-radius:12px;white-space:nowrap;
+  box-shadow:0 0 0 2px rgba(255,200,40,.35),0 6px 16px rgba(0,0,0,.5),0 0 22px rgba(255,200,40,.55);animation:gopulse 1.3s ease-in-out infinite}
+.lotgo button:hover{filter:brightness(1.08)}
+@keyframes gopulse{50%{box-shadow:0 0 0 5px rgba(255,200,40,.25),0 6px 16px rgba(0,0,0,.5),0 0 32px rgba(255,200,40,.9)}}
 @keyframes eblink{0%,100%{opacity:.25}50%{opacity:1;box-shadow:0 0 14px rgba(255,183,3,.7)}}
 .slot.pick{cursor:pointer;transition:transform .18s ease;animation:pglow 1.1s ease-in-out infinite}
 .slot.pick:hover{transform:scale(1.1);z-index:4}
@@ -155,11 +167,11 @@ ul.players .tag{color:var(--acc);font-size:.8rem}
 .slot .pk{position:absolute;left:4px;right:4px;bottom:6px;text-align:center;font-size:.78rem;background:rgba(0,0,0,.75);color:#ffe08a;border-radius:6px;padding:2px;line-height:1.1}
 .card.flip{animation:flipin .5s}
 @keyframes flipin{from{transform:rotateY(90deg)}to{transform:none}}
-.lotinfo{font-size:.9rem;text-align:center;max-width:520px;background:linear-gradient(180deg,rgba(40,30,8,.82),rgba(0,0,0,.66));border:1px solid rgba(255,183,3,.45);box-shadow:0 6px 18px rgba(0,0,0,.45);border-radius:14px;padding:8px 18px;min-height:1.6em}
-.lotinfo .lt{font-weight:800;font-size:1.25rem;letter-spacing:.03em;color:#f1e6c8}
-.lotinfo .lt b{font-size:1.7rem;color:#ffd23f;text-shadow:0 0 14px rgba(255,183,3,.6)}
-.lotinfo .lp{font-weight:700;font-size:1.05rem;color:#d9dfeb}
-.lotinfo .lp b{font-size:2rem;line-height:1;color:#fff;text-shadow:0 0 12px rgba(255,210,63,.8);margin:0 2px}
+.lotinfo{position:absolute;left:0;top:calc(var(--sh)/2 + 22px);transform:translateX(-50%);width:max-content;font-size:.8rem;text-align:center;max-width:420px;background:linear-gradient(180deg,rgba(40,30,8,.82),rgba(0,0,0,.66));border:1px solid rgba(255,183,3,.45);box-shadow:0 6px 18px rgba(0,0,0,.45);border-radius:12px;padding:5px 14px;min-height:1.4em}
+.lotinfo .lt{font-weight:800;font-size:1.02rem;letter-spacing:.03em;color:#f1e6c8}
+.lotinfo .lt b{font-size:1.3rem;color:#ffd23f;text-shadow:0 0 14px rgba(255,183,3,.6)}
+.lotinfo .lp{font-weight:700;font-size:.92rem;color:#d9dfeb}
+.lotinfo .lp b{font-size:1.55rem;line-height:1;color:#fff;text-shadow:0 0 12px rgba(255,210,63,.8);margin:0 2px}
 .lotinfo div{margin:1px 0}
 .lotinfo .qa{color:#ffe08a}
 
@@ -252,10 +264,10 @@ ul.players .tag{color:var(--acc);font-size:.8rem}
   .bag{width:78px;height:87px}
   .bagtxt{font-size:1.1rem}
   /* на низких экранах плашка лота («Ставка Х монет») уходит над карты, чтобы её не закрывал мешочек */
-  .lotzone{flex-direction:column-reverse;top:48%;gap:22px}
-  .lotinfo{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;column-gap:16px;padding:4px 14px}
-  .lotinfo .lt{font-size:1rem}.lotinfo .lt b{font-size:1.3rem}
-  .lotinfo .lp b{font-size:1.5rem}
+  .lotinfo{top:auto;bottom:calc(var(--sh)/2 + 22px);display:flex;flex-wrap:wrap;justify-content:center;align-items:center;column-gap:16px;padding:3px 12px}
+  .lotinfo .lt{font-size:.92rem}.lotinfo .lt b{font-size:1.15rem}
+  .lotinfo .lp b{font-size:1.3rem}
+  .lotgo{top:calc(var(--sh)/2 + 14px)}
   .lotinfo .qa,.lotinfo>div:not(.lt):not(.lp){flex-basis:100%}
 }
 /* большой ответ «ДА / НЕТ» на месте игрока */
@@ -314,7 +326,7 @@ ul.players .tag{color:var(--acc);font-size:.8rem}
 .mebar small{color:var(--mute);font-size:.74rem}
 .mebar .chg{padding:2px 8px;font-size:.72rem;font-weight:600}
 .hand{position:absolute;bottom:10px;left:0;right:0;height:var(--hh,250px);display:flex;justify-content:center;align-items:flex-end;z-index:5;pointer-events:none}
-.hand .card{pointer-events:auto;transform-origin:50% 100%;transition:transform .2s ease,opacity .18s;cursor:pointer;
+.hand .card{touch-action:none;pointer-events:auto;transform-origin:50% 100%;transition:transform .2s ease,opacity .18s;cursor:pointer;
   transform:translateY(calc(var(--by,0px) + var(--y,0px))) scale(var(--sc,1));backface-visibility:hidden}
 .hand .card::after{content:"";position:absolute;left:0;right:0;top:100%;height:140px}   /* невидимая подложка: карта не теряет наведение, когда выезжает вверх */
 .hand.pick .card{--by:0px!important;--y:-56px;transition:transform .4s cubic-bezier(.2,.8,.2,1),opacity .18s}
@@ -327,6 +339,15 @@ ul.players .tag{color:var(--acc);font-size:.8rem}
 .hand.pick .card:hover{--y:-76px}
 .hand.pick .card.sel{--y:-92px}
 .hand .card.new{animation:pop .35s .6s backwards}
+.hand .card.dragging{opacity:0;pointer-events:none}
+.hand .card.away{display:none}
+.hand.dragmode .card{--y:0px!important;--sc:1!important;cursor:grabbing}
+.hand .card.ret{animation:pop .3s backwards}
+.dghost{position:fixed;left:0;top:0;z-index:90;pointer-events:none;transform-origin:50% 50%;transition:scale .14s;filter:drop-shadow(0 18px 16px rgba(0,0,0,.6)) drop-shadow(0 0 8px rgba(255,183,3,.5))}
+.sortb{position:absolute;left:8px;bottom:calc(var(--hb) + 54px);z-index:9;display:flex;align-items:center;gap:6px;padding:7px 12px;font-size:.85rem;
+  background:rgba(10,14,22,.88);border:1px solid rgba(255,255,255,.3);color:var(--ink);border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,.45)}
+.sortb:hover{border-color:var(--acc)}
+.sortb .ar{color:var(--acc);font-size:1.05rem;line-height:1}
 @keyframes pop{from{opacity:0;filter:brightness(2.2)}to{opacity:1;filter:none}}
 
 .chat{position:absolute;right:12px;bottom:calc(var(--hb) + 22px);width:min(230px,70vw);z-index:6;display:flex;flex-direction:column;gap:4px}
@@ -402,6 +423,8 @@ ul.players .tag{color:var(--acc);font-size:.8rem}
 }
 @media (max-width:700px){
   .card.sm{--w:78px}
+  .lotzone{--sh:121px}.slot.empty{width:78px}
+  .sortb{padding:6px 7px}.sortb .tx{display:none}
   .deck,.disc{width:64px;height:100px;margin:-50px 0 0 -32px}.disc .card{--w:60px}.deck-l,.disc-l{margin-top:58px;font-size:.72rem}
   .fan .b{left:-22.5px;top:-100px;width:45px;height:70px;transform-origin:22.5px 100px}
   .deck{left:calc(50% - 130px)}.deck-l{left:calc(50% - 130px)}.bank{left:calc(50% - 130px);top:80%}
@@ -472,6 +495,7 @@ ul.players .tag{color:var(--acc);font-size:.8rem}
     <div class="sealpile" id="sealPile"><div class="stack" id="sealStack"></div><div class="bl">Печати купцов</div></div>
     <div class="lotzone" id="lotzone">
       <div class="slots" id="slots"></div>
+      <div class="lotgo" id="lotgo"></div>
       <div class="lotinfo" id="lotinfo"></div>
     </div>
     <div class="seats" id="seats"></div>
@@ -485,6 +509,7 @@ ul.players .tag{color:var(--acc);font-size:.8rem}
   </div>
   <div class="hand" id="hand"></div>
   <button class="chgb" id="chgBtn" title="Поменять монеты в Банке без потерь"></button>
+  <button class="sortb" id="sortBtn" title="Разложить карты по порядку"><span class="ar">⇅</span><span class="tx">Сортировка</span></button>
   <div class="modal" id="priceM"><div class="sheet price" id="priceS"></div></div>
   <div class="modal" id="cheatM"><div class="sheet" id="cheatS"></div></div>
   <div class="modal" id="finalM"><div class="sheet" id="finalS"></div></div>
@@ -502,7 +527,7 @@ ul.players .tag{color:var(--acc);font-size:.8rem}
    Любое действие игрока приходит в handle(pid, m) → меняет S/H → commit() рассылает всё.
    ========================================================= */
 /*ENGINE-START*/
-const VERSION = 'alpha 0.1.1';
+const VERSION = 'alpha 0.1.2';
 
 /* Числа из правил. Если что-то захочется подкрутить — это здесь. */
 const RULES = {
@@ -1147,7 +1172,8 @@ const STEP_MSG = {compose:'выкладывает лот', showcase:'решае�
   auction:'торгуется', pay:'платит за лот', takelot:'забирает лот', cat:'решает, играть ли Кота', rat:'выбирает карты для Крысы',
   buy:'докупает карты', return:'забирает свои карты', openpick:'вскрывает карту'};
 
-let myHand = [], selIds = new Set(), myPeek = null, mySrc = null, pendIds = null;
+let myHand = [], selIds = new Set(), myPeek = null, mySrc = null;
+let placed = [null, null, null], handOrder = [], autoSort = true, hd = null;   // placed — id карт, положенных на стол для лота; handOrder — порядок карт в руке (только у меня)
 let lastSeq = 0, curGid = 0, tableReady = false, hideLot = false;
 let slotSig = '', prevLot = null, finalGid = 0, toastT = 0;
 const ui = {price:'', q:'', mode:null, actKey:'', tray:{1:0, 5:0, 10:0}, trayKey:'', trayAmt:0, bag:null, bagMode:false, lpLot:0, lpVal:null, lpAnim:null, stakeSigs:{}};
@@ -1263,7 +1289,7 @@ function leave(){
   try{ peer && peer.destroy(); }catch(e){}
   peer = null; hostConn = null; conns = {}; isHost = false;
   S = newState(); H = newH();
-  myHand = []; selIds = new Set(); myPeek = null; mySrc = null; pendIds = null; $('priceM').classList.remove('on');
+  myHand = []; selIds = new Set(); myPeek = null; mySrc = null; placed = [null, null, null]; handOrder = []; autoSort = true; $('priceM').classList.remove('on');
   lastSeq = 0; curGid = 0; tableReady = false; hideLot = false; slotSig = ''; prevLot = null; finalGid = 0; ui.actKey = ''; ui.mode = null;
   resetTray();
   Object.keys(seatEls).forEach(k => delete seatEls[k]);
@@ -1275,12 +1301,12 @@ function enterLobby(){ $('roomCode').textContent = code; $('gameCode').textConte
 
 /* Принять новое состояние: заранее запоминаем, откуда полетят карты и монеты, потом рисуем и анимируем */
 function applyState(ns){
-  if (ns.gid !== curGid){ curGid = ns.gid; lastSeq = 0; tableReady = false; slotSig = ''; prevLot = null; myPeek = null; selIds = new Set(); pendIds = null; $('priceM').classList.remove('on'); ui.actKey = ''; ui.mode = null; resetTray(); }
+  if (ns.gid !== curGid){ curGid = ns.gid; lastSeq = 0; tableReady = false; slotSig = ''; prevLot = null; myPeek = null; selIds = new Set(); placed = [null, null, null]; handOrder = []; autoSort = true; $('priceM').classList.remove('on'); ui.actKey = ''; ui.mode = null; resetTray(); }
   const evs = (ns.evts || []).filter(e => e.seq > lastSeq);
   const fresh = tableReady ? evs : [];
   const srcs = fresh.map(e => srcFor(e));
   S = ns;
-  if (pendIds && !(S.phase === 'game' && S.step === 'compose' && S.turn === myId())){ pendIds = null; $('priceM').classList.remove('on'); }
+  if (!(S.phase === 'game' && S.step === 'compose' && S.turn === myId())){ placed = [null, null, null]; $('priceM').classList.remove('on'); }
   hideLot = fresh.some(e => e.type === 'lot');
   if (!S.lot) myPeek = null;
   render();
@@ -1290,6 +1316,8 @@ function applyState(ns){
 function setHand(cards, newIds){
   myHand = cards;
   selIds = new Set([...selIds].filter(id => cards.some(c => c.id === id)));
+  placed = placed.map(id => id != null && cards.some(c => c.id === id) ? id : null);
+  syncOrder();
   buildHand(newIds || []); ui.actKey = ''; if (S.phase === 'game') renderAct();
 }
 function setPeek(d){ myPeek = {lot:d.lot, own:d.own, cards:d.cards}; slotSig = ''; ui.actKey = ''; if (S.phase === 'game'){ renderLot(); renderAct(); } }
@@ -1405,7 +1433,7 @@ function directive(){
       return {t:esc(S.takeTitle) + ': ' + (mine ? 'ты всё взял ✓. ' : '') + 'ещё берут: ' + B(names || '—')};
     }
     case 'compose':
-      return S.turn === me ? {me:true, blink:true, t:'<b>ТЫ ПРОДАВЕЦ</b>'}
+      return S.turn === me ? {me:true, blink:true, t:'<b>ТЫ ПРОДАВЕЦ</b>', sub:'Перетащи 3 карты из руки на стол'}
                            : {t:'Продавец ' + B(nm(S.turn)) + ' выбирает 3 карты для лота и называет цену'};
     case 'showcase':
       return S.turn === me ? {t:''}
@@ -1643,17 +1671,24 @@ function renderLot(){
   const L = S.lot, sl = $('slots');
   const peekC = (L && myPeek && myPeek.lot === L.n) ? myPeek.cards : null;
   const mode = slotMode();
-  const composeMe = S.phase === 'game' && S.step === 'compose' && S.turn === myId();
-  const sig = L ? [L.n, L.cards.map(c => c.taken ? 'x' : c.open ? c.k : '-').join(), peekC ? peekC.join() : '', mode || '', hideLot ? 1 : 0].join('|') : (composeMe ? 'compose|' + (pendIds ? 'p' : 'e') : '');
+  const cMe = composeMe();
+  const sig = L ? [L.n, L.cards.map(c => c.taken ? 'x' : c.open ? c.k : '-').join(), peekC ? peekC.join() : '', mode || '', hideLot ? 1 : 0].join('|') : (cMe ? 'compose|' + placed.map(x => x == null ? '-' : x).join() : '');
   if (sig !== slotSig){
     slotSig = sig; sl.innerHTML = '';
-    if (!L && composeMe){                       // продавец: три пустых мигающих места, куда ляжет лот
-      [0, 1, 2].forEach(i => {
-        const w = el('div', 'slot' + (pendIds ? '' : ' empty'));
-        if (pendIds){ w.append(mkBack(true)); w.style.visibility = 'hidden'; }
+    if (!L && cMe){                             // продавец: три места, куда кладутся карты лота (пустое — мигает; положенную карту нажатием возвращаем в руку)
+      placed.forEach((id, i) => {
+        const card = id != null ? myHand.find(c => c.id === id) : null;
+        const w = el('div', 'slot' + (card ? ' placed' : ' empty'));
+        if (card){
+          const f = mkFace(card, true);
+          if (ui.landIdx === i) f.classList.add('land');
+          w.append(f);
+          w.addEventListener('pointerdown', e => slotDown(e, i));
+        }
         w.append(el('span', 'sn', String(i + 1)));
         sl.append(w);
       });
+      ui.landIdx = -1;
     } else if (L){
       L.cards.forEach((c, i) => {
         if (c.taken){ const g = el('div', 'slot'); g.append(mkBack(true)); g.style.visibility = 'hidden'; sl.append(g); return; }   // карту уже забрали: место остаётся пустым
@@ -1670,6 +1705,10 @@ function renderLot(){
     }
     prevLot = L ? {n:L.n, open:L.cards.map(c => c.open)} : null;
   }
+  const go = $('lotgo'); go.innerHTML = '';
+  if (!L && cMe && placed.every(x => x != null)){
+    const b = el('button', null, 'Выставить'); b.onclick = openPrice; go.append(b); go.style.display = 'block';
+  } else go.style.display = 'none';
   const info = $('lotinfo'); info.innerHTML = '';
   if (!L){ info.style.display = 'none'; return; }
   info.style.display = '';
@@ -2046,32 +2085,58 @@ $('cheatM').addEventListener('click', e => { if (e.target === $('cheatM')) $('ch
 /* ---------- Моя рука ---------- */
 const smScale = () => (innerWidth < 701 ? 78 : 108) / 90;
 const handCardW = () => innerWidth < 700 ? 104 : Math.round(Math.min(168, Math.max(112, innerHeight * .185)));
+/* ---- порядок карт в руке: у каждого игрока свой, хранится только у него ---- */
+const SORT_RANK = {royal:0, gentry:1, simple:2, spoiled:3};
+const SORT_SPEC = {cat:0, pest:1, rat:2, auditor:3};
+/* Порядок «справа налево»: товары по очереди (в каждом: королевская, господская, простая, испорченная), дальше — особые карты по группам */
+const rtlKey = c => { const d = CARDS[c.k], pi = d.prod ? PORD.indexOf(d.prod) : 0;
+  return d.kind in SORT_RANK ? pi * 10 + SORT_RANK[d.kind] : 100 + SORT_SPEC[d.kind] * 10 + pi; };
+const sortedIds = () => [...myHand].sort((a, b) => rtlKey(b) - rtlKey(a) || a.id - b.id).map(c => c.id);      // на экране слева направо — обратный порядок
+function syncOrder(){
+  if (autoSort){ handOrder = sortedIds(); return; }
+  const have = new Set(myHand.map(c => c.id));
+  handOrder = handOrder.filter(id => have.has(id));
+  myHand.forEach(c => { if (!handOrder.includes(c.id)) handOrder.push(c.id); });     // новые карты — справа
+}
+const visibleHand = () => { const m = new Map(myHand.map(c => [c.id, c])); return handOrder.map(id => m.get(id)).filter(c => c && !placed.includes(c.id)); };
+const composeMe = () => S.phase === 'game' && S.step === 'compose' && S.turn === myId();
+const handMetrics = n => { const cw = handCardW(), avail = Math.min(innerWidth - 40, 1200), step = n > 1 ? Math.min(cw * .82, (avail - cw) / (n - 1)) : cw; return {cw, gap: (step - cw) / 2}; };
+
+function mkHandCard(card, m){
+  const c = mkFace(card);
+  c.dataset.id = card.id;
+  c.style.setProperty('--w', m.cw + 'px');
+  c.style.margin = '0 ' + m.gap + 'px';
+  return c;
+}
+function relayoutBy(){          // лёгкая дуга: края руки чуть ниже
+  const kids = [...$('hand').children].filter(k => !k.classList.contains('away')), n = kids.length;
+  kids.forEach((k, i) => { const q = i - (n - 1) / 2; k.style.setProperty('--by', Math.round(Math.min(6, q * q * .25)) + 'px'); });
+}
 function buildHand(newIds){
   const h = $('hand'); h.innerHTML = '';
-  const cards = pendIds ? myHand.filter(c => !pendIds.includes(c.id)) : myHand;
+  const cards = visibleHand();
   const n = cards.length, nw = new Set(newIds || []);
-  const cw = handCardW(), chh = Math.round(cw * 1.5556);
+  const m = handMetrics(n), cw = m.cw, chh = Math.round(cw * 1.5556);
   const root = document.documentElement.style;
   root.setProperty('--hh', (chh + 14) + 'px');
   root.setProperty('--hb', (chh + 14) + 'px');
-  const avail = Math.min(innerWidth - 40, 1200);
-  const step = n > 1 ? Math.min(cw * .82, (avail - cw) / (n - 1)) : cw;
-  const gap = (step - cw) / 2;
-  cards.forEach((card, i) => {
-    const c = mkFace(card);
-    c.dataset.id = card.id;
-    const k = i - (n - 1) / 2;
-    c.style.setProperty('--w', cw + 'px');
-    c.style.margin = '0 ' + gap + 'px';
-    c.style.setProperty('--by', Math.round(Math.min(6, k * k * .25)) + 'px');      // почти ровный ряд, только целые пиксели
+  cards.forEach(card => {
+    const c = mkHandCard(card, m);
     if (selIds.has(card.id)) c.classList.add('sel');
     if (nw.has(card.id)) c.classList.add('new');
-    c.addEventListener('click', e => { e.stopPropagation(); onHandClick(card, c); });
+    c.addEventListener('pointerdown', e => handDown(e, card, c));
+    c.addEventListener('click', e => e.stopPropagation());
     h.append(c);
   });
+  relayoutBy();
+  if (hd && hd.moved && hd.from === 'hand'){       // пока тащим карту, пришло обновление: подхватываем заново
+    const e = h.querySelector('.card[data-id="' + hd.id + '"]');
+    if (e){ hd.ph = e; e.classList.add('dragging'); if (!hd.inHand) e.classList.add('away'); }
+  }
   markHand();
 }
-/* подсветка карт, которые сейчас можно выбрать (лот, Крыса, Ревизор) */
+/* подсветка карт, которые сейчас можно выбрать (Крыса, Ревизор) */
 function handEligible(card){
   const me = myId(), d = CARDS[card.k];
   if (S.phase !== 'game' || S.turn !== me) return null;
@@ -2081,7 +2146,7 @@ function handEligible(card){
   return null;
 }
 function markHand(){
-  $('hand').classList.toggle('pick', S.phase === 'game' && S.step === 'compose' && S.turn === myId());
+  $('hand').classList.toggle('pick', composeMe() && placed.some(x => x == null));
   [...$('hand').children].forEach(c => {
     const card = myHand.find(x => x.id === Number(c.dataset.id));
     const ok = card ? handEligible(card) : null;
@@ -2090,18 +2155,11 @@ function markHand(){
     c.classList.toggle('sel', selIds.has(Number(c.dataset.id)));
   });
 }
-function onHandClick(card, c){
+/* обычное нажатие на карту в руке (Крыса, Ревизор). Лот набирается не нажатием, а перетаскиванием */
+function onHandClick(card){
   const me = myId();
   if (S.phase !== 'game' || S.turn !== me) return;
-  if (S.step === 'compose'){
-    if (pendIds) return;
-    if (selIds.has(card.id)){ selIds.delete(card.id); c.classList.remove('sel'); }
-    else if (selIds.size < 3){ selIds.add(card.id); c.classList.add('sel'); }
-    else return;
-    send({t:'select', n:selIds.size});
-    if (selIds.size === 3) layOutLot();
-    return;
-  }
+  if (S.step === 'compose') return;
   if (S.step === 'rat'){
     if (handEligible(card) !== true) return toast('Крыса ест только из самой большой партии — карты подсвечены');
     if (selIds.has(card.id)) selIds.delete(card.id);
@@ -2117,27 +2175,143 @@ function onHandClick(card, c){
     ui.mode = null; ui.actKey = ''; send({t:'insp', a:'auditor', id:card.id});
   }
 }
-/* третья карта выбрана: три карты улетают на стол, потом большое окно с ценой */
-function layOutLot(){
-  const ids = [...selIds];
-  const src = ids.map(id => { const e = $('hand').querySelector('.card[data-id="' + id + '"]'); return e ? center(e) : myAnchor(); });
-  const faces = ids.map(id => myHand.find(x => x.id === id));
-  pendIds = ids; selIds = new Set();
-  buildHand(); slotSig = ''; renderLot();
-  const slots = [...$('slots').children];
-  slots.forEach((sl, i) => {
-    if (!faces[i]) { sl.style.visibility = ''; return; }
-    fly({face: faces[i], toBack: true, from: src[i], to: center(sl), s0: handCardW() / 90, s1: smScale(), dur: 620, delay: i * 110, done: () => { sl.style.visibility = ''; }});
+
+/* ---- перетаскивание: карта из руки (по руке и на стол) и карта со стола (обратно в руку или на другое место) ---- */
+function flipHand(fn){           // меняем порядок и плавно «доезжаем» соседними картами
+  const h = $('hand'), first = new Map([...h.children].map(k => [k, k.getBoundingClientRect().left]));
+  fn();
+  if (reduce) return;
+  [...h.children].forEach(k => {
+    const f = first.get(k); if (f == null || !k.animate) return;
+    const dx = f - k.getBoundingClientRect().left;
+    if (Math.abs(dx) > 1) k.animate([{translate: dx + 'px 0'}, {translate: '0 0'}], {duration: 170, easing: 'ease-out'});
   });
-  setTimeout(() => slots.forEach(sl => { sl.style.visibility = ''; }), 1500);
-  setTimeout(() => { if (pendIds) openPrice(); }, reduce ? 50 : 950);
 }
-function closePrice(){ $('priceM').classList.remove('on'); }
-function cancelLot(){
-  closePrice(); pendIds = null; selIds = new Set(); send({t:'select', n:0});
+function dragBegin(e, card, from, idx, el0){
+  if (hd || (e.button != null && e.button > 0)) return;
+  hd = {id: card.id, card, from, idx, el: el0, ph: from === 'hand' ? el0 : null, sx: e.clientX, sy: e.clientY, x: e.clientX, y: e.clientY, moved: false, ghost: null, inHand: from === 'hand', pid: e.pointerId, tgt: -1};
+  window.addEventListener('pointermove', dragMove);
+  window.addEventListener('pointerup', dragEnd);
+  window.addEventListener('pointercancel', dragEnd);
+}
+const handDown = (e, card, c) => dragBegin(e, card, 'hand', -1, c);
+const slotDown = (e, i) => { const card = myHand.find(c => c.id === placed[i]); if (card) dragBegin(e, card, 'slot', i, e.currentTarget); };
+function dragMove(e){
+  const d = hd; if (!d || e.pointerId !== d.pid) return;
+  d.x = e.clientX; d.y = e.clientY;
+  if (!d.moved){
+    if (Math.hypot(d.x - d.sx, d.y - d.sy) < 7) return;
+    d.moved = true;
+    const cw = handCardW(), g = mkFace(d.card);
+    g.classList.add('dghost'); g.style.setProperty('--w', cw + 'px'); document.body.append(g);
+    d.ghost = g; d.gw = cw; d.gh = cw * 1.5556;
+    $('hand').classList.add('dragmode');
+    if (d.from === 'hand') d.ph.classList.add('dragging');
+    else d.el.classList.add('lifted');
+  }
+  d.ghost.style.transform = 'translate(' + (d.x - d.gw / 2) + 'px,' + (d.y - d.gh / 2) + 'px) rotate(-3deg)';
+  dragTrack(d);
+}
+function slotRects(){ return [...$('slots').children].map(s => s.getBoundingClientRect()); }
+function slotUnder(x, y, nearest, own){
+  const rs = slotRects(); let best = -1, bd = 1e9;
+  for (let i = 0; i < rs.length; i++){
+    const r = rs[i], pad = 14;
+    if (x >= r.left - pad && x <= r.right + pad && y >= r.top - pad && y <= r.bottom + pad) return i;
+    if (nearest && (placed[i] == null || i === own)){ const dd = Math.hypot(x - (r.left + r.right) / 2, y - (r.top + r.bottom) / 2); if (dd < bd){ bd = dd; best = i; } }
+  }
+  if (!nearest) return -1;
+  const tr = $('table').getBoundingClientRect();           // отпустил где-то над столом — ближайшее свободное место
+  return (x >= tr.left && x <= tr.right && y >= tr.top && y <= tr.bottom) ? best : -1;
+}
+function dragTrack(d){
+  const h = $('hand'), hr = h.getBoundingClientRect();
+  const inHand = d.y > hr.top - 30;
+  const canTable = composeMe();
+  const tgt = (!inHand && canTable) ? slotUnder(d.x, d.y, false) : -1;
+  if (tgt !== d.tgt){ d.tgt = tgt; [...$('slots').children].forEach((s, i) => s.classList.toggle('drop', i === tgt)); }
+  // масштаб в руке — как карта в руке, над столом — как карта на столе
+  d.ghost.style.scale = (inHand || !canTable) ? '1.04' : String(Math.round(smScale() * 90) / d.gw);
+  if (inHand){
+    flipHand(() => {
+      if (!d.inHand || (d.from === 'slot' && !d.ph)){
+        if (d.from === 'hand') d.ph.classList.remove('away');
+        else { d.ph = mkHandCard(d.card, handMetrics(h.children.length + 1)); d.ph.classList.add('dragging'); h.append(d.ph); }
+        d.inHand = true;
+      }
+      const kids = [...h.children].filter(k => k !== d.ph);
+      let before = null;
+      for (const k of kids){ const r = k.getBoundingClientRect(); if (d.x < r.left + r.width / 2){ before = k; break; } }
+      if (before ? d.ph.nextSibling !== before : d.ph.nextSibling) h.insertBefore(d.ph, before);
+      relayoutBy();
+    });
+  } else if (d.inHand){
+    flipHand(() => {
+      if (d.from === 'hand') d.ph.classList.add('away');
+      else { d.ph.remove(); d.ph = null; }
+      d.inHand = false; relayoutBy();
+    });
+  }
+}
+function commitHandOrder(d){      // положение «пустого места» в руке → порядок handOrder
+  const kids = [...$('hand').children], i = kids.indexOf(d.ph);
+  const nextId = i >= 0 && kids[i + 1] ? Number(kids[i + 1].dataset.id) : null;
+  const prevId = i > 0 ? Number(kids[i - 1].dataset.id) : null;
+  const old = handOrder.join();
+  handOrder = handOrder.filter(id => id !== d.id);
+  if (nextId != null) handOrder.splice(handOrder.indexOf(nextId), 0, d.id);
+  else if (prevId != null) handOrder.splice(handOrder.indexOf(prevId) + 1, 0, d.id);
+  else handOrder.push(d.id);
+  if (handOrder.join() !== old) autoSort = false;
+}
+function dragEnd(e){
+  const d = hd; if (!d || (e && e.pointerId != null && e.pointerId !== d.pid)) return;
+  window.removeEventListener('pointermove', dragMove); window.removeEventListener('pointerup', dragEnd); window.removeEventListener('pointercancel', dragEnd);
+  hd = null;
+  if (!d.moved){                                    // просто нажатие
+    if (d.from === 'slot') unplace(d.idx); else onHandClick(d.card);
+    return;
+  }
+  if (d.ghost) d.ghost.remove();
+  $('hand').classList.remove('dragmode');
+  [...$('slots').children].forEach(s => s.classList.remove('drop'));
+  const cancel = e && e.type === 'pointercancel';
+  const before = placed.join();
+  if (!cancel && d.inHand){
+    if (d.from === 'slot') placed[d.idx] = null;
+    commitHandOrder(d);
+  } else if (!cancel && composeMe()){
+    const t = slotUnder(d.x, d.y, true, d.from === 'slot' ? d.idx : -1);
+    if (t >= 0){
+      if (d.from === 'slot') placed[d.idx] = null;
+      const old = placed[t]; placed[t] = d.id; ui.landIdx = t;
+      if (d.from === 'slot' && old != null) placed[d.idx] = old;       // два места поменялись картами
+    }
+  }
   buildHand(); slotSig = ''; renderLot();
+  if (placed.join() !== before) send({t:'select', n: placed.filter(x => x != null).length});
 }
+/* нажали на карту на столе — она возвращается в руку (на своё прежнее место) */
+function unplace(i){
+  const id = placed[i]; if (id == null) return;
+  const sl = $('slots').children[i], from = sl ? center(sl) : myAnchor();
+  const card = myHand.find(c => c.id === id);
+  placed[i] = null;
+  buildHand(); slotSig = ''; renderLot();
+  send({t:'select', n: placed.filter(x => x != null).length});
+  const e = $('hand').querySelector('.card[data-id="' + id + '"]');
+  if (e && card && !reduce){
+    e.style.visibility = 'hidden';
+    const to = center(e), fin = () => { e.style.visibility = ''; };
+    fly({face: card, from, to, s0: smScale(), s1: handCardW() / 90, dur: 360, done: fin});
+    setTimeout(fin, 700);
+  }
+}
+
+/* кнопка «выставить» под тремя картами → окно с ценой */
+function closePrice(){ $('priceM').classList.remove('on'); }
 function openPrice(){
+  if (!composeMe() || placed.some(x => x == null)) return;
   const m = $('priceM'), box = $('priceS'); box.innerHTML = '';
   let v = Math.min(9999, Math.max(1, Math.floor(Number(ui.price) || 1)));
   const num = el('input', 'pnum'); num.type = 'number'; num.min = 1; num.max = 9999; num.value = v;
@@ -2149,16 +2323,27 @@ function openPrice(){
   const ok = el('button', 'pok', 'Выложить лот');
   ok.onclick = () => {
     set(num.value); ui.price = v;
-    if (!pendIds) return closePrice();
-    closePrice(); send({t:'lot', ids: pendIds, price: v});
+    if (!composeMe() || placed.some(x => x == null)) return closePrice();
+    closePrice(); send({t:'lot', ids: placed.slice(), price: v});
   };
   num.onkeydown = e => { if (e.key === 'Enter') ok.click(); };
   const prow = el('div', 'prow'); prow.append(minus, num, plus);
-  const back = el('button', 'ghost', 'Отмена — забрать карты'); back.onclick = cancelLot;
+  const back = el('button', 'ghost', 'Назад — поменять карты'); back.onclick = closePrice;
   box.append(el('h3', null, 'Назови цену лота'), el('p', null, 'Торги начнутся не ниже этой цены. Потом её менять нельзя.'), prow, ok, back);
   m.classList.add('on'); num.focus(); num.select();
 }
 function clearSel(){ if (!selIds.size || S.step === 'rat') return; selIds = new Set(); [...$('hand').children].forEach(c => c.classList.remove('sel')); send({t:'select', n:0}); ui.actKey = ''; renderAct(); }
+/* кнопка «Сортировка» */
+function sortHandNow(){
+  const h = $('hand'), first = new Map([...h.children].map(k => [k.dataset.id, k.getBoundingClientRect()]));
+  autoSort = true; syncOrder(); buildHand();
+  if (reduce) return;
+  [...h.children].forEach(k => {
+    const f = first.get(k.dataset.id); if (!f || !k.animate) return;
+    const dx = f.left - k.getBoundingClientRect().left;
+    if (Math.abs(dx) > 1) k.animate([{translate: dx + 'px 0'}, {translate: '0 0'}], {duration: 380, easing: 'cubic-bezier(.2,.8,.2,1)'});
+  });
+}
 
 /* ---------- Анимации полёта карт и монет ---------- */
 function center(e){ const r = e.getBoundingClientRect(); return {x: r.left + r.width / 2, y: r.top + r.height / 2}; }
@@ -2276,7 +2461,8 @@ $('chatIn').addEventListener('keydown', e => { if (e.key === 'Enter'){ const s =
 /* кнопка «Размен» слева у края стола: монеты вместо слов */
 $('chgBtn').append(coinEl(10), el('span', 'ar', '⇄'), coinEl(5), el('span', 'tx', 'Размен'));
 $('chgBtn').onclick = openChange;
-document.addEventListener('keydown', e => { if (e.key === 'Escape'){ if (ui.bagMode && (ui.mode === 'ask' || ui.mode === 'open')) bagBack(); clearSel(); ['cheatM', 'rulesM', 'discM', 'changeM', 'sealM'].forEach(id => $(id).classList.remove('on')); } });
+$('sortBtn').onclick = sortHandNow;
+document.addEventListener('keydown', e => { if (e.key === 'Escape'){ if (hd) dragEnd({type:'pointercancel'}); if (ui.bagMode && (ui.mode === 'ask' || ui.mode === 'open')) bagBack(); clearSel(); ['cheatM', 'rulesM', 'discM', 'changeM', 'sealM'].forEach(id => $(id).classList.remove('on')); } });
 window.addEventListener('resize', () => { if (S.phase === 'game'){ renderTable(); buildHand(); } });
 $('roomCode').onclick = () => navigator.clipboard && navigator.clipboard.writeText(code);
 $('start').onclick = () => { if (startGame()) commit(); };
