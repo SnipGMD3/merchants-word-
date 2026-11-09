@@ -223,11 +223,14 @@ ul.players .tag{color:var(--acc);font-size:.8rem}
 .bag .bin{position:absolute;left:50%;top:-4px;transform:translateX(-50%);display:flex;align-items:flex-end;height:34px;z-index:1;pointer-events:none}
 .bag .bin .coin{--k:.8}
 .bag .bin .coin+.coin{margin-left:-11px}
-.bag.over{transform:scale(1.09);filter:drop-shadow(0 0 14px rgba(255,183,3,.9))}
+.bag.ready{filter:drop-shadow(0 0 12px rgba(255,183,3,.85));animation:bagwiggle .55s ease-in-out infinite}
+.bag.over{scale:1.1;filter:drop-shadow(0 0 20px rgba(255,214,90,1))}
+@keyframes bagwiggle{0%,100%{transform:rotate(0)}25%{transform:rotate(-4deg) translateX(-2px)}75%{transform:rotate(4deg) translateX(2px)}}
 .bag.shake{animation:bagshake .45s}
 .bag.plop{animation:bagplop .32s}
 @keyframes bagshake{0%,100%{transform:none}20%{transform:translateX(-9px) rotate(-4deg)}40%{transform:translateX(9px) rotate(4deg)}60%{transform:translateX(-6px) rotate(-3deg)}80%{transform:translateX(5px) rotate(2deg)}}
 @keyframes bagplop{40%{transform:scale(1.1,.9)}70%{transform:scale(.96,1.05)}}
+.bagsub{font-size:.9rem;font-weight:700;color:#8a93a6;text-align:center;line-height:1}
 .bagtxt{font-weight:900;font-size:1.25rem;color:#ffd96a;text-align:center;line-height:1.1;text-shadow:0 2px 3px rgba(0,0,0,.7)}
 .purse.drag .pw{cursor:grab;touch-action:none}
 .fcoin.dragc{z-index:70;cursor:grabbing;filter:drop-shadow(0 8px 6px rgba(0,0,0,.5))}
@@ -315,7 +318,7 @@ ul.players .tag{color:var(--acc);font-size:.8rem}
 .hand .card.sel{--y:-92px;z-index:8;filter:drop-shadow(0 0 4px var(--acc)) drop-shadow(0 0 12px rgba(255,183,3,.85)) drop-shadow(0 16px 16px rgba(0,0,0,.6))}
 .hand.pick .card:hover{--y:-76px}
 .hand.pick .card.sel{--y:-92px}
-.hand .card.new{animation:pop .4s .5s backwards}
+.hand .card.new{animation:pop .35s .6s backwards}
 @keyframes pop{from{opacity:0;filter:brightness(2.2)}to{opacity:1;filter:none}}
 
 .chat{position:absolute;right:12px;bottom:calc(var(--hb) + 22px);width:min(230px,70vw);z-index:6;display:flex;flex-direction:column;gap:4px}
@@ -490,7 +493,7 @@ ul.players .tag{color:var(--acc);font-size:.8rem}
    Любое действие игрока приходит в handle(pid, m) → меняет S/H → commit() рассылает всё.
    ========================================================= */
 /*ENGINE-START*/
-const VERSION = 'alpha 0.0.8';
+const VERSION = 'alpha 0.0.9';
 
 /* Числа из правил. Если что-то захочется подкрутить — это здесь. */
 const RULES = {
@@ -1756,7 +1759,7 @@ const inBag = (r, x, y) => x >= r.left - 26 && x <= r.right + 26 && y >= r.top -
 function endDrag(){
   if (!drag) return;
   const D = drag; drag = null;
-  const b = $('bagEl'); if (b) b.classList.remove('over');
+  const b = $('bagEl'); if (b) b.classList.remove('over', 'ready');
   const r = b && b.getBoundingClientRect(), hit = !!(r && r.width && inBag(r, D.x, D.y));
   const ok = hit && bagTry(D.d);
   const cur = 'translate(' + D.x + 'px,' + D.y + 'px) translate(-50%,-50%) scale(1.25)';
@@ -1769,7 +1772,7 @@ function endDrag(){
 }
 $('mebar').addEventListener('pointerdown', e => {
   if (!ui.bagMode || !ui.bag || e.button) return;
-  if (drag){ drag.g.remove(); drag = null; }             // прошлое перетаскивание «зависло» (кнопку отпустили вне окна) — сбрасываем
+  if (drag){ const bg = $('bagEl'); if (bg) bg.classList.remove('over', 'ready'); drag.g.remove(); drag = null; }             // прошлое перетаскивание «зависло» (кнопку отпустили вне окна) — сбрасываем
   const pw = e.target.closest('.pw[data-d]'); if (!pw) return;
   const d = Number(pw.dataset.d);
   if (ui.tray[d] >= freePurse()[d]) return;
@@ -1778,11 +1781,12 @@ $('mebar').addEventListener('pointerdown', e => {
   e.preventDefault();
   const g = el('div', 'fcoin dragc'); g.append(coinEl(d)); document.body.append(g);
   top.style.visibility = 'hidden';
+  const bg = $('bagEl'); if (bg && (!ui.bag.need || trayTotal() + d <= ui.bag.need)) bg.classList.add('ready');   // монета в руке — мешочек светится и подрагивает
   drag = {d, g, top, from: center(top), x: e.clientX, y: e.clientY};
   moveDrag(e.clientX, e.clientY);
 });
 window.addEventListener('pointermove', e => { if (!drag) return; if (e.pointerType === 'mouse' && e.buttons === 0) return endDrag(); moveDrag(e.clientX, e.clientY); });
-window.addEventListener('blur', () => { if (drag){ drag.g.remove(); if (drag.top) drag.top.style.visibility = ''; drag = null; } });
+window.addEventListener('blur', () => { if (drag){ const bg = $('bagEl'); if (bg) bg.classList.remove('over', 'ready'); drag.g.remove(); if (drag.top) drag.top.style.visibility = ''; drag = null; } });
 window.addEventListener('pointerup', endDrag);
 window.addEventListener('pointercancel', endDrag);
 
@@ -1886,7 +1890,8 @@ function buildAct(A){
       };
       A.classList.add('bagp');
       const br = el('div', 'bidrow'); br.append(btn('Ставка', go), w.bag, btn('Пас', () => { resetTray(); send({t:'pass'}); }, {ghost:true}));
-      add(el('div', 't c', 'Ставка или пас'), br, txt);
+      const cur = el('div', 'bagsub', 'Ставка ' + (Au.by !== null ? Au.high : L.price));
+      add(el('div', 't c', 'Ставка или пас'), br, txt, cur);
       w.update();
       return true;
     }
@@ -2131,6 +2136,8 @@ function seatAnchor(id){
   return center(kids[kids.length >> 1] || e.querySelector('.plate'));
 }
 const myAnchor = () => ({x: innerWidth / 2, y: innerHeight - 90});
+/* куда в моей руке «приземляются» карты: центр руки, размер — как у карт в руке */
+const handTarget = () => ({x: innerWidth / 2, y: innerHeight - 10 - Math.round(handCardW() * 1.5556 / 2)});
 const whereIs = id => id === myId() ? myAnchor() : seatAnchor(id);
 function coinAnchor(id){
   if (id === 'bank') return center($('bank'));
@@ -2158,9 +2165,9 @@ function animateEvent(e, src){
     slots.forEach((s, i) => fly({face:null, from:{x: src.x + (i - 1) * 16, y: src.y}, to: center(s), s0: mine ? 1 : 0.6, s1: smScale(), dur: 600, delay: i * 120, done: () => { s.style.visibility = ''; }}));
     setTimeout(reveal, 1500);
   } else if (e.type === 'draw'){
-    for (let i = 0; i < Math.min(e.n, 4); i++) fly({face:null, from:src, to: whereIs(e.by), s0: 0.7, s1: mine ? 1 : 0.6, dur: 520, delay: i * 130});
+    for (let i = 0; i < Math.min(e.n, 4); i++) fly({face:null, from:src, to: mine ? handTarget() : whereIs(e.by), s0: 0.7, s1: mine ? handCardW() / 90 : 0.6, r0: -8, r1: 0, dur: mine ? 700 : 520, delay: i * 130});
   } else if (e.type === 'take'){
-    for (let i = 0; i < (e.n || 3); i++) fly({face:null, from:{x: src.x + (e.i != null ? 0 : (i - 1) * 40), y: src.y}, to: whereIs(e.by), s0: smScale(), s1: mine ? 1 : 0.6, dur: 560, delay: i * 90});
+    for (let i = 0; i < (e.n || 3); i++) fly({face:null, from:{x: src.x + (e.i != null ? 0 : (i - 1) * 40), y: src.y}, to: mine ? handTarget() : whereIs(e.by), s0: smScale(), s1: mine ? handCardW() / 90 : 0.6, r0: -6, r1: 0, dur: mine ? 720 : 560, delay: i * 110});
   } else if (e.type === 'toss'){
     for (let i = 0; i < Math.min(e.n, 3); i++) fly({face:null, from:{x: src.x + (i - 1) * 40, y: src.y}, to: center($('disc')), s0: smScale(), s1: 0.6, dur: 560, delay: i * 90});
   } else if (e.type === 'coins'){
