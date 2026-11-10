@@ -651,7 +651,7 @@ ul.players .tag{color:var(--acc);font-size:.8rem}
    Любое действие игрока приходит в handle(pid, m) → меняет S/H → commit() рассылает всё.
    ========================================================= */
 /*ENGINE-START*/
-const VERSION = 'alpha 0.1.15';
+const VERSION = 'alpha 0.1.16';
 
 /* Числа из правил. Если что-то захочется подкрутить — это здесь. */
 const RULES = {
@@ -2174,7 +2174,7 @@ function buildAct(A){
 }
 
 /* ---------- Звук: шум рынка (зацикленный, с плавным входом) и звуки карт ---------- */
-const SND = {mute: false, bedVol: .25};
+const SND = {mute: false, bedVol: .2};
 try{ SND.mute = localStorage.getItem('kup_mute') === '1'; }catch(e){}
 const SFX = {};
 function sfx(name, vol, delay){
@@ -2489,7 +2489,7 @@ function buildHand(newIds){
       c._tm = setTimeout(() => { c.style.visibility = ''; delete c.dataset.pend; c.classList.add('pop'); }, reduce ? 0 : 1100);
       (ui.newQ = ui.newQ || []).push({id: card.id, t: performance.now()});
     }
-    c.addEventListener('pointerenter', e => { if (e.pointerType === 'mouse' && !hd) sfx('perebor', .6); });
+    c.addEventListener('pointerenter', e => { if (e.pointerType === 'mouse' && !hd) sfx('perebor', .7); });
     c.addEventListener('pointerleave', e => { if (e.pointerType === 'mouse') hidePg(); });
     c.addEventListener('pointerdown', e => handDown(e, card, c));
     c.addEventListener('click', e => { e.stopPropagation(); showPg(card); });
