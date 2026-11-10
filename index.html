@@ -83,17 +83,35 @@ ul.players .tag{color:var(--acc);font-size:.8rem}
 #game{padding:0;position:relative;overflow:hidden;overflow:clip;height:100vh;height:100dvh}
 .hud{position:absolute;top:8px;left:12px;right:12px;display:flex;justify-content:space-between;align-items:flex-start;gap:10px;z-index:6}
 .hud .code{font-size:1rem;letter-spacing:.2em;display:inline}
-.hud .dayinfo{flex:1;text-align:center;padding-top:2px;font-weight:700}
-.hud .dayinfo small{display:block;color:var(--mute);font-weight:400;font-size:.78rem}
+/* плашка дня слева под кодом: дерево и камень, «ДЕНЬ 1/4», солнце (утро) или луна (вечер) */
+:root{--pw:clamp(170px,16vw,250px)}
+.hud .dayinfo{position:absolute;left:0;top:46px;width:var(--pw);text-align:center;font-weight:700;pointer-events:none}
+.daypl{position:relative;width:var(--pw);aspect-ratio:1444/796;background:url(ui/plaque.webp) center/100% 100% no-repeat;filter:drop-shadow(0 6px 8px rgba(0,0,0,.55));
+  display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding-top:calc(var(--pw)*.13)}
+.daypl .d1,.daypl .d2{font-family:'Arial Black','Segoe UI Black','Helvetica Neue',Impact,sans-serif;font-weight:900;color:#fff;line-height:1;letter-spacing:.03em;
+  -webkit-text-stroke:calc(var(--pw)*.026) #000;paint-order:stroke fill;text-shadow:0 2px 0 rgba(0,0,0,.35)}
+.daypl .d1{font-size:calc(var(--pw)*.125)}
+.daypl .d2{font-size:calc(var(--pw)*.115);margin-top:calc(var(--pw)*.01)}
+.daypl .dico{width:calc(var(--pw)*.2);height:calc(var(--pw)*.2);object-fit:contain;margin-top:calc(var(--pw)*.01);filter:drop-shadow(0 2px 3px rgba(0,0,0,.55))}
+.daypl .dico.swap{animation:dayswap .8s cubic-bezier(.2,1.4,.4,1)}
+@keyframes dayswap{from{transform:translateY(-30%) rotate(-120deg) scale(.3);opacity:0}to{transform:none;opacity:1}}
+.hud .dayinfo small{display:block;margin-top:4px;color:#c9d1e0;font-weight:700;font-size:.74rem;line-height:1.2;text-shadow:0 1px 3px #000}
 .hud button{padding:6px 12px;font-size:.85rem}
 .hud .btns{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
 
-.directive{position:absolute;top:52px;left:50%;transform:translateX(-50%);z-index:7;width:min(920px,94vw);text-align:center;padding:7px 14px;border-radius:12px;
+.directive{position:absolute;top:52px;left:50%;transform:translateX(-50%);z-index:7;width:min(920px,calc(100vw - 2 * (var(--pw) + 24px)));text-align:center;padding:7px 14px;border-radius:12px;
   background:rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.18);font-weight:700;font-size:.95rem;line-height:1.3}
 .directive small{display:block;font-weight:400;color:var(--mute);font-size:.8rem}
 .directive.me{border-color:var(--acc);background:rgba(70,46,0,.82);color:#ffe9a8;animation:glow 1.8s ease-in-out infinite}
 .directive b{color:#fff}
 .directive:empty{display:none}
+.sealmsg{position:absolute;left:50%;top:44%;transform:translate(-50%,-50%);z-index:60;pointer-events:none;text-align:center;padding:18px 40px;border-radius:18px;
+  background:linear-gradient(180deg,rgba(120,18,28,.96),rgba(60,8,14,.96));border:2px solid #ffd23f;box-shadow:0 0 40px rgba(255,200,40,.55),0 12px 34px rgba(0,0,0,.6);animation:sealin .45s cubic-bezier(.2,1.5,.4,1);transition:opacity .4s}
+.sealmsg.out{opacity:0}
+.sealmsg .sm1{font-size:2rem;font-weight:900;color:#ffd23f;letter-spacing:.04em}
+.sealmsg .sm2{font-size:1.7rem;font-weight:800;color:#fff;margin:4px 0}
+.sealmsg .sm3{font-size:1.15rem;font-weight:700;color:#ffe9c7}
+@keyframes sealin{from{opacity:0;transform:translate(-50%,-50%) scale(.6)}to{opacity:1;transform:translate(-50%,-50%) scale(1)}}
 .midmsg{position:absolute;top:42%;left:50%;transform:translate(-50%,-50%);z-index:8;pointer-events:none;padding:14px 30px;border-radius:16px;font-size:2.1rem;font-weight:900;letter-spacing:.06em;
   color:#ffe9a8;background:rgba(70,46,0,.88);border:2px solid var(--acc);text-align:center;white-space:nowrap;animation:glow 1.8s ease-in-out infinite}
 .midmsg:empty{display:none}
@@ -439,7 +457,7 @@ ul.players .tag{color:var(--acc);font-size:.8rem}
   .mebar{left:6px;bottom:6px;padding:6px 8px;max-width:190px}.mebar .purse{--k:.9;gap:6px}.mebar .seal{--k:1.1}.mebar .sum{font-size:1.5rem}
   .chgb{padding:6px 7px}.chgb .tx{display:none}
   .hud .btns button{padding:5px 8px;font-size:.78rem}
-  .hud .dayinfo{font-size:.8rem}
+  :root{--pw:110px}
 }
 @media (prefers-reduced-motion:reduce){.pw.hot .coin{animation:none}.hand .card,.fan .b,.seat{transition:none}.card.flip,.directive.me,.directive.blink,.pulse::after,.seal.can,.slot.empty,.hand.pick .card:not(.sel){animation:none}}
 </style>
@@ -534,7 +552,7 @@ ul.players .tag{color:var(--acc);font-size:.8rem}
    Любое действие игрока приходит в handle(pid, m) → меняет S/H → commit() рассылает всё.
    ========================================================= */
 /*ENGINE-START*/
-const VERSION = 'alpha 0.1.5';
+const VERSION = 'alpha 0.1.8';
 
 /* Числа из правил. Если что-то захочется подкрутить — это здесь. */
 const RULES = {
@@ -948,7 +966,7 @@ function doSeal(pid){
   if (p.seal !== 1 || p.coins < price) return;
   p.seal = 2;
   addLog(p.name + ' применяет Печать купца: «Продано!» (платит ' + price + (price > A.high ? ', минимум ' + RULES.sealMin : '') + ')');
-  note(p.name + ': «Продано!» — Печать купца');
+  emit('seal', {by: pid, name: p.name, amount: price});
   sold(pid, price);
   /* по Печати ставка сама доходит до 10: деньги сразу уходят продавцу, покупатель только забирает карты лота */
   const s = pl(S.pay.to), c = payExact(p, price); if (!c) return;
@@ -1021,12 +1039,13 @@ function ratInfo(id){
   return {prods: top.map(x => x.prod), size: st[0].size, need: Math.min(2, st[0].size)};
 }
 function ratDone(B, nap, ids){
-  const h = hand(B), names = [];
-  ids.forEach(id => { const i = h.findIndex(c => c.id === id); if (i >= 0){ const c = h.splice(i, 1)[0]; names.push(cname(c)); H.discard.push(c); } });
+  const h = hand(B), names = [], eaten = [];
+  ids.forEach(id => { const i = h.findIndex(c => c.id === id); if (i >= 0){ const c = h.splice(i, 1)[0]; names.push(cname(c)); eaten.push({id: c.id, k: c.k}); H.discard.push(c); } });
+  emit('nap', {kind:'rat', by: B, cards: eaten, nap: {id: nap.id, k: nap.k}});
   const ri = h.findIndex(c => c.id === nap.id);
   if (ri >= 0) H.discard.push(h.splice(ri, 1)[0]);
   addLog('Крыса съедает у ' + pl(B).name + ': ' + (names.join(', ') || 'ничего') + '. Крыса в сброс');
-  note('Крыса! ' + pl(B).name + ' теряет: ' + (names.join(', ') || 'ничего'));
+  note('Крыса у ' + pl(B).name + '! ' + (eaten.length ? '−' + eaten.length + ' ' + plural(eaten.length, 'карта', 'карты', 'карт') + ' высшей партии!' : 'Есть нечего — Крыса уходит в сброс!'));
 }
 function trigPhase(){                // шаг 2: сначала Вредители, потом Крысы
   const R = H.res, B = R.buyer;
@@ -1037,8 +1056,9 @@ function trigPhase(){                // шаг 2: сначала Вредите�
       const gone = h.filter(c => isGood(c) && CARDS[c.k].prod === d.prod);
       H.hands[B] = h.filter(c => !gone.includes(c) && c.id !== nap.id);
       H.deck.push(...gone); shuffle(H.deck); H.discard.push(nap);
+      emit('nap', {kind:'pest', by: B, cards: gone.map(c => ({id: c.id, k: c.k})), nap: {id: nap.id, k: nap.k}});
       addLog(d.name + ': вся партия «' + prodName(d.prod) + '» у ' + pl(B).name + ' (' + gone.length + ' карт) замешана в колоду');
-      note(d.name + '! Партия «' + prodName(d.prod) + '» (' + gone.length + ') у ' + pl(B).name + ' ушла в колоду');
+      note(d.name + '! Вся партия «' + prodName(d.prod) + '» уничтожается!');
       R.queue.shift(); continue;
     }
     const ri = ratInfo(B);
@@ -1195,7 +1215,8 @@ const show = id => document.querySelectorAll('.screen').forEach(s => s.classList
 const homeErr = t => $('homeErr').textContent = t || '';
 function el(tag, cls, text){ const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
 const plural = (n, a, b, c) => { const m = n % 100, k = n % 10; return (m > 10 && m < 15) ? c : k === 1 ? a : (k >= 2 && k <= 4) ? b : c; };
-['back', ...Object.keys(IMG)].forEach(k => { new Image().src = 'cards/' + (k === 'back' ? 'back.webp' : k + '.' + IMG[k]); });   // прогрев кэша
+['back', ...Object.keys(IMG)].forEach(k => { new Image().src = 'cards/' + (k === 'back' ? 'back.webp' : k + '.' + IMG[k]); });
+['plaque', 'sun', 'moon'].forEach(k => { new Image().src = 'ui/' + k + '.webp'; });   // прогрев кэша
 
 /* ---------- Хост ---------- */
 HOOK.broadcast = () => { Object.values(conns).forEach(c => c.open && c.send({t:'state', state:S})); applyState(S); };
@@ -1541,9 +1562,13 @@ function renderTable(){
   renderBank(td);
 
   const di = $('dayinfo'); di.innerHTML = '';
-  di.append('День ' + S.day + ' из ' + S.days + ' · ' + (S.round === 'm' ? 'утро' : 'вечер'));
-  const sm = el('small', null, 'Староста рынка ★ ' + nm(S.starost) + (S.day === S.days ? ' · последний день: карты не раздаются' : ''));
-  di.append(sm);
+  const pl = el('div', 'daypl'), ico = el('img', 'dico');
+  ico.src = 'ui/' + (S.round === 'm' ? 'sun' : 'moon') + '.webp'; ico.alt = S.round === 'm' ? 'утро' : 'вечер'; ico.title = S.round === 'm' ? 'Утро' : 'Вечер';
+  const dk = S.gid + '|' + S.day + S.round;
+  if (ui.dayKey && ui.dayKey !== dk && !reduce) ico.classList.add('swap');           // сменилось время суток — значок «прокатывается»
+  ui.dayKey = dk;
+  pl.append(el('div', 'd1', 'ДЕНЬ'), el('div', 'd2', S.day + '/' + S.days), ico);
+  di.append(pl, el('small', null, 'Староста рынка ★ ' + nm(S.starost) + (S.day === S.days ? ' · последний день: карты не раздаются' : '')));
 
   const dr = directive(), dv = $('directive');
   dv.innerHTML = dr.t + (dr.sub ? '<small>' + dr.sub + '</small>' : '');
@@ -1744,8 +1769,7 @@ function renderLot(){
   if (S.step === 'pay') info.append(el('div', null, 'Торги выиграл ' + nm(S.turn) + ' — платит ' + S.pay.amount));
   if (S.step === 'takelot') info.append(el('div', null, 'Оплачено. ' + nm(S.turn) + ' забирает лот'));
   if (S.step === 'return') info.append(el('div', null, 'Не продан: товары — в сброс, специальные карты вернутся продавцу'));
-  L.qa.forEach(x => info.append(el('div', 'qa', x.by + ': «' + x.q + '» — ' + x.a)));
-  if (peekC) info.append(el('div', null, myPeek.own ? 'Ты знаешь свой лот (видно только тебе)' : 'Ревизор показал тебе весь лот (видно только тебе)'));
+  if (peekC && !myPeek.own) info.append(el('div', null, 'Ревизор показал тебе весь лот (видно только тебе)'));
 }
 function slotClick(i){
   const mode = slotMode(); if (!mode || !S.lot) return;
@@ -1964,7 +1988,7 @@ function buildAct(A){
   }
   if (S.step === 'auction'){
     const Au = S.auction, L = S.lot;
-    if (me === S.seller){ add(el('div', 'm', 'Твой лот на торгах. Ты в торгах не участвуешь.')); return false; }
+    if (me === S.seller) return false;
     if (Au.passed.includes(me)){ add(el('div', 'm', 'Ты спасовал: в торгах за этот лот больше не участвуешь.')); return false; }
     const min = Au.by === null ? L.price : Au.high + 1;
     if (turnMe){                        // «Ставка или пас», две кнопки, мешочек и под ним сколько уже закинуто
@@ -2130,7 +2154,10 @@ function relayoutBy(){          // лёгкая дуга: края руки чу
   kids.forEach((k, i) => { const q = i - (n - 1) / 2; k.style.setProperty('--by', Math.round(Math.min(6, q * q * .25)) + 'px'); });
 }
 function buildHand(newIds){
-  const h = $('hand'); h.innerHTML = '';
+  const h = $('hand');
+  ui.lastPos = ui.lastPos || {};                                  // где карты стояли в руке до обновления (откуда им улетать при Напасти)
+  [...h.children].forEach(k => { const r = k.getBoundingClientRect(); ui.lastPos[k.dataset.id] = {x: r.left + r.width / 2, y: r.top + r.height / 2}; });
+  h.innerHTML = '';
   const cards = visibleHand();
   const n = cards.length, nw = new Set(newIds || []);
   const m = handMetrics(n), cw = m.cw, chh = Math.round(cw * 1.5556);
@@ -2140,7 +2167,11 @@ function buildHand(newIds){
   cards.forEach(card => {
     const c = mkHandCard(card, m);
     if (selIds.has(card.id)) c.classList.add('sel');
-    if (nw.has(card.id)){ c.style.visibility = 'hidden'; setTimeout(() => { c.style.visibility = ''; c.classList.add('pop'); }, reduce ? 0 : 650); }     // пока летит анимация карты — место в руке пустое
+    if (nw.has(card.id)){                       // новая карта: место в руке пустое, пока к нему не долетит карта с колоды/стола (если не прилетела — сама появится)
+      c.style.visibility = 'hidden'; c.dataset.pend = '1';
+      c._tm = setTimeout(() => { c.style.visibility = ''; delete c.dataset.pend; c.classList.add('pop'); }, reduce ? 0 : 1100);
+      (ui.newQ = ui.newQ || []).push({id: card.id, t: performance.now()});
+    }
     c.addEventListener('pointerdown', e => handDown(e, card, c));
     c.addEventListener('click', e => e.stopPropagation());
     h.append(c);
@@ -2399,9 +2430,22 @@ function animateEvent(e, src){
     slots.forEach((s, i) => fly({face:null, from:{x: src.x + (i - 1) * 16, y: src.y}, to: center(s), s0: mine ? 1 : 0.6, s1: smScale(), dur: 600, delay: i * 120, done: () => { s.style.visibility = ''; }}));
     setTimeout(reveal, 1500);
   } else if (e.type === 'draw'){
-    for (let i = 0; i < Math.min(e.n, 4); i++) fly({face:null, from:src, to: mine ? handTarget() : whereIs(e.by), s0: 0.7, s1: mine ? handCardW() / 90 : 0.6, r0: -8, r1: 0, dur: mine ? 700 : 520, delay: i * 130});
+    const got = mine ? claimNew(Math.min(e.n, 4)) : [];
+    for (let i = 0; i < Math.min(e.n, 4); i++){
+      if (got[i]) flyIn(got[i], src, i, 96 / 90);
+      else fly({face:null, from:src, to: mine ? handTarget() : whereIs(e.by), s0: 0.7, s1: mine ? handCardW() / 90 : 0.6, r0: -8, r1: 0, dur: mine ? 700 : 520, delay: i * 130});
+    }
   } else if (e.type === 'take'){
-    for (let i = 0; i < (e.n || 3); i++) fly({face:null, from:{x: src.x + (e.i != null ? 0 : (i - 1) * 40), y: src.y}, to: mine ? handTarget() : whereIs(e.by), s0: smScale(), s1: mine ? handCardW() / 90 : 0.6, r0: -6, r1: 0, dur: mine ? 720 : 560, delay: i * 110});
+    const got = mine ? claimNew(e.n || 3) : [];
+    for (let i = 0; i < (e.n || 3); i++){
+      const from = {x: src.x + (e.i != null ? 0 : (i - 1) * 40), y: src.y};
+      if (got[i]) flyIn(got[i], from, i, smScale());
+      else fly({face:null, from, to: mine ? handTarget() : whereIs(e.by), s0: smScale(), s1: mine ? handCardW() / 90 : 0.6, r0: -6, r1: 0, dur: mine ? 720 : 560, delay: i * 110});
+    }
+  } else if (e.type === 'nap'){
+    flyNap(e);
+  } else if (e.type === 'seal'){
+    showSeal(e);
   } else if (e.type === 'toss'){
     for (let i = 0; i < Math.min(e.n, 3); i++) fly({face:null, from:{x: src.x + (i - 1) * 40, y: src.y}, to: center($('disc')), s0: smScale(), s1: 0.6, dur: 560, delay: i * 90});
   } else if (e.type === 'coins'){
@@ -2409,6 +2453,47 @@ function animateEvent(e, src){
   } else if (e.type === 'answer'){
     showAnswer(e);
   }
+}
+/* Новая карта в моей руке: летит сразу на своё место, по пути переворачивается лицом вверх и растёт до размера карт в руке */
+function claimNew(n){
+  const now = performance.now(), out = [];
+  ui.newQ = (ui.newQ || []).filter(x => now - x.t < 4000);
+  while (out.length < n && ui.newQ.length){
+    const x = ui.newQ.shift();
+    const e = $('hand').querySelector('.card[data-id="' + x.id + '"][data-pend]'), card = myHand.find(c => c.id === x.id);
+    if (e && card){ clearTimeout(e._tm); out.push({e, card}); }
+  }
+  return out;
+}
+function flyIn(g, from, i, s0){
+  const e = g.e, fin = () => { e.style.visibility = ''; delete e.dataset.pend; };
+  fly({face: g.card, flip: true, from, to: center(e), s0, s1: handCardW() / 90, r0: -12, r1: 0, dur: reduce ? 1 : 900, delay: i * 150, done: fin});
+  setTimeout(fin, 1500 + i * 150);
+}
+/* Напасть: карты улетают из руки (или от места игрока) в центр стола, потом — в колоду (Вредитель) или в сброс (Крыса); сама Напасть — в сброс */
+function flyNap(e){
+  const me = e.by === myId(), c0 = center($('lotzone')), dest = center($(e.kind === 'pest' ? 'deck' : 'disc')), disc = center($('disc'));
+  const n = e.cards.length, sw = Math.min(78, 520 / Math.max(1, n));
+  const from = id => (me && ui.lastPos && ui.lastPos[id]) || (me ? center($('slots')) : seatAnchor(e.by));
+  const s0 = me ? handCardW() / 90 : .6, sMid = smScale() * 1.05;
+  setTimeout(() => {
+    e.cards.forEach((c, i) => {
+      const mid = {x: c0.x + (i - (n - 1) / 2) * sw, y: c0.y + 55};
+      fly({face: c, from: from(c.id), to: mid, s0, s1: sMid, r0: -6, dur: 560, delay: i * 60,
+        done: () => fly({face: c, toBack: true, from: mid, to: dest, s0: sMid, s1: e.kind === 'pest' ? 96 / 90 : .6, dur: 520, delay: reduce ? 0 : 380 + i * 50})});
+    });
+    const top = {x: c0.x, y: c0.y - 75};
+    fly({face: e.nap, from: from(e.nap.id), to: top, s0, s1: sMid * 1.15, dur: 560,
+      done: () => fly({face: e.nap, from: top, to: disc, s0: sMid * 1.15, s1: .6, dur: 520, delay: reduce ? 0 : 520})});
+  }, reduce ? 0 : 750);
+}
+/* Использована Печать купца: плашка по центру на 3 секунды */
+function showSeal(e){
+  const t = el('div', 'sealmsg'), n = e.amount;
+  t.append(el('div', 'sm1', 'Использована Печать!'), el('div', 'sm2', e.name),
+    el('div', 'sm3', n + ' ' + plural(n, 'монета', 'монеты', 'монет') + ' ' + plural(n, 'отправлена', 'отправлены', 'отправлены') + ' продавцу.'));
+  $('game').append(t);
+  setTimeout(() => { t.classList.add('out'); setTimeout(() => t.remove(), 450); }, 3000);
 }
 /* Ответ продавца на расспрос: огромное «ДА» / «НЕТ» над местом того, кто спрашивал */
 function showAnswer(e){
