@@ -625,7 +625,7 @@ ul.players .tag{color:var(--acc);font-size:.8rem}
    Любое действие игрока приходит в handle(pid, m) → меняет S/H → commit() рассылает всё.
    ========================================================= */
 /*ENGINE-START*/
-const VERSION = 'alpha 0.1.11';
+const VERSION = 'alpha 0.1.12';
 
 /* Числа из правил. Если что-то захочется подкрутить — это здесь. */
 const RULES = {
@@ -2156,6 +2156,7 @@ function buildScoreTbl(){
   f.append(el('span', 'a', '×2 господ.'), el('span', 'b', '×3 корол.'), el('span', 'c', '−1 порча'));
   t.append(el('div', 'sth', 'Очки партии'), el('div', 'sts', 'простых карт → очки'), g, f);
 }
+document.addEventListener('pointerdown', e => { if (!(e.target.closest && e.target.closest('#hand .card'))) hidePg(); });   // тап мимо карты (на телефоне) убирает подсказку
 function hidePg(){
   $('pgTip').classList.remove('on'); $('hand').classList.remove('pgon');
   $('hand').querySelectorAll('.pg').forEach(c => c.classList.remove('pg'));
@@ -2406,10 +2407,9 @@ function buildHand(newIds){
       c._tm = setTimeout(() => { c.style.visibility = ''; delete c.dataset.pend; c.classList.add('pop'); }, reduce ? 0 : 1100);
       (ui.newQ = ui.newQ || []).push({id: card.id, t: performance.now()});
     }
-    c.addEventListener('pointerenter', e => { if (e.pointerType === 'mouse') showPg(card); });
-    c.addEventListener('pointerleave', hidePg);
+    c.addEventListener('pointerleave', e => { if (e.pointerType === 'mouse') hidePg(); });
     c.addEventListener('pointerdown', e => handDown(e, card, c));
-    c.addEventListener('click', e => e.stopPropagation());
+    c.addEventListener('click', e => { e.stopPropagation(); showPg(card); });
     h.append(c);
   });
   relayoutBy();
