@@ -598,6 +598,7 @@ ul.players .tag{color:var(--acc);font-size:.8rem}
     <div>Код: <span class="code" id="gameCode"></span><div class="hint" id="ver3" style="text-align:left"></div></div>
     <div class="dayinfo" id="dayinfo"></div>
     <div class="btns">
+      <button id="sndBtn" class="ghost" title="Звук вкл/выкл">🔊</button>
       <button id="rulesBtn" class="ghost">Правила</button>
       <button id="cheat" class="ghost">Памятка</button>
       <button id="ping" class="ghost">Тест связи</button>
@@ -650,7 +651,7 @@ ul.players .tag{color:var(--acc);font-size:.8rem}
    Любое действие игрока приходит в handle(pid, m) → меняет S/H → commit() рассылает всё.
    ========================================================= */
 /*ENGINE-START*/
-const VERSION = 'alpha 0.1.14';
+const VERSION = 'alpha 0.1.15';
 
 /* Числа из правил. Если что-то захочется подкрутить — это здесь. */
 const RULES = {
@@ -1437,7 +1438,7 @@ function netErr(e){
 function send(m){ isHost ? hostReceive({peer:'host', send(){}}, m) : hostConn && hostConn.open && hostConn.send(m); }
 function leave(){
   try{ peer && peer.destroy(); }catch(e){}
-  TEST = false; peer = null; hostConn = null; conns = {}; isHost = false;
+  TEST = false; bedStop(); peer = null; hostConn = null; conns = {}; isHost = false;
   S = newState(); H = newH();
   myHand = []; selIds = new Set(); myPeek = null; mySrc = null; placed = [null, null, null]; handOrder = []; autoSort = true; $('priceM').classList.remove('on');
   lastSeq = 0; curGid = 0; tableReady = false; hideLot = false; slotSig = ''; prevLot = null; FX.key = ''; FX.tok++; ui.actKey = ''; ui.mode = null;
@@ -1519,8 +1520,8 @@ function sealEl(state, mini){
 
 /* ---------- Интерфейс ---------- */
 function render(){
-  if (S.phase === 'lobby'){ renderLobby(); show('lobby'); $('finalX').classList.remove('on'); if (FX.key){ FX.key = ''; FX.tok++; } return; }
-  show('game'); fitBg();
+  if (S.phase === 'lobby'){ bedStop(); renderLobby(); show('lobby'); $('finalX').classList.remove('on'); if (FX.key){ FX.key = ''; FX.tok++; } return; }
+  show('game'); fitBg(); bedStart();
   if (S.phase !== 'over'){ $('finalX').classList.remove('on'); if (FX.key){ FX.key = ''; FX.tok++; } }
   renderTable();
 }
@@ -2172,6 +2173,50 @@ function buildAct(A){
   return false;
 }
 
+/* ---------- Звук: шум рынка (зацикленный, с плавным входом) и звуки карт ---------- */
+const SND = {mute: false, bedVol: .25};
+try{ SND.mute = localStorage.getItem('kup_mute') === '1'; }catch(e){}
+const SFX = {};
+function sfx(name, vol, delay){
+  if (SND.mute) return;
+  const go = () => {
+    const P = SFX[name] || (SFX[name] = {i: 0, a: Array.from({length: 4}, () => { const a = new Audio('sfx/' + name + '.mp3'); a.preload = 'auto'; return a; })});
+    const a = P.a[P.i++ % P.a.length]; a.volume = Math.min(1, vol == null ? 1 : vol);
+    try{ a.currentTime = 0; }catch(e){}
+    const r = a.play(); if (r && r.catch) r.catch(() => {});
+  };
+  delay ? setTimeout(go, delay) : go();
+}
+/* Шум рынка: два плеера по очереди — перед концом дорожки следующий заходит с нуля, а текущий затихает (бесшовный цикл) */
+const BED = {a: null, b: null, cur: null, nxt: null, m: 0, want: false, tm: 0, last: 0};
+function bedTick(){
+  const now = performance.now(), dt = Math.min(250, now - BED.last); BED.last = now;
+  BED.m = Math.max(0, Math.min(1, BED.m + (BED.want && !SND.mute ? dt : -dt) / (BED.want ? 3000 : 1200)));
+  const X = 4000, c = BED.cur, n = BED.nxt;
+  if (c && !n && c.duration && (c.duration - c.currentTime) * 1000 < X){ BED.nxt = BED.cur === BED.a ? BED.b : BED.a; BED.nxt.g = 0; BED.nxt.currentTime = 0; const r = BED.nxt.play(); if (r && r.catch) r.catch(() => {}); }
+  if (BED.nxt){
+    BED.cur.g = Math.max(0, BED.cur.g - dt / X); BED.nxt.g = Math.min(1, BED.nxt.g + dt / X);
+    if (BED.nxt.g >= 1){ BED.cur.pause(); BED.cur = BED.nxt; BED.nxt = null; }
+  }
+  [BED.a, BED.b].forEach(a => { if (a) a.volume = Math.max(0, Math.min(1, SND.bedVol * BED.m * (a.g == null ? 1 : a.g))); });
+  if (!BED.want && BED.m <= 0){ [BED.a, BED.b].forEach(a => a && a.pause()); BED.cur = BED.nxt = null; clearInterval(BED.tm); BED.tm = 0; }
+}
+function bedStart(){
+  BED.want = true;
+  if (!BED.a){ BED.a = new Audio('sfx/market.mp3'); BED.b = new Audio('sfx/market.mp3'); BED.a.preload = BED.b.preload = 'auto'; }
+  if (BED.tm) return;
+  BED.cur = BED.a; BED.nxt = null; BED.a.g = 1; BED.b.g = 0; BED.last = performance.now();
+  const r = BED.a.play(); if (r && r.catch) r.catch(() => {});
+  BED.tm = setInterval(bedTick, 100);
+}
+function bedStop(){ BED.want = false; }
+function sndUI(){ $('sndBtn').textContent = SND.mute ? '🔇' : '🔊'; }
+$('sndBtn').onclick = () => {
+  SND.mute = !SND.mute; try{ localStorage.setItem('kup_mute', SND.mute ? '1' : '0'); }catch(e){}
+  sndUI(); if (!SND.mute && BED.want && !BED.tm) bedStart();
+};
+sndUI();
+
 /* Фон-стол: картинка (1790×1179, синее сукно: центр 896,545, размер ≈1215×480) подгоняется под область стола */
 function fitBg(){
   const g = $('game'), t = $('table'); if (!g || !g.clientWidth || !t.clientWidth) return;
@@ -2444,6 +2489,7 @@ function buildHand(newIds){
       c._tm = setTimeout(() => { c.style.visibility = ''; delete c.dataset.pend; c.classList.add('pop'); }, reduce ? 0 : 1100);
       (ui.newQ = ui.newQ || []).push({id: card.id, t: performance.now()});
     }
+    c.addEventListener('pointerenter', e => { if (e.pointerType === 'mouse' && !hd) sfx('perebor', .6); });
     c.addEventListener('pointerleave', e => { if (e.pointerType === 'mouse') hidePg(); });
     c.addEventListener('pointerdown', e => handDown(e, card, c));
     c.addEventListener('click', e => { e.stopPropagation(); showPg(card); });
@@ -2604,7 +2650,7 @@ function dragEnd(e){
     const t = slotUnder(d.x, d.y, true, d.from === 'slot' ? d.idx : -1);
     if (t >= 0){
       if (d.from === 'slot') placed[d.idx] = null;
-      const old = placed[t]; placed[t] = d.id; ui.landIdx = t;
+      const old = placed[t]; placed[t] = d.id; ui.landIdx = t; sfx('postavil');
       if (d.from === 'slot' && old != null) placed[d.idx] = old;       // два места поменялись картами
     }
   }
@@ -2614,6 +2660,7 @@ function dragEnd(e){
 /* нажали на карту на столе — она возвращается в руку (на своё прежнее место) */
 function unplace(i){
   const id = placed[i]; if (id == null) return;
+  sfx('razdacha', .8);
   const sl = $('slots').children[i], from = sl ? center(sl) : myAnchor();
   const card = myHand.find(c => c.id === id);
   placed[i] = null;
@@ -2700,17 +2747,19 @@ function animateEvent(e, src){
     const slots = [...$('slots').children];
     const reveal = () => slots.forEach(s => { s.style.visibility = ''; });
     if (mine){ reveal(); return; }
-    slots.forEach((s, i) => fly({face:null, from:{x: src.x + (i - 1) * 16, y: src.y}, to: center(s), s0: mine ? 1 : 0.6, s1: smScale(), dur: 600, delay: i * 120, done: () => { s.style.visibility = ''; }}));
+    slots.forEach((s, i) => fly({face:null, from:{x: src.x + (i - 1) * 16, y: src.y}, to: center(s), s0: mine ? 1 : 0.6, s1: smScale(), dur: 600, delay: i * 120, done: () => { s.style.visibility = ''; sfx('postavil', .8); }}));
     setTimeout(reveal, 1500);
   } else if (e.type === 'draw'){
     const got = mine ? claimNew(Math.min(e.n, 4)) : [];
     for (let i = 0; i < Math.min(e.n, 4); i++){
+      sfx('razdacha', mine ? .9 : .35, i * 130);
       if (got[i]) flyIn(got[i], src, i, 96 / 90);
       else fly({face:null, from:src, to: mine ? handTarget() : whereIs(e.by), s0: 0.7, s1: mine ? handCardW() / 90 : 0.6, r0: -8, r1: 0, dur: mine ? 700 : 520, delay: i * 130});
     }
   } else if (e.type === 'take'){
     const got = mine ? claimNew(e.n || 3) : [];
     for (let i = 0; i < (e.n || 3); i++){
+      sfx('razdacha', mine ? .9 : .35, i * 110);
       const from = {x: src.x + (e.i != null ? 0 : (i - 1) * 40), y: src.y};
       if (got[i]) flyIn(got[i], from, i, smScale());
       else fly({face:null, from, to: mine ? handTarget() : whereIs(e.by), s0: smScale(), s1: mine ? handCardW() / 90 : 0.6, r0: -6, r1: 0, dur: mine ? 720 : 560, delay: i * 110});
