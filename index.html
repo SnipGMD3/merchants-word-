@@ -342,7 +342,7 @@ ul.players .tag{color:var(--acc);font-size:.8rem}
 .hand .card.sel{--y:-92px;z-index:8;filter:drop-shadow(0 0 4px var(--acc)) drop-shadow(0 0 12px rgba(255,183,3,.85)) drop-shadow(0 16px 16px rgba(0,0,0,.6))}
 .hand.pick .card:hover{--y:-76px}
 .hand.pick .card.sel{--y:-92px}
-.hand .card.new{animation:pop .35s .6s backwards}
+.hand .card.pop{animation:pop .35s}
 .hand .card.dragging{opacity:0;pointer-events:none}
 .hand .card.away{display:none}
 .hand.dragmode .card{--y:0px!important;--sc:1!important;cursor:grabbing}
@@ -534,7 +534,7 @@ ul.players .tag{color:var(--acc);font-size:.8rem}
    Любое действие игрока приходит в handle(pid, m) → меняет S/H → commit() рассылает всё.
    ========================================================= */
 /*ENGINE-START*/
-const VERSION = 'alpha 0.1.3';
+const VERSION = 'alpha 0.1.4';
 
 /* Числа из правил. Если что-то захочется подкрутить — это здесь. */
 const RULES = {
@@ -2008,19 +2008,14 @@ function buildAct(A){
     return false;
   }
   if (S.step === 'buy' && turnMe){            // докупка: «k/N дополнительные карты», две цены под мешочком, количество зависит от положенных монет
-    const rem = Math.max(1, Math.min(RULES.buyMax - S.info.bought, S.deckN || 0)), C = RULES.buyCost;
-    const w = bagWidget('buy|' + S.info.bought, 0, coins => { const n = Math.floor(trayTotal() / C); resetTray(); send({t:'buy', coins, n}); });
-    w.tier = C; w.cap = C * rem; w.bag.classList.add('tier');
-    const ttl = el('div', 't c'), l1 = el('div', 'bagtier', C + ' ' + plural(C, 'монета', 'монеты', 'монет') + ' 1 карта');
-    const l2 = rem > 1 ? el('div', 'bagtier b', (2 * C) + ' монет 2 карты') : null;
-    w.onUpd = () => {
-      const t = trayTotal(), k = Math.min(rem, Math.floor(t / C));
-      ttl.textContent = k + '/' + rem + ' дополнительные карты';
-      l1.classList.toggle('on', k === 1); if (l2) l2.classList.toggle('on', k === 2);
-    };
+    const C = RULES.buyCost, k = S.info.bought, mx = S.info.max;
+    const w = bagWidget('buy|' + k, C, coins => { resetTray(); send({t:'buy', coins, n:1}); });       // ровно 4 монеты = 1 карта; потом мешочек выдаётся снова
+    const ttl = el('div', 't c', 'Дополнительная карта ' + (k + 1) + ' из ' + mx);
+    const txt = el('div', 'bagtxt'); w.label = txt;
+    const sub = el('div', 'bagtier', C + ' ' + plural(C, 'монета', 'монеты', 'монет') + ' — 1 карта');
     A.classList.add('bagp');
     const x = el('button', 'bx', '✕'); x.title = 'Закончить ход без докупки'; x.onclick = e => { e.stopPropagation(); resetTray(); send({t:'buy', stop:true}); };
-    add(ttl, w.bag, l1); if (l2) A.append(l2); A.append(x);
+    add(ttl, w.bag, txt, sub, x);
     w.update();
     return true;
   }
@@ -2144,7 +2139,7 @@ function buildHand(newIds){
   cards.forEach(card => {
     const c = mkHandCard(card, m);
     if (selIds.has(card.id)) c.classList.add('sel');
-    if (nw.has(card.id)) c.classList.add('new');
+    if (nw.has(card.id)){ c.style.visibility = 'hidden'; setTimeout(() => { c.style.visibility = ''; c.classList.add('pop'); }, reduce ? 0 : 650); }     // пока летит анимация карты — место в руке пустое
     c.addEventListener('pointerdown', e => handDown(e, card, c));
     c.addEventListener('click', e => e.stopPropagation());
     h.append(c);
@@ -2229,7 +2224,7 @@ function dragMove(e){
     if (d.from === 'hand') d.ph.classList.add('dragging');
     else d.el.classList.add('lifted');
   }
-  d.ghost.style.transform = 'translate(' + (d.x - d.gw / 2) + 'px,' + (d.y - d.gh / 2) + 'px) rotate(-3deg)';
+  d.ghost.style.translate = (d.x - d.gw / 2) + 'px ' + (d.y - d.gh / 2) + 'px'; d.ghost.style.rotate = '-3deg';
   dragTrack(d);
 }
 function slotRects(){ return [...$('slots').children].map(s => s.getBoundingClientRect()); }
