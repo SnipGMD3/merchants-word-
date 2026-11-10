@@ -528,6 +528,32 @@ ul.players .tag{color:var(--acc);font-size:.8rem}
 .pgx .pm.g{background:#2fc7c3}.pgx .pm.r{background:#ffc83a}
 .pgx .pe{font-style:normal;font-size:1.5rem;color:var(--mute)}
 .pgx .pv{font-size:2.3rem;color:#fff3b0;line-height:1;text-shadow:0 0 14px rgba(255,200,40,.7)}
+
+/* ================= текстурные плашки (ui/panel.webp — рамка 9-slice, ui/plate.webp — «камень» внутри) =================
+   Рамка тянется под любой размер, углы с заклёпками не искажаются. Толщина рамки --pb, затемнение под текст --tint. */
+.panel,.directive,.directive.me,.plate,.act,.act.bagp,.mebar,.toast,.lotinfo,.scoretbl,.pgtip,.log,.sheet{
+  --pb:12px;--tint:rgba(16,9,4,.42);--mute:#d6c7a2;
+  background:linear-gradient(var(--tint),var(--tint)),url(ui/plate.webp) center/cover no-repeat,#4a3822;
+  background-clip:padding-box;
+  border:var(--pb) solid transparent;
+  border-image:url(ui/panel.webp) 62 72 / var(--pb) calc(var(--pb) * 1.2) stretch;
+  border-radius:0;text-shadow:0 1px 2px rgba(0,0,0,.7)}
+.directive{--pb:11px;padding:1px 6px}
+.directive.me{--tint:rgba(100,60,0,.36);color:#ffe9a8}
+.plate{--pb:9px;padding:1px 5px 2px}
+.seat.sell .plate{box-shadow:0 0 14px rgba(111,211,255,.85)}
+.act,.act.bagp{--pb:16px;padding:2px 6px}
+.act.bagp .bx{right:16px;top:14px}
+.mebar{--pb:16px;padding:0 4px}
+.toast{--pb:12px;padding:0 6px;--tint:rgba(125,16,26,.55)}
+.lotinfo{--pb:10px;padding:0 4px}
+.scoretbl{--pb:13px;padding:0 2px;width:176px}
+.pgtip{--pb:12px;padding:0 6px}
+.pgtip::after{display:none}
+.log{--pb:12px;padding:0 2px;--tint:rgba(14,8,4,.58);color:#d8cbab}
+.sheet{--pb:20px;padding:4px 8px;--tint:rgba(14,8,4,.6)}
+.panel{--pb:22px;padding:6px 8px;--tint:rgba(14,8,4,.5)}
+.rules .bar{background:rgba(30,19,10,.96);top:-4px}
 </style>
 </head>
 <body>
@@ -624,7 +650,7 @@ ul.players .tag{color:var(--acc);font-size:.8rem}
    Любое действие игрока приходит в handle(pid, m) → меняет S/H → commit() рассылает всё.
    ========================================================= */
 /*ENGINE-START*/
-const VERSION = 'alpha 0.1.13';
+const VERSION = 'alpha 0.1.14';
 
 /* Числа из правил. Если что-то захочется подкрутить — это здесь. */
 const RULES = {
