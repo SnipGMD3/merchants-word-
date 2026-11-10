@@ -125,11 +125,9 @@ ul.players .tag{color:var(--acc);font-size:.8rem}
 @keyframes glow{50%{box-shadow:0 0 18px rgba(255,183,3,.55)}}
 
 .table{position:absolute;top:112px;bottom:calc(var(--hb) + 24px);left:50%;width:min(1320px,98vw);transform:translateX(-50%);min-height:240px}
-.felt{position:absolute;left:4%;right:4%;top:10%;bottom:0;border-radius:50%;
-  background:radial-gradient(ellipse at 50% 38%,var(--felt),var(--felt2));border:10px solid #0d1622;
-  box-shadow:0 14px 0 #08101a,0 34px 50px rgba(0,0,0,.55),inset 0 0 70px rgba(0,0,0,.5);
-  transform:perspective(1800px) rotateX(9deg);transform-origin:50% 100%}
-.felt::after{content:"";position:absolute;inset:6%;border:2px solid rgba(255,255,255,.07);border-radius:50%}
+.felt{display:none}      /* стол теперь нарисован на фоне (ui/bg.webp), см. fitBg() */
+.bgimg{position:absolute;left:0;top:0;width:100%;height:100%;z-index:0;pointer-events:none;background:#100906 url(ui/bg.webp) 0 0/100% 100% no-repeat;transition:left .35s,top .35s,width .35s,height .35s}
+.bgimg::after{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at 50% 58%,transparent 52%,rgba(0,0,0,.4))}
 
 .deck{position:absolute;left:calc(50% - 270px);top:50%;width:96px;height:150px;margin:-75px 0 0 -48px;z-index:2;
   filter:drop-shadow(2px 2px 0 #3a1010) drop-shadow(4px 4px 0 #2a0b0b) drop-shadow(6px 8px 8px rgba(0,0,0,.55))}
@@ -569,6 +567,7 @@ ul.players .tag{color:var(--acc);font-size:.8rem}
 
 <!-- ЭКРАН 3: стол -->
 <section id="game" class="screen">
+  <div class="bgimg" id="bgImg"></div>
   <div class="hud">
     <div>Код: <span class="code" id="gameCode"></span><div class="hint" id="ver3" style="text-align:left"></div></div>
     <div class="dayinfo" id="dayinfo"></div>
@@ -625,7 +624,7 @@ ul.players .tag{color:var(--acc);font-size:.8rem}
    Любое действие игрока приходит в handle(pid, m) → меняет S/H → commit() рассылает всё.
    ========================================================= */
 /*ENGINE-START*/
-const VERSION = 'alpha 0.1.12';
+const VERSION = 'alpha 0.1.13';
 
 /* Числа из правил. Если что-то захочется подкрутить — это здесь. */
 const RULES = {
@@ -1495,7 +1494,7 @@ function sealEl(state, mini){
 /* ---------- Интерфейс ---------- */
 function render(){
   if (S.phase === 'lobby'){ renderLobby(); show('lobby'); $('finalX').classList.remove('on'); if (FX.key){ FX.key = ''; FX.tok++; } return; }
-  show('game');
+  show('game'); fitBg();
   if (S.phase !== 'over'){ $('finalX').classList.remove('on'); if (FX.key){ FX.key = ''; FX.tok++; } }
   renderTable();
 }
@@ -2147,6 +2146,17 @@ function buildAct(A){
   return false;
 }
 
+/* Фон-стол: картинка (1790×1179, синее сукно: центр 896,545, размер ≈1215×480) подгоняется под область стола */
+function fitBg(){
+  const g = $('game'), t = $('table'); if (!g || !g.clientWidth || !t.clientWidth) return;
+  const gr = g.getBoundingClientRect(), tr = t.getBoundingClientRect(), vw = g.clientWidth, vh = g.clientHeight;
+  const Fw = tr.width * .92, Fh = tr.height * .9;                        // область бывшего сукна
+  const cx = tr.left - gr.left + tr.width / 2, cy = tr.top - gr.top + tr.height * .1 + Fh / 2;
+  const sc = Math.max(Fw / 1215, Fh / 480, vw / 1790, vh / 1179);
+  const w = 1790 * sc, h = 1179 * sc;
+  const x = Math.min(0, Math.max(vw - w, cx - 896 * sc)), y = Math.min(0, Math.max(vh - h, cy - 545 * sc));
+  const b = $('bgImg'); b.style.width = w + 'px'; b.style.height = h + 'px'; b.style.left = x + 'px'; b.style.top = y + 'px';
+}
 /* ---------- Таблица очков (справа внизу) и подсказка партии при наведении на карту в руке ---------- */
 const PG_KINDS = {simple:1, gentry:1, royal:1, spoiled:1};
 function buildScoreTbl(){
@@ -2399,6 +2409,7 @@ function buildHand(newIds){
   root.setProperty('--hh', (chh + 14) + 'px');
   root.setProperty('--hb', (chh + 14) + 'px');
   root.setProperty('--tbk', Math.min(1, (chh + 26) / 165).toFixed(2));
+  fitBg();
   cards.forEach(card => {
     const c = mkHandCard(card, m);
     if (selIds.has(card.id)) c.classList.add('sel');
@@ -2809,7 +2820,7 @@ $('chgBtn').append(coinEl(10), el('span', 'ar', '⇄'), coinEl(5), el('span', 't
 $('chgBtn').onclick = openChange;
 $('sortBtn').onclick = sortHandNow;
 document.addEventListener('keydown', e => { if (e.key === 'Escape'){ if (hd) dragEnd({type:'pointercancel'}); if (ui.bagMode && (ui.mode === 'ask' || ui.mode === 'open')) bagBack(); clearSel(); ['cheatM', 'rulesM', 'discM', 'changeM', 'sealM'].forEach(id => $(id).classList.remove('on')); } });
-window.addEventListener('resize', () => { if (S.phase === 'game'){ renderTable(); buildHand(); } });
+window.addEventListener('resize', () => { fitBg(); if (S.phase === 'game'){ renderTable(); buildHand(); } });
 $('roomCode').onclick = () => navigator.clipboard && navigator.clipboard.writeText(code);
 $('start').onclick = () => { if (startGame()) commit(); };
 
