@@ -128,7 +128,7 @@ ul.players .tag{color:var(--acc);font-size:.8rem}
 
 .bank,.sealpile{position:absolute;top:79%;z-index:2;display:flex;flex-direction:column;align-items:center;gap:6px;transform:translate(-50%,-50%);padding:0;background:none;border:0}
 .bank{left:calc(50% - 425px);top:52%}
-.sealpile{left:calc(50% + 425px);top:52%;min-width:88px}
+.sealpile{left:calc(50% + 362px);top:52%;min-width:88px}
 .bank .bl,.sealpile .bl{font-size:.8rem;color:rgba(255,255,255,.6);white-space:nowrap;text-shadow:0 1px 3px #000}
 .bank .purse{--k:1.2;gap:14px;filter:drop-shadow(0 4px 4px rgba(0,0,0,.55))}
 .bank .pw{cursor:default}
@@ -308,18 +308,22 @@ ul.players .tag{color:var(--acc);font-size:.8rem}
 .xbtn .cg.col{flex-wrap:wrap;max-width:112px;justify-content:center;row-gap:2px}
 
 /* кнопка размена: слева у края, поверх руки (карты на лот её больше не закрывают) */
-.chgb{position:absolute;left:8px;bottom:calc(var(--hb) + 100px);z-index:9;display:flex;align-items:center;gap:6px;padding:7px 12px 7px 10px;font-size:.85rem;
+.chgb{position:absolute;left:8px;bottom:calc(var(--hb) + 112px);z-index:9;display:flex;align-items:center;gap:6px;padding:7px 12px 7px 10px;font-size:.85rem;
   background:rgba(10,14,22,.88);border:1px solid rgba(255,255,255,.3);color:var(--ink);border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,.45)}
 .chgb:hover{border-color:var(--acc)}
 .chgb .coin{--k:.62}
 .chgb .coin+.ar{margin-left:2px}
 .chgb .ar{color:var(--acc);font-size:1.05rem;line-height:1}
 
-.mebar{position:absolute;left:12%;top:70%;z-index:6;display:flex;flex-direction:column;align-items:center;gap:4px;max-width:300px;filter:drop-shadow(0 2px 4px rgba(0,0,0,.6))}
+.mebar{position:absolute;left:12px;bottom:12px;z-index:8;display:flex;flex-direction:column;align-items:center;gap:6px;max-width:340px;padding:10px 16px 8px;
+  background:linear-gradient(180deg,rgba(14,20,32,.9),rgba(8,12,20,.9));border:1px solid rgba(255,255,255,.2);border-radius:14px;box-shadow:0 6px 18px rgba(0,0,0,.55)}
+.mebar .purse{--k:1.45;gap:10px}
+.mebar .seal{--k:1.7}
+.mebar .pw .pc{font-size:.8rem}
 .mebar .mcol{display:flex;flex-direction:column;align-items:center;gap:5px}
-.mebar .sum{font-size:1.9rem;font-weight:900;line-height:1;color:#ffd96a;text-shadow:0 2px 4px rgba(0,0,0,.75)}
-.mebar>.top{justify-content:center;font-weight:700;text-shadow:0 1px 3px #000}
-.mebar.turn{filter:drop-shadow(0 0 12px rgba(255,183,3,.8))}
+.mebar .sum{font-size:2.5rem;font-weight:900;line-height:1;color:#ffd96a;text-shadow:0 2px 4px rgba(0,0,0,.75)}
+.mebar>.top{justify-content:center;font-weight:800;font-size:1.05rem;text-shadow:0 1px 3px #000}
+.mebar.turn{border-color:var(--acc);box-shadow:0 0 16px rgba(255,183,3,.7),0 6px 18px rgba(0,0,0,.55)}
 
 .mebar .top{display:flex;align-items:center;gap:8px;justify-content:space-between}
 .mebar .mid{display:flex;align-items:flex-start;gap:16px}
@@ -344,18 +348,20 @@ ul.players .tag{color:var(--acc);font-size:.8rem}
 .hand.dragmode .card{--y:0px!important;--sc:1!important;cursor:grabbing}
 .hand .card.ret{animation:pop .3s backwards}
 .dghost{position:fixed;left:0;top:0;z-index:90;pointer-events:none;transform-origin:50% 50%;transition:scale .14s;filter:drop-shadow(0 18px 16px rgba(0,0,0,.6)) drop-shadow(0 0 8px rgba(255,183,3,.5))}
-.sortb{position:absolute;left:8px;bottom:calc(var(--hb) + 54px);z-index:9;display:flex;align-items:center;gap:6px;padding:7px 12px;font-size:.85rem;
-  background:rgba(10,14,22,.88);border:1px solid rgba(255,255,255,.3);color:var(--ink);border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,.45)}
-.sortb:hover{border-color:var(--acc)}
-.sortb .ar{color:var(--acc);font-size:1.05rem;line-height:1}
+.sortb{position:absolute;left:8px;bottom:calc(var(--hb) + 40px);z-index:9;display:flex;align-items:center;gap:10px;padding:7px 16px 7px 10px;font-size:.92rem;font-weight:900;line-height:1.1;text-align:left;
+  background:linear-gradient(180deg,#ffd84a,#f2a900);color:#2b1c00;border:1px solid #fff2b3;border-radius:12px;
+  box-shadow:0 0 0 2px rgba(255,200,40,.3),0 5px 14px rgba(0,0,0,.5),0 0 18px rgba(255,200,40,.45)}
+.sortb:hover{filter:brightness(1.08)}
+.sortb .bk{width:26px;height:40px;flex:none;border-radius:3px;background:url(cards/back.webp) center/100% 100% no-repeat;box-shadow:0 2px 4px rgba(0,0,0,.5);transform:rotate(-8deg)}
+.sortb .bk+.bk{margin-left:-20px;transform:rotate(8deg)}
 @keyframes pop{from{opacity:0;filter:brightness(2.2)}to{opacity:1;filter:none}}
 
-.chat{position:absolute;right:12px;bottom:calc(var(--hb) + 22px);width:min(230px,70vw);z-index:6;display:flex;flex-direction:column;gap:4px}
-.log{max-height:150px;overflow:auto;font-size:.8rem;color:var(--mute);background:rgba(0,0,0,.4);border-radius:10px;padding:7px 10px}
-.log div{margin:2px 0}
-.log .c b{color:var(--ink)}
-.log .c{color:#cfe3ff}
-.chat input{padding:7px 10px;font-size:.85rem}
+.chat{position:absolute;right:12px;bottom:calc(var(--hb) + 22px);width:min(300px,70vw);z-index:6;display:flex;flex-direction:column;gap:4px}
+.log{height:min(340px,36vh);overflow:auto;font-size:.88rem;color:#7d8696;background:rgba(6,10,18,.72);border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:8px 11px}
+.log div{margin:3px 0;line-height:1.3}
+.log .c{color:#f6f8fc;font-weight:700;font-size:.95rem}
+.log .c b{font-weight:900;color:var(--pc,#ffd23f)}
+.chat input{padding:9px 12px;font-size:.92rem}
 
 .toast{position:absolute;left:50%;top:128px;transform:translate(-50%,-10px);z-index:20;max-width:min(560px,92vw);text-align:center;background:rgba(120,20,30,.94);
   border:1px solid #ff8a93;border-radius:12px;padding:10px 18px;font-weight:800;opacity:0;pointer-events:none;transition:opacity .25s,transform .25s}
@@ -408,9 +414,10 @@ ul.players .tag{color:var(--acc);font-size:.8rem}
 .btn-big{padding:14px 16px}
 
 @media (max-width:1050px){
-  .mebar{max-width:230px;left:130px}
-  .chat{width:min(210px,44vw)}
-  .log{max-height:96px}
+  .mebar{max-width:260px}
+  .mebar .purse{--k:1.15}.mebar .sum{font-size:2rem}
+  .chat{width:min(260px,44vw)}
+  .log{height:min(200px,26vh)}
   .act{bottom:calc(var(--hb) + 150px);max-height:36vh}
   .bank{left:calc(50% - 360px)}.sealpile{left:calc(50% + 360px)}
   .deck,.deck-l{left:calc(50% - 235px)}.disc,.disc-l{left:calc(50% + 235px)}
@@ -424,12 +431,12 @@ ul.players .tag{color:var(--acc);font-size:.8rem}
 @media (max-width:700px){
   .card.sm{--w:78px}
   .lotzone{--sh:121px}.slot.empty{width:78px}
-  .sortb{padding:6px 7px}.sortb .tx{display:none}
+  .sortb{padding:6px 8px 6px 6px;font-size:.75rem;gap:6px}.sortb .bk{width:20px;height:31px}.sortb .bk+.bk{margin-left:-15px}
   .deck,.disc{width:64px;height:100px;margin:-50px 0 0 -32px}.disc .card{--w:60px}.deck-l,.disc-l{margin-top:58px;font-size:.72rem}
   .fan .b{left:-22.5px;top:-100px;width:45px;height:70px;transform-origin:22.5px 100px}
   .deck{left:calc(50% - 130px)}.deck-l{left:calc(50% - 130px)}.bank{left:calc(50% - 130px);top:80%}
   .disc{left:calc(50% + 130px)}.disc-l{left:calc(50% + 130px)}.sealpile{left:calc(50% + 130px);top:80%}
-  .mebar{left:58px}
+  .mebar{left:6px;bottom:6px;padding:6px 8px;max-width:190px}.mebar .purse{--k:.9;gap:6px}.mebar .seal{--k:1.1}.mebar .sum{font-size:1.5rem}
   .chgb{padding:6px 7px}.chgb .tx{display:none}
   .hud .btns button{padding:5px 8px;font-size:.78rem}
   .hud .dayinfo{font-size:.8rem}
@@ -499,8 +506,8 @@ ul.players .tag{color:var(--acc);font-size:.8rem}
       <div class="lotinfo" id="lotinfo"></div>
     </div>
     <div class="seats" id="seats"></div>
-    <div class="mebar" id="mebar"></div>
   </div>
+  <div class="mebar" id="mebar"></div>
   <div class="toast" id="toast"></div>
   <div class="act" id="act"></div>
   <div class="chat">
@@ -509,7 +516,7 @@ ul.players .tag{color:var(--acc);font-size:.8rem}
   </div>
   <div class="hand" id="hand"></div>
   <button class="chgb" id="chgBtn" title="Поменять монеты в Банке без потерь"></button>
-  <button class="sortb" id="sortBtn" title="Разложить карты по порядку"><span class="ar">⇅</span><span class="tx">Сортировка</span></button>
+  <button class="sortb" id="sortBtn" title="Разложить карты по порядку"><span class="bk"></span><span class="bk"></span><span class="tx">Сортировка<br>руки</span></button>
   <div class="modal" id="priceM"><div class="sheet price" id="priceS"></div></div>
   <div class="modal" id="cheatM"><div class="sheet" id="cheatS"></div></div>
   <div class="modal" id="finalM"><div class="sheet" id="finalS"></div></div>
@@ -527,7 +534,7 @@ ul.players .tag{color:var(--acc);font-size:.8rem}
    Любое действие игрока приходит в handle(pid, m) → меняет S/H → commit() рассылает всё.
    ========================================================= */
 /*ENGINE-START*/
-const VERSION = 'alpha 0.1.2';
+const VERSION = 'alpha 0.1.3';
 
 /* Числа из правил. Если что-то захочется подкрутить — это здесь. */
 const RULES = {
@@ -628,8 +635,9 @@ const sortHand = id => hand(id).sort((a, b) => sortKey(a) - sortKey(b) || a.id -
 const hasAuditor = id => hand(id).some(c => c.k === 'auditor');
 const cname = c => CARDS[c.k].name;
 
+const CHAT_COL = ['#ff8a8a', '#6fd3ff', '#7be28f', '#ffd23f', '#d79bff'];     // цвета игроков в чате
 function addLog(s){ S.log.push({c:0, s}); if (S.log.length > 80) S.log.splice(0, S.log.length - 80); }
-function addChat(name, s){ S.log.push({c:1, n:name, s}); if (S.log.length > 80) S.log.splice(0, S.log.length - 80); }
+function addChat(name, s){ S.log.push({c:1, n:name, s, ci: Math.max(0, S.players.findIndex(x => x.name === name))}); if (S.log.length > 80) S.log.splice(0, S.log.length - 80); }
 function emit(type, o){ S.evts.push(Object.assign({seq: ++S.seq, type}, o || {})); }
 function peek(to, data){ H.peeks.push({to, data}); }
 function note(s){ emit('note', {s}); }
@@ -1425,10 +1433,10 @@ function directive(){
       if (mine && todoOpen(mine) && SELLER_TAKE.includes(S.takeTitle)) return {t:''};     // продавцу — только плашка по центру
       if (mine && todoOpen(mine)){
         const l = mine.l, a = [];
-        if (l.cards) a.push('возьми <b>' + l.cards + ' ' + plural(l.cards, 'карту', 'карты', 'карт') + '</b> из колоды');
-        if (l.coins) a.push('возьми <b>' + l.coins + ' ' + plural(l.coins, 'монету', 'монеты', 'монет') + '</b> из Банка');
-        if (l.seal) a.push('возьми свою <b>Печать купца</b>');
-        return {me:true, t:'<b>' + esc(S.takeTitle) + ' — ТЫ:</b> ' + a.join(' · '), sub: names ? 'Ещё берут: ' + esc(names) : 'Ты последний — остальные уже взяли'};
+        if (l.cards) a.push(l.cards + ' ' + plural(l.cards, 'карта', 'карты', 'карт'));
+        if (l.coins) a.push(l.coins + ' ' + plural(l.coins, 'монета', 'монеты', 'монет'));
+        if (l.seal) a.push('печать купца');
+        return {me:true, t:'<b>' + esc(S.takeTitle).toUpperCase() + ':</b><br>' + a.join(', ')};
       }
       return {t:esc(S.takeTitle) + ': ' + (mine ? 'ты всё взял ✓. ' : '') + 'ещё берут: ' + B(names || '—')};
     }
@@ -1547,7 +1555,7 @@ function renderTable(){
   const lg = $('log'); lg.innerHTML = '';
   S.log.forEach(it => {
     const d = el('div', it.c ? 'c' : '');
-    if (it.c){ d.append(el('b', null, it.n + ': '), it.s); } else d.textContent = it.s;
+    if (it.c){ const nb = el('b', null, it.n + ': '); nb.style.setProperty('--pc', CHAT_COL[(it.ci || 0) % CHAT_COL.length]); d.append(nb, it.s); } else d.textContent = it.s;
     lg.append(d);
   });
   lg.scrollTop = lg.scrollHeight;
@@ -1570,7 +1578,7 @@ function buildBank(){
 function renderBank(td){
   $('bank').classList.toggle('pulse', !!(td && td.coins > 0));
   const left = S.players.filter(p => !p.seal).length, st = $('sealStack'); st.innerHTML = '';
-  if (!left) st.append(el('span', 'zero', 'все разобраны'));
+  $('sealPile').querySelector('.bl').style.visibility = left ? '' : 'hidden';
   for (let i = 0; i < Math.min(left, 3); i++) st.append(sealEl(1));
   $('sealPile').classList.toggle('pulse', !!(td && td.seal > 0));
 }
@@ -1791,7 +1799,11 @@ function bagWidget(key, need, onFull){
   if (ui.trayKey !== key){ ui.tray = {1:0, 5:0, 10:0}; ui.trayKey = key; }
   ui.trayAmt = need || 1; ui.bagMode = true; clampTray();
   const bag = el('div', 'bag'); bag.id = 'bagEl';
-  bag.addEventListener('click', () => { const w = ui.bag; if (w && w.tier && w.bag === bag){ clearTimeout(w.tm); bagGo(w); } });
+  bag.addEventListener('click', () => {
+    const w = ui.bag; if (!w || w.bag !== bag) return;
+    if (w.tier && trayTotal() >= w.tier){ clearTimeout(w.tm); bagGo(w); return; }      // докупка: нажатие на мешок подтверждает
+    bagClear(w);                                                                       // иначе мешок высыпается обратно в кошелёк
+  });
   bag.innerHTML = '<div class="bin"></div>' + BAG_SVG;
   const bin = bag.querySelector('.bin');
   const w = {bag, need, onFull, busy:false, label:null, guard:null, cap:0, onUpd:null};
@@ -1830,6 +1842,13 @@ function bagFire(){
   setTimeout(() => { const cw = ui.bag; if (cw && cw.need && trayTotal() === cw.need) cw.onFull(Object.assign({}, ui.tray)); }, reduce ? 0 : 450);
 }
 function bagGo(w){ if (ui.bag === w && !w.busy && trayTotal() >= w.tier){ w.busy = true; w.onFull(Object.assign({}, ui.tray)); } }
+function bagClear(w){
+  if (w.busy || !trayTotal()) return;
+  clearTimeout(w.tm);
+  const c = Object.assign({}, ui.tray), from = center(w.bag);
+  ui.tray = {1:0, 5:0, 10:0}; bagAnim(w.bag, 'shake'); w.update();
+  const pu = $('mePurse'); if (pu) flyCoins(c, from, center(pu));
+}
 function bagBack(){ ui.mode = null; resetTray(); ui.actKey = ''; renderMe(); renderAct(); }
 
 let drag = null;
@@ -1843,7 +1862,8 @@ function endDrag(){
   if (!drag) return;
   const D = drag; drag = null;
   const b = $('bagEl'); if (b) b.classList.remove('over', 'ready');
-  const r = b && b.getBoundingClientRect(), hit = !!(r && r.width && inBag(r, D.x, D.y));
+  const r = b && b.getBoundingClientRect(), tap = Math.hypot(D.x - D.sx, D.y - D.sy) < 8;
+  const hit = !!(r && r.width && (tap || inBag(r, D.x, D.y)));        // просто нажали на монету — она сама летит в мешочек
   const ok = hit && bagTry(D.d);
   const cur = 'translate(' + D.x + 'px,' + D.y + 'px) translate(-50%,-50%) scale(1.25)';
   let to, fin = () => D.g.remove();
@@ -1865,7 +1885,7 @@ $('mebar').addEventListener('pointerdown', e => {
   const g = el('div', 'fcoin dragc'); g.append(coinEl(d)); document.body.append(g);
   top.style.visibility = 'hidden';
   const bg = $('bagEl'); if (bg && (!ui.bag.need || trayTotal() + d <= ui.bag.need) && (!ui.bag.cap || trayTotal() + d <= ui.bag.cap)) bg.classList.add('ready');   // монета в руке — мешочек светится и подрагивает
-  drag = {d, g, top, from: center(top), x: e.clientX, y: e.clientY};
+  drag = {d, g, top, from: center(top), x: e.clientX, y: e.clientY, sx: e.clientX, sy: e.clientY};
   moveDrag(e.clientX, e.clientY);
 });
 window.addEventListener('pointermove', e => { if (!drag) return; if (e.pointerType === 'mouse' && e.buttons === 0) return endDrag(); moveDrag(e.clientX, e.clientY); });
