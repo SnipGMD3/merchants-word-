@@ -460,6 +460,45 @@ ul.players .tag{color:var(--acc);font-size:.8rem}
   :root{--pw:110px}
 }
 @media (prefers-reduced-motion:reduce){.pw.hot .coin{animation:none}.hand .card,.fan .b,.seat{transition:none}.card.flip,.directive.me,.directive.blink,.pulse::after,.seal.can,.slot.empty,.hand.pick .card:not(.sel){animation:none}}
+
+/* ================= итоги ================= */
+.fx{position:absolute;inset:0;z-index:90;background:radial-gradient(ellipse at 50% 25%,#2b3d62,#0b1019 78%);display:none;flex-direction:column;overflow:hidden}
+.fx.on{display:flex}
+.fxhead{height:78px;flex:none;display:flex;justify-content:center;align-items:flex-start;padding-top:8px;position:relative;z-index:3;pointer-events:none}
+.fxname{display:inline-flex;flex-direction:column;align-items:center;line-height:1.05;white-space:nowrap;text-shadow:0 4px 16px rgba(0,0,0,.7);transform-origin:50% 0}
+.fxname small{font-size:.72rem;letter-spacing:.22em;text-transform:uppercase;color:var(--mute)}
+.fxname b{font-size:1.9rem;color:var(--acc)}
+.fxtot{position:absolute;right:16px;top:12px;font-weight:800;font-size:1rem;color:var(--mute)}
+.fxtot b{display:inline-block;color:var(--ink);font-size:1.6rem;margin-left:6px}
+.fxst{flex:1;position:relative;min-height:0}
+.fx .card.fxc{position:absolute;margin:0}
+.fxcnt{position:absolute;left:0;right:0;top:0;text-align:center;pointer-events:none;z-index:2}
+.fxlab{display:block;font-size:1.05rem;letter-spacing:.14em;text-transform:uppercase;color:var(--mute)}
+.fxnum{display:inline-flex;align-items:baseline;gap:10px;font-weight:800;font-size:3rem;line-height:1.05;color:var(--acc);text-shadow:0 3px 14px rgba(0,0,0,.6)}
+.fxnum b{display:inline-block}
+.fxmul{font-style:normal;font-size:2.2rem;color:#ffe9a8;opacity:0}
+.fxscore{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;text-align:center;z-index:2}
+.fxscore .n{font-size:1.6rem;font-weight:700}
+.fxscore .v{font-size:clamp(4rem,16vw,9rem);font-weight:800;color:var(--acc);line-height:1;text-shadow:0 6px 30px rgba(255,183,3,.45)}
+.fxscore .t{font-size:1.1rem;letter-spacing:.2em;text-transform:uppercase;color:var(--mute)}
+.fxbar{flex:none;min-height:84px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:8px 16px 14px;position:relative;z-index:3}
+.fxbar button{font-size:1.1rem;padding:12px 30px}
+.fxbar .row{flex-wrap:wrap;justify-content:center}
+.fxskip{position:absolute;left:12px;bottom:14px;z-index:4;font-size:.8rem;padding:6px 12px}
+.pod{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;overflow:auto;padding:6px 0}
+.podw{flex:none;font-size:clamp(1.3rem,5vw,2.3rem);font-weight:800;letter-spacing:.14em;color:#ffe08a;text-shadow:0 0 18px rgba(255,200,40,.9),0 4px 10px rgba(0,0,0,.6);opacity:0;text-align:center}
+.pr{position:relative;display:flex;align-items:center;gap:14px;flex:none;width:min(560px,92vw);padding:10px 18px;border-radius:14px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.16);opacity:0}
+.pr .pl{font-size:1.7rem;font-weight:800;color:var(--mute);width:2ch;text-align:center}
+.pr .nm2{flex:1;min-width:0;font-size:1.35rem;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left}
+.pr .nm2 small{display:block;font-size:.7rem;color:var(--mute);font-weight:400}
+.pr .pt{font-size:1.8rem;font-weight:800;color:var(--acc);text-align:right}
+.pr .pt small{display:block;font-size:.7rem;color:var(--mute);font-weight:400}
+.pr.gold{background:linear-gradient(110deg,#7a5200,#ffd23f 40%,#fff2b0 50%,#ffd23f 60%,#7a5200);background-size:250% 100%;animation:shimmer 2.6s linear infinite,goldglow 1.4s ease-in-out infinite;color:#2a1c00;border-color:#fff1a8}
+.pr.gold .pl,.pr.gold .pt,.pr.gold .pt small,.pr.gold .nm2 small{color:#4a3000}
+@keyframes shimmer{from{background-position:120% 0}to{background-position:-120% 0}}
+@keyframes goldglow{0%,100%{box-shadow:0 0 14px rgba(255,210,63,.5)}50%{box-shadow:0 0 38px rgba(255,230,120,1),0 0 70px rgba(255,200,40,.6)}}
+.spark{position:absolute;left:50%;top:50%;color:#fff3b0;font-style:normal;font-size:calc(.7rem + var(--sz,0)*.6rem);pointer-events:none;opacity:0;animation:spark 1.6s ease-out infinite;animation-delay:var(--d);text-shadow:0 0 8px #ffd23f}
+@keyframes spark{0%{opacity:0;transform:translate(-50%,-50%) scale(.2)}20%{opacity:1}100%{opacity:0;transform:translate(calc(-50% + var(--dx)),calc(-50% + var(--dy))) scale(1.2) rotate(180deg)}}
 </style>
 </head>
 <body>
@@ -471,6 +510,7 @@ ul.players .tag{color:var(--acc);font-size:.8rem}
   <div class="panel">
     <input id="name" maxlength="16" placeholder="Твоё имя" autocomplete="off">
     <button id="create">Создать лобби</button>
+    <button id="testBtn" class="ghost">Тест итогов (временно)</button>
     <div class="row">
       <input id="joinCode" maxlength="5" placeholder="КОД" autocomplete="off" style="text-transform:uppercase;letter-spacing:.3em;text-align:center">
       <button id="join" class="ghost">Войти</button>
@@ -537,7 +577,7 @@ ul.players .tag{color:var(--acc);font-size:.8rem}
   <button class="sortb" id="sortBtn" title="Разложить карты по порядку"><span class="bk"></span><span class="bk"></span><span class="tx">Сортировка<br>руки</span></button>
   <div class="modal" id="priceM"><div class="sheet price" id="priceS"></div></div>
   <div class="modal" id="cheatM"><div class="sheet" id="cheatS"></div></div>
-  <div class="modal" id="finalM"><div class="sheet" id="finalS"></div></div>
+  <div class="fx" id="finalX"><div class="fxhead" id="fxHead"></div><div class="fxst" id="fxSt"></div><div class="fxbar" id="fxBar"></div><button class="ghost fxskip" id="fxSkip">Пропустить анимацию</button></div>
   <div class="modal" id="discM"><div class="sheet" id="discS"></div></div>
   <div class="modal" id="changeM"><div class="sheet" id="changeS"></div></div>
   <div class="modal" id="sealM"><div class="sheet" id="sealS"></div></div>
@@ -552,7 +592,7 @@ ul.players .tag{color:var(--acc);font-size:.8rem}
    Любое действие игрока приходит в handle(pid, m) → меняет S/H → commit() рассылает всё.
    ========================================================= */
 /*ENGINE-START*/
-const VERSION = 'alpha 0.1.8';
+const VERSION = 'alpha 0.1.10';
 
 /* Числа из правил. Если что-то захочется подкрутить — это здесь. */
 const RULES = {
@@ -600,9 +640,9 @@ const defCard = (k, name, kind, prod, n) => { CARDS[k] = {k, name, kind, prod: p
   defCard(pe[0], pe[1], 'pest', prod, 1);
 });
 defCard('rat', 'Крыса', 'rat', null, 4);
-defCard('cat', 'Кот', 'cat', null, 9);
-defCard('auditor', 'Ревизор', 'auditor', null, 7);
-const DECK_SIZE = Object.values(CARDS).reduce((a, c) => a + c.n, 0);   // 128
+defCard('cat', 'Кот', 'cat', null, 5);
+defCard('auditor', 'Ревизор', 'auditor', null, 5);
+const DECK_SIZE = Object.values(CARDS).reduce((a, c) => a + c.n, 0);   // 122
 
 const isGood = c => { const k = CARDS[c.k].kind; return k === 'simple' || k === 'gentry' || k === 'royal' || k === 'spoiled'; };
 const isNap  = c => { const k = CARDS[c.k].kind; return k === 'rat' || k === 'pest'; };
@@ -1140,16 +1180,36 @@ function finishGame(){
   const rows = S.players.map(p => {
     const h = hand(p.id), parts = PORD.map(pr => partyStats(h, pr));
     const total = parts.reduce((a, x) => a + x.value, 0);
-    return {id: p.id, name: p.name, coins: p.coins, parts, total, wealth: total, simple: h.filter(c => CARDS[c.k].kind === 'simple').length};
+    const groups = PORD.map(pr => {            // карты партий для пошаговой выкладки итогов
+      const g = {prod: pr, sp: [], si: [], ge: [], ro: []}, to = {spoiled: g.sp, simple: g.si, gentry: g.ge, royal: g.ro};
+      h.forEach(c => { const d = CARDS[c.k]; if (d.prod === pr && to[d.kind]) to[d.kind].push(c.k); });
+      return g;
+    }).filter(g => g.sp.length + g.si.length + g.ge.length + g.ro.length);
+    return {id: p.id, name: p.name, coins: p.coins, parts, groups, total, wealth: total, simple: h.filter(c => CARDS[c.k].kind === 'simple').length};
   });
   rows.sort((a, b) => b.wealth - a.wealth || b.coins - a.coins || b.simple - a.simple);
   const t = rows[0];
   const winners = rows.filter(r => r.wealth === t.wealth && r.coins === t.coins && r.simple === t.simple).map(r => r.id);
-  S.final = {rows, winners};
+  rows.forEach((r, i) => { const q = rows[i - 1]; r.place = (q && q.wealth === r.wealth && q.coins === r.coins && q.simple === r.simple) ? q.place : i + 1; });
+  S.final = {rows, winners, order: S.players.map(p => p.id), idx: 0, stage: 'reveal', ready: {}};
   addLog('Игра окончена. Побеждает: ' + winners.map(id => pl(id).name).join(', '));
 }
 
 /* ---------- вход для действий игроков ---------- */
+/* Итоги: каждый жмёт «Продолжить» — когда нажали все, показ переходит к следующему игроку, после последнего — подиум */
+function finCheck(){
+  const F = S.final; S.evts = [];
+  if (S.phase === 'over' && F && F.stage === 'reveal' && S.players.every(p => F.ready[p.id])){
+    F.ready = {}; F.idx++;
+    while (F.idx < F.order.length && !pl(F.order[F.idx])) F.idx++;
+    if (F.idx >= F.order.length) F.stage = 'podium';
+  }
+  commit();
+}
+function finCont(pid){
+  const F = S.final; if (S.phase !== 'over' || !F || F.stage !== 'reveal' || !pl(pid)) return;
+  F.ready[pid] = true; if (TEST) S.players.forEach(p => { F.ready[p.id] = true; }); finCheck();
+}
 function handle(pid, m){
   if (S.phase !== 'game') return;
   S.evts = [];
@@ -1204,7 +1264,7 @@ const STEP_MSG = {compose:'выкладывает лот', showcase:'решае�
 let myHand = [], selIds = new Set(), myPeek = null, mySrc = null;
 let placed = [null, null, null], handOrder = [], autoSort = true, hd = null;   // placed — id карт, положенных на стол для лота; handOrder — порядок карт в руке (только у меня)
 let lastSeq = 0, curGid = 0, tableReady = false, hideLot = false;
-let slotSig = '', prevLot = null, finalGid = 0, toastT = 0;
+let slotSig = '', prevLot = null, toastT = 0, TEST = false;
 const ui = {price:'', q:'', mode:null, actKey:'', tray:{1:0, 5:0, 10:0}, trayKey:'', trayAmt:0, bag:null, bagMode:false, lpLot:0, lpVal:null, lpAnim:null, stakeSigs:{}};
 const seatEls = {};
 const reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -1224,7 +1284,7 @@ HOOK.hand = (id, cards, newIds) => { if (id === 'host') setHand(cards, newIds); 
 HOOK.peek = (id, data) => { if (id === 'host') setPeek(data); else if (conns[id] && conns[id].open) conns[id].send(Object.assign({t:'peek'}, data)); };
 
 function createLobby(attempt = 0){
-  homeErr('');
+  homeErr(''); TEST = false;
   code = randCode();
   peer = new Peer(PREFIX + code);
   peer.on('open', () => {
@@ -1257,7 +1317,8 @@ function hostReceive(c, m){
   if (!p) return;
   if (m.t === 'ping'){ addLog(p.name + ': пинг'); return commit(); }
   if (m.t === 'chat'){ const s = String(m.s || '').trim().slice(0, 140); if (s){ addChat(p.name, s); commit(); } return; }
-  if (m.t === 'restart'){ if (pid === 'host' && S.phase === 'over') backToLobby(); return; }
+  if (m.t === 'fcont'){ finCont(pid); return; }
+  if (m.t === 'restart'){ if (S.phase === 'over' && S.final && S.final.stage === 'podium') backToLobby(); return; }
   handle(pid, m);
 }
 function backToLobby(notice){
@@ -1273,6 +1334,7 @@ function dropPlayer(id){
   const name = p.name, inGame = S.phase === 'game';
   S.players = S.players.filter(x => x.id !== id); delete H.hands[id]; delete H.sentIds[id];
   if (inGame) backToLobby('Игра прервана: ' + name + ' отключился(ась). Начните заново');
+  else if (S.phase === 'over') finCheck();
   else commit();
 }
 
@@ -1317,14 +1379,14 @@ function netErr(e){
 function send(m){ isHost ? hostReceive({peer:'host', send(){}}, m) : hostConn && hostConn.open && hostConn.send(m); }
 function leave(){
   try{ peer && peer.destroy(); }catch(e){}
-  peer = null; hostConn = null; conns = {}; isHost = false;
+  TEST = false; peer = null; hostConn = null; conns = {}; isHost = false;
   S = newState(); H = newH();
   myHand = []; selIds = new Set(); myPeek = null; mySrc = null; placed = [null, null, null]; handOrder = []; autoSort = true; $('priceM').classList.remove('on');
-  lastSeq = 0; curGid = 0; tableReady = false; hideLot = false; slotSig = ''; prevLot = null; finalGid = 0; ui.actKey = ''; ui.mode = null;
+  lastSeq = 0; curGid = 0; tableReady = false; hideLot = false; slotSig = ''; prevLot = null; FX.key = ''; FX.tok++; ui.actKey = ''; ui.mode = null;
   resetTray();
   Object.keys(seatEls).forEach(k => delete seatEls[k]);
   $('seats').innerHTML = ''; $('slots').innerHTML = ''; $('hand').innerHTML = ''; $('act').innerHTML = '';
-  ['finalM', 'cheatM', 'discM', 'changeM', 'sealM'].forEach(id => $(id).classList.remove('on'));
+  ['finalX', 'cheatM', 'discM', 'changeM', 'sealM'].forEach(id => $(id).classList.remove('on'));
   show('home');
 }
 function enterLobby(){ $('roomCode').textContent = code; $('gameCode').textContent = code; show('lobby'); }
@@ -1399,9 +1461,9 @@ function sealEl(state, mini){
 
 /* ---------- Интерфейс ---------- */
 function render(){
-  if (S.phase === 'lobby'){ renderLobby(); show('lobby'); return; }
+  if (S.phase === 'lobby'){ renderLobby(); show('lobby'); $('finalX').classList.remove('on'); if (FX.key){ FX.key = ''; FX.tok++; } return; }
   show('game');
-  if (S.phase !== 'over') $('finalM').classList.remove('on');
+  if (S.phase !== 'over'){ $('finalX').classList.remove('on'); if (FX.key){ FX.key = ''; FX.tok++; } }
   renderTable();
 }
 function renderLobby(){
@@ -2052,34 +2114,136 @@ function buildAct(A){
   return false;
 }
 
-/* ---------- Итоги ---------- */
-function renderFinal(){
-  if (finalGid === S.gid) return; finalGid = S.gid;
-  const F = S.final, sh = $('finalS'); sh.innerHTML = '';
-  const names = F.winners.map(nm).join(' и ');
-  sh.append(el('h3', null, 'Ярмарка закрыта'), el('div', 'big', (F.winners.length > 1 ? 'Победа делится: ' : 'Побеждает ') + names));
-  const tb = el('table'); const hr = el('tr');
-  ['Купец', ...PRODUCTS.map(p => p.name), 'Богатство', 'Монеты', 'Простых карт'].forEach(h => hr.append(el('th', null, h)));
-  tb.append(hr);
-  F.rows.forEach(r => {
-    const tr = el('tr', F.winners.includes(r.id) ? 'win' : '');
-    tr.append(el('td', null, r.name));
-    r.parts.forEach(x => {
-      const td = el('td'); td.append(el('b', null, x.value ? String(x.value) : '—'));
-      if (x.s || x.c || x.g || x.r) td.append(el('small', null, 'прост. ' + x.s + (x.c ? ' − порча ' + x.c : '') + (x.mult > 1 ? ' ×' + x.mult : '')));
-      tr.append(td);
-    });
-    tr.append(el('td', null, String(r.total)), el('td', null, String(r.coins)), el('td', null, String(r.simple)));
-    tb.append(tr);
-  });
-  sh.append(tb, el('p', 'hint', 'Богатство = сумма партий (монеты очков не дают). При ничьей: больше монет, потом больше простых карт на складе.'));
-  const r = el('div', 'row');
-  if (isHost) r.append(btn('Вернуться в лобби', () => { $('finalM').classList.remove('on'); send({t:'restart'}); }));
-  r.append(btn('Выйти', leave, {ghost:true}));
-  sh.append(r);
-  $('finalM').classList.add('on');
+/* ---------- Итоги: пошаговый подсчёт и подиум ---------- */
+const FX = {key:'', tok:0, K:1, done:false};
+const fxW = (ms, tok) => new Promise((res, rej) => setTimeout(() => FX.tok === tok ? res() : rej(0), reduce ? 0 : ms * FX.K));
+const fxA = (e, kf, ms, o) => e.animate(kf, Object.assign({duration: Math.max(1, reduce ? 1 : ms * FX.K), easing: 'ease-out', fill: 'both'}, o || {}));
+const fxR = (a, b) => a + Math.random() * (b - a);
+const fxPop = (e, s) => fxA(e, [{transform: 'scale(1)'}, {transform: 'scale(' + (s || 1.4) + ')', color: '#fff3b0'}, {transform: 'scale(1)'}], 380);
+async function fxNum(e, from, to, ms, tok){          // число «набегает» от from до to
+  const st = Math.min(24, Math.max(1, Math.abs(to - from)));
+  for (let i = 1; i <= st; i++){ await fxW(ms / st, tok); e.textContent = String(Math.round(from + (to - from) * i / st)); }
 }
-$('finalM').addEventListener('click', e => { if (e.target === $('finalM')) $('finalM').classList.remove('on'); });
+function renderFinal(){
+  const F = S.final; if (!F) return;
+  $('finalX').classList.add('on');
+  const key = S.gid + ':' + F.stage + ':' + F.idx;
+  if (FX.key !== key){
+    FX.key = key; FX.tok++; FX.K = 1; FX.done = false;
+    (F.stage === 'podium' ? finPodium : finReveal)(F, FX.tok).catch(() => {});
+  }
+  finUI();
+}
+function finUI(){
+  const F = S.final, bar = $('fxBar'); if (!F) return;
+  bar.innerHTML = ''; $('fxSkip').style.display = FX.done ? 'none' : '';
+  if (!FX.done) return;
+  if (F.stage === 'podium'){
+    const r = el('div', 'row'); r.append(btn('Вернуться в лобби', () => send({t:'restart'})), btn('Выйти', leave, {ghost:true})); bar.append(r);
+  } else {
+    const me = myId(), pend = S.players.filter(p => !F.ready[p.id]);
+    if (!F.ready[me]) bar.append(btn('Продолжить', () => send({t:'fcont'})));
+    bar.append(el('div', 'hint', F.ready[me] ? 'Ждём: ' + pend.map(p => p.name).join(', ') : 'Нажали: ' + (S.players.length - pend.length) + ' из ' + S.players.length));
+  }
+}
+async function finReveal(F, tok){
+  const row = F.rows.find(r => r.id === F.order[F.idx]); if (!row) return;
+  const st = $('fxSt'), head = $('fxHead'); st.innerHTML = ''; head.innerHTML = '';
+  const W = st.clientWidth, Hh = st.clientHeight;
+  /* 1. сверхкрупное имя, потом уезжает наверх */
+  const nmEl = el('div', 'fxname'); nmEl.append(el('small', null, 'Карты игрока'), el('b', null, row.name)); head.append(nmEl);
+  const tot = el('div', 'fxtot'); tot.append('Всего:', el('b', null, '0')); tot.style.opacity = 0; head.append(tot);
+  const totB = tot.querySelector('b');
+  const sc = Math.min(3.4, W * .88 / (nmEl.querySelector('b').offsetWidth || 100)), dy = ($('finalX').clientHeight / 2 - 90);
+  const big = 'translateY(' + dy + 'px) scale(' + sc + ')';
+  fxA(nmEl, [{transform: big, opacity: 0}, {transform: big, opacity: 1, offset: .2}, {transform: big, opacity: 1, offset: .7}, {transform: 'none', opacity: 1}], 2400, {easing: 'ease-in-out'});
+  await fxW(2500, tok);
+  fxA(tot, [{opacity: 0}, {opacity: 1}], 400);
+  /* раскладка */
+  const topZ = 104, Hs = Hh - topZ - 6;
+  const cw = Math.max(46, Math.min(112, W * .26, (Hs - 16) / 2 / 1.5556)), ch = cw * 1.5556, y1 = topZ, y2 = topZ + ch + 12;
+  const posRow = (n, i) => { const step = n < 2 ? 0 : Math.min(cw * 1.12, (W - 24 - cw) / (n - 1)); return (W - (n - 1) * step - cw) / 2 + i * step; };
+  const put = (k, x, y) => {
+    const c = mkFace({k}); c.classList.add('fxc'); c.style.setProperty('--w', cw + 'px'); c.style.left = x + 'px'; c.style.top = y + 'px';
+    st.append(c); fxA(c, [{transform: 'translateY(-70px) scale(1.3) rotate(-6deg)', opacity: 0}, {transform: 'none', opacity: 1}], 300); return c;
+  };
+  const out = (c, dx, dy2, r, d) => { fxA(c, [{transform: 'none', opacity: 1}, {transform: 'translate(' + dx + 'px,' + dy2 + 'px) rotate(' + r + 'deg) scale(.7)', opacity: 0}], 650, {easing: 'ease-in', delay: reduce ? 0 : d * FX.K}); };
+  const cnt = el('div', 'fxcnt'), lab = el('span', 'fxlab'), nw = el('div', 'fxnum'), num = el('b', null, '0'), mul = el('i', 'fxmul');
+  nw.append(num, mul); cnt.append(lab, nw); st.append(cnt);
+  let total = 0;
+  if (!row.groups.length){ lab.textContent = 'Склад пуст'; await fxW(900, tok); }
+  /* 2. партии по очереди */
+  for (const g of row.groups){
+    lab.textContent = prodName(g.prod); num.textContent = '0'; fxA(cnt, [{opacity: 0}, {opacity: 1}], 350); await fxW(450, tok);
+    const si = g.si.slice(), pairs = Math.min(g.sp.length, si.length);
+    if (g.sp.length){                                                     // испорченные + такие же по числу обычные уходят со стола
+      lab.textContent = prodName(g.prod) + ' — порча';
+      const gone = [];
+      for (let i = 0; i < g.sp.length; i++){ gone.push([put(g.sp[i], posRow(g.sp.length, i), y1), i]); await fxW(230, tok); }
+      const outs = si.splice(0, pairs);
+      for (let i = 0; i < outs.length; i++){ gone.push([put(outs[i], posRow(g.sp.length, i), y2), i]); await fxW(230, tok); }
+      await fxW(600, tok);
+      gone.forEach(([c, i], j) => { const s = i % 2 ? 1 : -1; out(c, s * (W * .7 + 200), -ch, s * 28, (j % 8) * 70); });
+      await fxW(1100, tok); gone.forEach(([c]) => c.remove());
+      lab.textContent = prodName(g.prod);
+    }
+    const n = si.length; let val = tri(n);
+    for (let i = 0; i < n; i++){                                          // обычные: число растёт
+      put(si[i], posRow(n, i), y1);
+      await fxNum(num, tri(i), tri(i + 1), 260, tok); fxPop(num); await fxW(130, tok);
+    }
+    const mults = [...g.ge.map(k => [k, 2]), ...g.ro.map(k => [k, 3])];
+    for (let j = 0; j < mults.length; j++){                               // господские ×2, потом королевские ×3
+      const [k, m] = mults[j];
+      put(k, posRow(mults.length, j), y2); await fxW(500, tok);
+      mul.textContent = '×' + m; fxA(mul, [{opacity: 0, transform: 'scale(.3)'}, {opacity: 1, transform: 'scale(1.3)', offset: .6}, {opacity: 1, transform: 'scale(1)'}], 450); await fxW(750, tok);
+      await fxNum(num, val, val * m, 850, tok); val *= m; fxPop(num, 1.7); fxA(mul, [{opacity: 1}, {opacity: 0}], 300); await fxW(550, tok);
+    }
+    fxA(nw, [{transform: 'scale(1)'}, {transform: 'scale(1.35)'}, {transform: 'scale(1)'}], 650); await fxW(1000, tok);
+    total += val; await fxNum(totB, total - val, total, 500, tok); fxPop(totB, 1.3);
+    st.querySelectorAll('.fxc').forEach((c, i) => out(c, fxR(-80, 80), -ch * 2.2, fxR(-20, 20), (i % 10) * 45));
+    fxA(cnt, [{opacity: 1}, {opacity: 0}], 500, {delay: reduce ? 0 : 300 * FX.K});
+    await fxW(1100, tok); st.querySelectorAll('.fxc').forEach(c => c.remove());
+  }
+  /* 3. счёт игрока в центре */
+  cnt.remove(); fxA(tot, [{opacity: 1}, {opacity: 0}], 300);
+  const box = el('div', 'fxscore'), v = el('div', 'v', '0');
+  box.append(el('div', 'n', row.name), v, el('div', 't', 'очков')); st.append(box);
+  fxA(box, [{opacity: 0, transform: 'scale(.5)'}, {opacity: 1, transform: 'scale(1)'}], 600, {easing: 'cubic-bezier(.2,1.3,.4,1)'});
+  await fxW(500, tok); await fxNum(v, 0, total, 1300, tok); fxPop(v, 1.15); await fxW(500, tok);
+  FX.done = true; finUI();
+}
+async function finPodium(F, tok){
+  const st = $('fxSt'), head = $('fxHead'); st.innerHTML = ''; head.innerHTML = '';
+  const W = st.clientWidth;
+  const t = el('div', 'fxname'); t.append(el('small', null, 'Ярмарка закрыта'), el('b', null, 'Итоги')); head.append(t);
+  fxA(t, [{opacity: 0, transform: 'translateY(-20px)'}, {opacity: 1, transform: 'none'}], 600);
+  const pod = el('div', 'pod'), lab = el('div', 'podw', F.winners.length > 1 ? '🏆 ПОБЕДИТЕЛИ 🏆' : '🏆 ПОБЕДИТЕЛЬ 🏆'); pod.append(lab);
+  const rows = F.rows.map(r => {
+    const d = el('div', 'pr'), n2 = el('span', 'nm2', r.name), pt = el('span', 'pt', String(r.total));
+    n2.append(el('small', null, 'монет: ' + r.coins)); pt.append(el('small', null, 'очков'));
+    d.append(el('span', 'pl', String(r.place)), n2, pt); pod.append(d); return d;
+  });
+  st.append(pod); await fxW(900, tok);
+  for (let i = rows.length - 1; i >= 0; i--){                           // от последнего места к первому
+    const d = rows[i], win = F.winners.includes(F.rows[i].id), s = i % 2 ? 1 : -1;
+    if (win) await fxW(500, tok);
+    fxA(d, [{opacity: 0, transform: 'translateX(' + s * (W + 300) + 'px) rotate(' + s * 10 + 'deg) scale(.8)'}, {opacity: 1, transform: 'none'}], win ? 950 : 700, {easing: 'cubic-bezier(.2,1.25,.4,1)'});
+    await fxW(win ? 950 : 700, tok);
+    if (win){
+      d.classList.add('gold');
+      for (let q = 0; q < 16; q++){
+        const sp = el('i', 'spark', '★'); sp.style.setProperty('--dx', fxR(-260, 260).toFixed(0) + 'px'); sp.style.setProperty('--dy', fxR(-80, 80).toFixed(0) + 'px');
+        sp.style.setProperty('--d', fxR(0, 1.6).toFixed(2) + 's'); sp.style.setProperty('--sz', fxR(0, 1).toFixed(2)); d.append(sp);
+      }
+      fxA(d, [{transform: 'scale(1)'}, {transform: 'scale(1.08)'}, {transform: 'scale(1)'}], 550);
+    }
+    await fxW(i ? 450 : 350, tok);
+  }
+  fxA(lab, [{opacity: 0, transform: 'scale(.4)'}, {opacity: 1, transform: 'scale(1.25)', offset: .6}, {opacity: 1, transform: 'none'}], 800);
+  await fxW(1000, tok); FX.done = true; finUI();
+}
+$('fxSkip').onclick = () => { FX.K = .06; };
 
 /* ---------- Сброс (открытая стопка) ---------- */
 function openDisc(){
@@ -2548,6 +2712,15 @@ function fly(o){
 ['ver', 'ver2', 'ver3'].forEach(id => { $(id).textContent = VERSION; });
 buildBank();
 $('create').onclick = () => createLobby();
+/* ВРЕМЕННО: тест итогов без сети — 4 игрока со случайными картами, сразу конец игры. Удалить вместе с кнопкой testBtn, TEST и условием в finCont */
+$('testBtn').onclick = () => {
+  TEST = true; isHost = true; peer = null; code = 'TEST'; $('gameCode').textContent = code;
+  S = newState(); H = newH(); S.gid = 1 + (Math.random() * 9000 | 0);
+  S.players = [mkPlayer('host', myName(), true), mkPlayer('t1', 'Тест 1'), mkPlayer('t2', 'Тест 2'), mkPlayer('t3', 'Тест 3')];
+  H.deck = makeDeck();
+  S.players.forEach(p => { hand(p.id).push(...H.deck.splice(0, 22 + (Math.random() * 12 | 0))); sortHand(p.id); p.coins = Math.random() * 30 | 0; });
+  finishGame(); commit();
+};
 $('join').onclick = joinLobby;
 $('joinCode').addEventListener('keydown', e => { if (e.key === 'Enter') joinLobby(); });
 $('leave').onclick = leave;
@@ -2600,8 +2773,8 @@ const RULES_HTML = `
 <div class="box"><b class="h">Пример подсчёта</b>У игрока 3 простые карты сыра, 1 испорченный сыр, 1 господская карта и 1 королевская карта. Размер партии: 3 − 1 = 2. Базовая стоимость 2 карт — 3 очка. Множители: ×2 за господскую и ×3 за королевскую карту. Итог: 3 × 2 × 3 = 18 очков.</div>
 </details>
 
-<details><summary>1. Состав игры (колода 128 карт)</summary>
-<p>В колоде 128 карт: товары (6 видов × 13 карт) — 78, испорченные товары (6 видов × 4 карты) — 24, Крысы — 4, Вредители — 6, Коты — 9, Ревизоры — 7. Испорченные карты стоят рядом с соответствующим товаром.</p>
+<details><summary>1. Состав игры (колода 122 карты)</summary>
+<p>В колоде 122 карты: товары (6 видов × 13 карт) — 78, испорченные товары (6 видов × 4 карты) — 24, Крысы — 4, Вредители — 6, Коты — 5, Ревизоры — 5. Испорченные карты стоят рядом с соответствующим товаром.</p>
 <table><tr><th>Товар</th><th>Простой ×1</th><th>Господский ×2</th><th>Королевский ×3</th><th>Испорченный</th><th>Всего</th></tr>
 <tr><td>Сыр</td><td>Сыр — 10</td><td>Гауда — 2</td><td>Голубой сыр — 1</td><td>Червивый сыр — 4</td><td>17</td></tr>
 <tr><td>Хлеб</td><td>Хлеб — 10</td><td>Пшеничный хлеб — 2</td><td>Сдобный хлеб — 1</td><td>Заплесневелый хлеб — 4</td><td>17</td></tr>
