@@ -534,7 +534,7 @@ ul.players .tag{color:var(--acc);font-size:.8rem}
    Любое действие игрока приходит в handle(pid, m) → меняет S/H → commit() рассылает всё.
    ========================================================= */
 /*ENGINE-START*/
-const VERSION = 'alpha 0.1.4';
+const VERSION = 'alpha 0.1.5';
 
 /* Числа из правил. Если что-то захочется подкрутить — это здесь. */
 const RULES = {
@@ -1174,7 +1174,8 @@ let hostConn = null;                        // клиент: соединени�
 
 /* Арт карт: ключ -> расширение файла в папке cards/. Карты без арта рисуются просто названием.
    Чтобы добавить арт: положи cards/<ключ>.webp (или .png) и допиши строчку сюда. Ключи — в CARDS выше. */
-const IMG = {bread:'webp', wheat:'webp', rich:'webp', moldy:'webp', cheese:'webp', gouda:'webp', blue:'webp', wormy:'webp', apple:'webp', green:'webp', gold:'webp', rotten:'webp', pepper:'webp', cinnamon:'webp', saffron:'webp', damp:'webp', silk:'webp', wild:'webp', spider:'webp', soaked:'webp', banana:'webp', cavendish:'webp', gros:'webp', black:'webp'};
+const IMG = {bread:'webp', wheat:'webp', rich:'webp', moldy:'webp', cheese:'webp', gouda:'webp', blue:'webp', wormy:'webp', apple:'webp', green:'webp', gold:'webp', rotten:'webp', pepper:'webp', cinnamon:'webp', saffron:'webp', damp:'webp', silk:'webp', wild:'webp', spider:'webp', soaked:'webp', banana:'webp', cavendish:'webp', gros:'webp', black:'webp',
+  cat:'webp', auditor:'webp', rat:'webp', pest_cheese:'webp', pest_bread:'webp', pest_apple:'webp', pest_spice:'webp', pest_silk:'webp', pest_banana:'webp'};
 const CAP = {simple:'простой', gentry:'господский ×2', royal:'королевский ×3', spoiled:'порча', rat:'напасть', pest:'напасть', cat:'помощник', auditor:'помощник'};
 const STEP_MSG = {compose:'выкладывает лот', showcase:'решает про витрину', inspect:'осматривает лот', answer:'отвечает на вопрос',
   auction:'торгуется', pay:'платит за лот', takelot:'забирает лот', cat:'решает, играть ли Кота', rat:'выбирает карты для Крысы',
@@ -2014,7 +2015,7 @@ function buildAct(A){
     const txt = el('div', 'bagtxt'); w.label = txt;
     const sub = el('div', 'bagtier', C + ' ' + plural(C, 'монета', 'монеты', 'монет') + ' — 1 карта');
     A.classList.add('bagp');
-    const x = el('button', 'bx', '✕'); x.title = 'Закончить ход без докупки'; x.onclick = e => { e.stopPropagation(); resetTray(); send({t:'buy', stop:true}); };
+    const x = el('button', 'ghost', 'Отказаться'); x.title = 'Закончить ход без докупки'; x.onclick = e => { e.stopPropagation(); resetTray(); send({t:'buy', stop:true}); };
     add(ttl, w.bag, txt, sub, x);
     w.update();
     return true;
