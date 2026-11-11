@@ -751,7 +751,7 @@ input:not([type=checkbox],[type=radio]):focus{outline:none;filter:drop-shadow(0 
    Любое действие игрока приходит в handle(pid, m) → меняет S/H → commit() рассылает всё.
    ========================================================= */
 /*ENGINE-START*/
-const VERSION = 'alpha 0.1.23';
+const VERSION = 'alpha 0.1.27';
 
 /* Числа из правил. Если что-то захочется подкрутить — это здесь. */
 const RULES = {
@@ -1899,7 +1899,7 @@ function sealCheck(){
 }
 function useSeal(){               // без плашки: подсвеченная Печать нажимается сразу; если нельзя — просто дёргается
   if (sealCheck()){ const e = $('mebar').querySelector('.seal'); if (e){ e.classList.remove('nope'); void e.offsetWidth; e.classList.add('nope'); } return; }
-  send({t:'seal'});
+  sfx('pechattake', .9); send({t:'seal'});
 }
 
 /* размен: монеты меняются с Банком, сумма не меняется */
@@ -1913,7 +1913,7 @@ function openChange(){
     .forEach(([op, a, b, ok]) => {
       const x = el('button', 'xbtn'); x.disabled = !ok;
       x.append(coinGroup(a[0], a[1]), el('span', 'ar', '→'), coinGroup(b[0], b[1]));
-      x.onclick = e => { e.stopPropagation(); coinSfx(.85); send({t:'change', op}); };
+      x.onclick = e => { e.stopPropagation(); sfx('takecoin2', .85); send({t:'change', op}); };
       g.append(x);
     });
   s.append(g, btn('Готово', () => $('changeM').classList.remove('on'), {ghost:true}));
@@ -2079,7 +2079,7 @@ function bagTry(d){                          // true — монета легла
   if (w.guard && !w.guard()) return false;
   if (w.need && trayTotal() + d > w.need) return false;       // крупнее остатка — не идёт
   if (w.cap && trayTotal() + d > w.cap) return false;
-  ui.tray[d]++; bagAnim(w.bag, 'plop'); coinSfx(.7); w.update();
+  ui.tray[d]++; bagAnim(w.bag, 'plop'); sfx('takecoin', .8); w.update();
   return true;
 }
 /* набралась нужная сумма — через короткую паузу (монета долетает) срабатывает действие; если панель успели перестроить, берём актуальный мешочек */
@@ -2101,7 +2101,7 @@ function bagClear(w){
   clearTimeout(w.tm);
   const c = Object.assign({}, ui.tray), from = center(w.bag);
   ui.tray = {1:0, 5:0, 10:0}; bagAnim(w.bag, 'shake'); w.update();
-  const pu = $('mePurse'); if (pu) flyCoins(c, from, center(pu));
+  const pu = $('mePurse'); if (pu) flyCoins(c, from, center(pu), .85, 'back');
 }
 function bagBack(){ ui.mode = null; resetTray(); ui.actKey = ''; renderMe(); renderAct(); }
 
@@ -2285,11 +2285,21 @@ function buildAct(A){
 const SND = {mute: false, bedVol: .2};
 try{ SND.mute = localStorage.getItem('kup_mute') === '1'; }catch(e){}
 const SFX = {};
-let lastCoinSnd = -1;
-function coinSfx(vol, delay){           // три варианта звука монет — случайный, подряд не повторяется
-  let i; do { i = Math.random() * 3 | 0; } while (i === lastCoinSnd);
-  lastCoinSnd = i; sfx(['takecoin', 'takecoin2', 'takecoin3'][i], vol == null ? .85 : vol, delay);
+/* Звуки кнопок: наведение (tipoff1-3) и нажатие (click1-3) — вариант случайный, подряд не повторяется */
+const UIS = {tipoff: -1, click: -1};
+function uiSnd(kind, vol){
+  let i; do { i = Math.random() * 3 | 0; } while (i === UIS[kind]);
+  UIS[kind] = i; sfx(kind + (i + 1), vol);
 }
+document.addEventListener('pointerover', e => {
+  if (e.pointerType !== 'mouse') return;
+  const b = e.target.closest && e.target.closest('button'); if (!b || b.disabled || (e.relatedTarget && b.contains(e.relatedTarget))) return;
+  uiSnd('tipoff', 1);
+}, true);
+document.addEventListener('click', e => {
+  const b = e.target.closest && e.target.closest('button'); if (!b || b.disabled) return;
+  uiSnd('click', .8);
+}, true);
 function sfx(name, vol, delay){
   if (SND.mute) return;
   const go = () => {
@@ -2892,7 +2902,7 @@ function animateEvent(e, src){
   } else if (e.type === 'toss'){
     for (let i = 0; i < Math.min(e.n, 3); i++) fly({face:null, from:{x: src.x + (i - 1) * 40, y: src.y}, to: center($('disc')), s0: smScale(), s1: 0.6, dur: 560, delay: i * 90});
   } else if (e.type === 'coins'){
-    flyCoins(e.c, src, coinAnchor(e.to), (e.from === myId() || e.to === myId()) ? .85 : .35);
+    flyCoins(e.c, src, coinAnchor(e.to), (e.from === myId() || e.to === myId()) ? .85 : .35, e.from === 'bank' ? 'take' : 'pay');
   } else if (e.type === 'answer'){
     showAnswer(e);
   }
@@ -2934,6 +2944,7 @@ function deckNudge(){ const d = $('deck'); d.classList.remove('nudge'); void d.o
 /* Печать купца берут из стопки: она летит дугой и «впечатывается» на место у игрока */
 function flySeal(e){
   const mine = e.by === myId(), se = seatEls[e.by];
+  sfx('pechattake', mine ? .9 : .45);
   const tgt = mine ? $('mebar').querySelector('.seal') : (se && se.querySelector('.sl .seal'));
   if (!tgt || reduce) return;
   const from = center($('sealPile')), to = center(tgt), w = Math.max(24, tgt.getBoundingClientRect().width || 40), B = 64;
@@ -2972,9 +2983,16 @@ function showAnswer(e){
   ], {duration: 3000, easing: 'ease-out', fill: 'both'});
   a.onfinish = () => t.remove(); setTimeout(() => t.remove(), 3400);
 }
-function flyCoins(c, from, to, vol){
+/* kind: 'take' — Банк → инвентарь (takecoin при взятии, takecoin3 при прибытии); 'pay' — оплата/ставка (takecoin2 в начале и при прибытии);
+   'back' — из мешка обратно в инвентарь (takecoin3) */
+function flyCoins(c, from, to, vol, kind){
   const list = []; DEN.forEach(d => { for (let i = 0; i < c[d]; i++) list.push(d); });
-  if (list.length){ const n = Math.min(list.length, 8); coinSfx(vol, 0); coinSfx((vol == null ? .85 : vol) * .9, (reduce ? 0 : 650 + (n - 1) * 70) - 90); }   // взяли — и монеты легли
+  if (list.length){
+    const v = vol == null ? .85 : vol, end = (reduce ? 0 : 650 + (Math.min(list.length, 8) - 1) * 70) - 90;
+    if (kind === 'take'){ sfx('takecoin', v); sfx('takecoin3', v, end); }
+    else if (kind === 'back') sfx('takecoin3', v);
+    else { sfx('takecoin2', v); sfx('takecoin2', v * .9, end); }
+  }
   list.slice(0, 8).forEach((d, i) => {
     const f = el('div', 'fcoin'); f.append(coinEl(d)); document.body.append(f);
     const T = (p, s, lift) => 'translate(' + (p.x - 15) + 'px,' + (p.y - 15 - (lift || 0)) + 'px) scale(' + s + ')';
