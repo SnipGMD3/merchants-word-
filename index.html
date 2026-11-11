@@ -552,6 +552,24 @@ ul.players .tag{color:var(--acc);font-size:.8rem}
 .sheet{--pb:20px;padding:4px 8px;--tint:rgba(14,8,4,.6)}
 .panel{--pb:22px;padding:6px 8px;--tint:rgba(14,8,4,.5)}
 .rules .bar{background:rgba(30,19,10,.96);top:-4px}
+
+/* ================= текстурные кнопки: ui/btn_yellow|ghost|blue.webp, края-«острия» не растягиваются, тянется только середина ================= */
+:is(button):not(.pbtn,.xbtn,.bx){
+  --cap:1.9em; --btn:url(ui/btn_yellow.webp);
+  display:inline-flex;align-items:center;justify-content:center;gap:.4em;
+  min-height:2.6em;line-height:1.15;padding-top:.15em;padding-bottom:.15em;border-radius:0;
+  border:solid transparent;border-width:0 var(--cap);
+  border-image:var(--btn) 0 94 0 94 fill / 0 var(--cap) 0 var(--cap) stretch;
+  background:none;box-shadow:none;color:#2b1c00;text-shadow:0 1px 0 rgba(255,236,170,.45);
+  filter:drop-shadow(0 3px 3px rgba(0,0,0,.5));transition:filter .12s,transform .08s
+}
+:is(button):not(.pbtn,.xbtn,.bx):not(:disabled):hover{filter:drop-shadow(0 3px 3px rgba(0,0,0,.5)) brightness(1.13)}
+:is(button):not(.pbtn,.xbtn,.bx):not(:disabled):active{transform:translateY(1px);filter:drop-shadow(0 1px 2px rgba(0,0,0,.5)) brightness(.95)}
+:is(button):not(.pbtn,.xbtn,.bx):disabled{filter:drop-shadow(0 3px 3px rgba(0,0,0,.4)) grayscale(.75) brightness(.8);opacity:.6}
+button.ghost:not(.pbtn,.xbtn,.bx){--btn:url(ui/btn_ghost.webp);color:var(--ink);text-shadow:0 1px 2px #000}
+.hud .btns button,button.chgb{--btn:url(ui/btn_blue.webp);color:#eef3ff;text-shadow:0 1px 2px rgba(0,0,0,.8)}
+button.chgb,button.sortb{gap:6px}
+@media (max-width:700px){:is(button):not(.pbtn,.xbtn,.bx){--cap:1.5em}}
 </style>
 </head>
 <body>
@@ -649,7 +667,7 @@ ul.players .tag{color:var(--acc);font-size:.8rem}
    Любое действие игрока приходит в handle(pid, m) → меняет S/H → commit() рассылает всё.
    ========================================================= */
 /*ENGINE-START*/
-const VERSION = 'alpha 0.1.17';
+const VERSION = 'alpha 0.1.18';
 
 /* Числа из правил. Если что-то захочется подкрутить — это здесь. */
 const RULES = {
