@@ -192,7 +192,7 @@ ul.players .tag{color:var(--acc);font-size:.8rem}
 .seats{position:absolute;inset:0;pointer-events:none;z-index:3}
 .seat{position:absolute;width:0;height:0;transform:scale(var(--s,1));transition:left .4s,top .4s}
 .fan{position:absolute;left:0;top:0;width:0;height:0}
-.fan .b{position:absolute;left:-27px;top:-120px;width:54px;height:84px;transform-origin:27px 120px;
+.fan .b{position:absolute;left:-35px;top:-116px;width:70px;height:108px;transform-origin:35px 136px;
   transform:rotate(var(--a,0deg)) translateY(var(--t,0px));transition:transform .28s cubic-bezier(.2,.8,.2,1),filter .28s}
 .plate{position:absolute;left:0;top:0;transform:translate(-50%,-50%);z-index:3;background:rgba(0,0,0,.66);border:1px solid rgba(255,255,255,.22);
   border-radius:12px;padding:5px 11px 6px;white-space:nowrap;display:flex;flex-direction:column;gap:3px;align-items:center;font-size:.85rem;transition:box-shadow .25s,border-color .25s}
@@ -447,7 +447,7 @@ ul.players .tag{color:var(--acc);font-size:.8rem}
   .lotzone{--sh:121px}.slot.empty{width:78px}
   .sortb{padding:6px 8px 6px 6px;font-size:.75rem;gap:6px}.sortb .bk{width:20px;height:31px}.sortb .bk+.bk{margin-left:-15px}
   .deck,.disc{width:64px;height:100px;margin:-50px 0 0 -32px}.disc .card{--w:60px}.deck-l,.disc-l{margin-top:58px;font-size:.72rem}
-  .fan .b{left:-22.5px;top:-100px;width:45px;height:70px;transform-origin:22.5px 100px}
+  .fan .b{left:-29px;top:-96px;width:58px;height:90px;transform-origin:29px 112px}
   .deck{left:calc(50% - 130px)}.deck-l{left:calc(50% - 130px)}.bank{left:calc(50% - 130px);top:80%}
   .disc{left:calc(50% + 130px)}.disc-l{left:calc(50% + 130px)}.sealpile{left:calc(50% + 130px);top:80%}
   .mebar{left:6px;bottom:6px;padding:6px 8px;max-width:190px}.mebar .purse{--k:.9;gap:6px}.mebar .seal{--k:1.1}.mebar .sum{font-size:1.5rem}
@@ -497,19 +497,21 @@ ul.players .tag{color:var(--acc);font-size:.8rem}
 @keyframes spark{0%{opacity:0;transform:translate(-50%,-50%) scale(.2)}20%{opacity:1}100%{opacity:0;transform:translate(calc(-50% + var(--dx)),calc(-50% + var(--dy))) scale(1.2) rotate(180deg)}}
 
 /* ================= таблица очков и подсказка партии ================= */
-.scoretbl{position:absolute;right:8px;bottom:8px;z-index:4;width:196px;padding:8px 10px;border-radius:14px;pointer-events:none;
-  background:linear-gradient(160deg,rgba(32,44,66,.94),rgba(12,17,28,.94));border:1px solid rgba(255,183,3,.55);
-  box-shadow:0 6px 18px rgba(0,0,0,.55),inset 0 0 0 1px rgba(255,255,255,.06);transform:scale(var(--tbk,1));transform-origin:100% 100%}
-.scoretbl .sth{font-weight:800;font-size:.76rem;letter-spacing:.14em;text-transform:uppercase;color:var(--acc);text-align:center}
-.scoretbl .sts{font-size:.62rem;color:var(--mute);text-align:center;padding-bottom:5px;margin-bottom:5px;border-bottom:1px solid rgba(255,183,3,.3)}
-.scoretbl .stg{display:grid;grid-auto-flow:column;grid-template-rows:repeat(5,auto);column-gap:12px}
-.scoretbl .str{display:flex;align-items:baseline;gap:5px;padding:1px 6px;border-radius:6px;font-size:.8rem;color:var(--mute);transition:background .15s,box-shadow .15s}
-.scoretbl .str span{width:1.2em;text-align:right;color:var(--ink);font-weight:700}
-.scoretbl .str i{font-style:normal;opacity:.5;font-size:.7rem}
-.scoretbl .str b{margin-left:auto;color:var(--acc2);font-weight:800}
-.scoretbl .str.hl{background:rgba(255,183,3,.3);box-shadow:0 0 10px rgba(255,183,3,.65)}
-.scoretbl .stf{display:flex;flex-wrap:wrap;justify-content:center;gap:4px;margin-top:6px;padding-top:6px;border-top:1px solid rgba(255,255,255,.12)}
-.scoretbl .stf span{font-size:.62rem;font-weight:800;padding:2px 7px;border-radius:999px;color:#10151f}
+/* таблица очков справа внизу: крупные строки «N карт = M очков», ниже — пояснения к множителям */
+.scoretbl{position:absolute;right:8px;bottom:8px;z-index:4;width:262px;padding:8px 10px 6px;pointer-events:none}
+.scoretbl .sth{font-weight:900;font-size:.95rem;letter-spacing:.08em;text-transform:uppercase;color:var(--acc2);text-align:center}
+.scoretbl .sts{font-size:.7rem;line-height:1.2;color:#e6d9b6;text-align:center;padding:1px 2px 4px;margin-bottom:4px;border-bottom:1px solid rgba(255,183,3,.35)}
+.scoretbl .stg{display:grid;grid-auto-flow:column;grid-template-rows:repeat(5,auto);column-gap:10px;row-gap:0}
+.scoretbl .str{display:flex;align-items:center;gap:5px;padding:0 6px;border-radius:8px;font-size:.95rem;color:#e6d9b6;transition:background .15s,box-shadow .15s}
+.scoretbl .str .sn{width:1.3em;text-align:right;color:#fff;font-weight:900;font-size:1.05rem}
+.scoretbl .str .cb{width:11px;height:17px}
+.scoretbl .str em{font-style:normal;opacity:.7;margin-left:2px}
+.scoretbl .str b{margin-left:auto;color:var(--acc2);font-weight:900;font-size:1.1rem;text-shadow:0 0 8px rgba(255,200,40,.35)}
+.scoretbl .str.hl{background:rgba(255,183,3,.34);box-shadow:0 0 12px rgba(255,183,3,.75)}
+.scoretbl .stf{display:flex;flex-wrap:wrap;justify-content:center;gap:4px 10px;margin-top:5px;padding-top:5px;border-top:1px solid rgba(255,255,255,.18)}
+.scoretbl .rl{display:flex;align-items:center;gap:5px}
+.scoretbl .rl span{flex:none;min-width:2.1em;text-align:center;font-size:.85rem;font-weight:900;padding:2px 6px;border-radius:999px;color:#10151f;text-shadow:none}
+.scoretbl .rl p{margin:0;font-size:.78rem;line-height:1.1;color:#f1e6c8;font-weight:700}
 .scoretbl .stf .a{background:#2fc7c3}.scoretbl .stf .b{background:#ffc83a}.scoretbl .stf .c{background:#b3bb4a}
 .hand .card.pg:not(.sel){--y:-30px;--sc:1.06;z-index:6;filter:drop-shadow(0 0 3px #ffe08a) drop-shadow(0 0 12px rgba(255,200,40,.9)) drop-shadow(0 10px 10px rgba(0,0,0,.6))}
 .hand .card.pg:hover{--y:-44px;--sc:1.16;z-index:7}
@@ -545,7 +547,7 @@ ul.players .tag{color:var(--acc);font-size:.8rem}
 .mebar{--pb:16px;padding:0 4px}
 .toast{--pb:12px;padding:0 6px;--tint:rgba(125,16,26,.55)}
 .lotinfo{--pb:10px;padding:0 4px}
-.scoretbl{--pb:13px;padding:0 2px;width:176px}
+.scoretbl{--pb:13px;padding:0 2px}
 .pgtip{--pb:12px;padding:0 6px}
 .pgtip::after{display:none}
 .log{--pb:12px;padding:0 2px;--tint:rgba(14,8,4,.58);color:#d8cbab}
@@ -570,15 +572,94 @@ button.ghost:not(.pbtn,.xbtn,.bx){--btn:url(ui/btn_ghost.webp);color:var(--ink);
 .hud .btns button,button.chgb{--btn:url(ui/btn_blue.webp);color:#eef3ff;text-shadow:0 1px 2px rgba(0,0,0,.8)}
 button.chgb,button.sortb{gap:6px}
 @media (max-width:700px){:is(button):not(.pbtn,.xbtn,.bx){--cap:1.5em}}
+
+/* ================= плашка соседа: крупнее, значки вместо текста ================= */
+.plate{--pb:10px;padding:3px 12px 5px;gap:5px;font-size:1rem}
+.plate .r1{gap:9px}
+.plate .nm{font-weight:800;font-size:1.2rem;letter-spacing:.02em;color:#fff}
+.plate .sta{color:#ffd23f;font-size:1.25rem;line-height:1;text-shadow:0 0 8px rgba(255,200,40,.7)}
+.plate .sta:empty{display:none}
+.plate .cnt{display:flex;align-items:center;gap:5px;background:rgba(0,0,0,.42);border:1px solid rgba(255,255,255,.25);padding:1px 9px 1px 6px;border-radius:999px;font-size:1.1rem;font-weight:900;color:#fff}
+.cb{display:inline-block;flex:none;width:15px;height:23px;background:url(cards/back.webp) center/100% 100% no-repeat;border-radius:2px;box-shadow:0 1px 3px rgba(0,0,0,.6)}
+.plate .chips{display:flex;gap:6px;justify-content:center;flex-wrap:nowrap}
+.plate .chips:empty{display:none}
+.chip{display:flex;align-items:center;gap:5px;padding:2px 10px 2px 6px;border-radius:999px;background:rgba(0,0,0,.45);border:1px solid rgba(255,255,255,.28);font-weight:800;font-size:1rem;color:#fff}
+.chip i{display:inline-block;flex:none;width:21px;height:21px;background:center/contain no-repeat}
+.chip i.cb{width:14px;height:22px;background:url(cards/back.webp) center/100% 100% no-repeat}
+.chip i.ci{background-image:url(ui/coin10.webp)}
+.chip i.si{background-image:url(ui/seal.webp);width:23px;height:23px}
+.chip.done{background:rgba(35,115,58,.65);border-color:#7be28f;color:#e2ffe9}
+.plate .st{font-size:.95rem;font-weight:700;max-width:280px}
+
+/* ================= верхние плашки — по ширине текста, с запасом по краям ================= */
+.directive{width:max-content;max-width:calc(100vw - 2 * (var(--pw) + 24px));padding:3px 28px}
+.toast{width:max-content;padding:0 24px}
+
+/* ================= поля ввода: тёмно-синяя текстура ================= */
+input:not([type=checkbox],[type=radio]){
+  --cap:1.9em;min-height:2.6em;padding:.2em .15em;border-radius:0;border:solid transparent;border-width:0 var(--cap);
+  border-image:url(ui/btn_input.webp) 0 94 0 94 fill / 0 var(--cap) 0 var(--cap) stretch;
+  background:none;box-shadow:none;color:#eaf0ff;filter:drop-shadow(0 2px 3px rgba(0,0,0,.5));transition:filter .12s}
+input:not([type=checkbox],[type=radio])::placeholder{color:rgba(190,208,245,.5)}
+input:not([type=checkbox],[type=radio]):focus{outline:none;filter:drop-shadow(0 2px 3px rgba(0,0,0,.5)) brightness(1.3)}
+.price .pnum{--cap:56px;width:250px;min-height:0;height:78px;padding:0}
+.chat input{--cap:1.7em}
+@media (max-width:700px){input:not([type=checkbox],[type=radio]){--cap:1.5em}}
+
+/* ================= колода: стопка с толщиной по числу карт, бумажные плашки со счётом ================= */
+@property --th{syntax:'<length>';inherits:false;initial-value:8px}
+.deck{--th:8px;transition:--th .6s ease-out;border-radius:9px;filter:drop-shadow(0 calc(var(--th)*.35 + 3px) 4px rgba(0,0,0,.55)) drop-shadow(0 0 10px rgba(0,0,0,.35));background:none}
+/* вид «снизу вверх»: видна только верхняя карта (чуть в перспективе) и тонкий срез стопки внизу — боковин нет */
+.deck .dk-f{position:absolute;inset:0;z-index:1;background:url(cards/back.webp) center/100% 100% no-repeat;transform-origin:50% 100%;
+  transform:perspective(380px) rotateX(14deg);filter:drop-shadow(0 0 1px rgba(0,0,0,.9))}
+.deck::before{content:"";position:absolute;left:3%;right:3%;top:90%;bottom:calc(var(--th) * -1);z-index:0;border-radius:0 0 11px 11px / 0 0 7px 7px;
+  background:linear-gradient(90deg,rgba(0,0,0,.45),transparent 8%,transparent 92%,rgba(0,0,0,.45)),
+             linear-gradient(rgba(0,0,0,.5),rgba(0,0,0,0) 35%,rgba(0,0,0,.35)),
+             repeating-linear-gradient(180deg,#76828f 0 1px,#3b4551 1px 2px);
+  box-shadow:inset 0 0 0 1px rgba(10,12,18,.8)}
+.deck.nudge{animation:decknudge .38s ease-out}
+@keyframes decknudge{0%{transform:translate(0,0)}30%{transform:translate(0,-4px)}100%{transform:translate(0,0)}}
+.deck-l,.disc-l{margin-top:104px;padding:9px 26px 11px;font-size:.95rem;font-weight:800;color:#3a2410;text-shadow:none;
+  background:url(ui/paper.webp) 0 0/100% 100% no-repeat;filter:drop-shadow(0 3px 3px rgba(0,0,0,.55));transform:translateX(-50%) rotate(-2.5deg)}
+.disc-l{transform:translateX(-50%) rotate(2deg)}
+.deck-l b,.disc-l b{font-size:1.25em;color:#6b1a10;margin-left:3px}
+
+/* кнопка «Сортировка руки»: читаемый шрифт, тёмный жирный текст со светлым ореолом */
+.sortb{font-family:system-ui,'Segoe UI',Roboto,Arial,sans-serif;font-size:1.02rem;font-weight:900;letter-spacing:.02em;color:#1b0f00;
+  text-shadow:0 0 3px rgba(255,236,170,.95),0 1px 0 rgba(255,236,170,.9)}
+
+/* ================= главное меню и лобби на фоне-картинке =================
+   .stage — это картинка 1674×940, растянутая «cover»; всё внутри позиционируется в процентах и масштабируется шрифтом. */
+.vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);margin:0}
+.screen.menuscr{padding:0;min-height:100vh;height:100vh;overflow:hidden;position:relative;background:#120505}
+.screen.menuscr.on{display:block}
+.menuscr .stage{position:absolute;left:50%;top:50%;width:max(100vw,177.9vh);aspect-ratio:1674/940;transform:translate(-50%,-50%);
+  background:url(ui/menu_bg.webp) center/100% 100% no-repeat;font-size:max(1.0155vw,1.807vh)}
+.panel.mpanel{position:absolute;left:39.3%;top:59.1%;width:21.4%;height:36.6%;padding:.5em .6em;gap:.5em;justify-content:center;
+  --pb:14px;filter:drop-shadow(0 .4em .6em rgba(0,0,0,.6))}
+.mpanel input,.mpanel button{font-size:1em}
+.mpanel .row{gap:.5em}
+.mpanel .err{min-height:0;font-size:.82em;text-align:center}
+.mpanel .err:empty{display:none}
+.panel.mpanel.lob{top:auto;bottom:3.8%;height:auto;max-height:78%;left:38.3%;width:23.4%;justify-content:flex-start;overflow:auto}
+.mpanel .lh{margin:0;text-align:center;font-size:1.5em;font-weight:400;letter-spacing:.04em;line-height:1}
+.mpanel .code{font-size:2.1em}
+.menuscr .ver{position:absolute;left:4%;bottom:3.4%;margin:0;color:#d6c7a2;font-size:.75em;text-shadow:0 1px 2px #000}
+
+/* «Сортировка руки»: прежний шрифт игры, кнопка шире, текст с обводкой */
+.sortb{font-family:inherit;font-size:1.05rem;font-weight:400;letter-spacing:.06em;word-spacing:.15em;color:#fff4d2;white-space:nowrap;
+  -webkit-text-stroke:2.6px #3a1c00;paint-order:stroke fill;
+  text-shadow:0 1px 0 #3a1c00,0 2px 3px rgba(0,0,0,.6)}
+@media (min-width:701px){.sortb{min-width:226px;justify-content:center;gap:12px;padding-left:20px;padding-right:26px}}
 </style>
 </head>
 <body>
 
 <!-- ЭКРАН 1: вход -->
-<section id="home" class="screen on">
-  <h1>Честное Купеческое!</h1>
-  <p class="sub">Торговля вслепую. Создай лобби или зайди по коду друга</p>
-  <div class="panel">
+<section id="home" class="screen menuscr on">
+ <div class="stage">
+  <h1 class="vh">Честное Купеческое!</h1>
+  <div class="panel mpanel">
     <input id="name" maxlength="16" placeholder="Твоё имя" autocomplete="off">
     <button id="create">Создать лобби</button>
     <button id="testBtn" class="ghost">Тест итогов (временно)</button>
@@ -590,13 +671,15 @@ button.chgb,button.sortb{gap:6px}
     <button id="rulesHome" class="ghost">📜 Правила игры</button>
   </div>
   <div class="ver" id="ver"></div>
+ </div>
 </section>
 
 <!-- ЭКРАН 2: лобби -->
-<section id="lobby" class="screen">
-  <h1>Лобби</h1>
-  <p class="sub">Код для друзей (нажми, чтобы выделить)</p>
-  <div class="panel">
+<section id="lobby" class="screen menuscr">
+ <div class="stage">
+  <div class="panel mpanel lob">
+    <h2 class="lh">Лобби</h2>
+    <div class="hint">Код для друзей (нажми, чтобы выделить)</div>
     <div class="code" id="roomCode">-----</div>
     <ul class="players" id="plist"></ul>
     <button id="start" disabled>Начать игру</button>
@@ -605,6 +688,7 @@ button.chgb,button.sortb{gap:6px}
     <button id="leave" class="ghost">Выйти</button>
   </div>
   <div class="ver" id="ver2"></div>
+ </div>
 </section>
 
 <!-- ЭКРАН 3: стол -->
@@ -625,7 +709,7 @@ button.chgb,button.sortb{gap:6px}
   <div class="midmsg" id="midMsg"></div>
   <div class="table" id="table">
     <div class="felt"></div>
-    <div class="deck back" id="deck" title="Колода"></div>
+    <div class="deck" id="deck" title="Колода"><i class="dk-f"></i></div>
     <div class="deck-l" id="deckL">колода</div>
     <div class="disc" id="disc" title="Открыть сброс"></div>
     <div class="disc-l" id="discL">сброс</div>
@@ -649,7 +733,7 @@ button.chgb,button.sortb{gap:6px}
   <div class="scoretbl" id="scoreTbl"></div>
   <div class="pgtip" id="pgTip"></div>
   <button class="chgb" id="chgBtn" title="Поменять монеты в Банке без потерь"></button>
-  <button class="sortb" id="sortBtn" title="Разложить карты по порядку"><span class="bk"></span><span class="bk"></span><span class="tx">Сортировка<br>руки</span></button>
+  <button class="sortb" id="sortBtn" title="Разложить карты по порядку"><span class="bk"></span><span class="bk"></span><span class="tx">Сортировка руки</span></button>
   <div class="modal" id="priceM"><div class="sheet price" id="priceS"></div></div>
   <div class="modal" id="cheatM"><div class="sheet" id="cheatS"></div></div>
   <div class="fx" id="finalX"><div class="fxhead" id="fxHead"></div><div class="fxst" id="fxSt"></div><div class="fxbar" id="fxBar"></div><button class="ghost fxskip" id="fxSkip">Пропустить анимацию</button></div>
@@ -667,7 +751,7 @@ button.chgb,button.sortb{gap:6px}
    Любое действие игрока приходит в handle(pid, m) → меняет S/H → commit() рассылает всё.
    ========================================================= */
 /*ENGINE-START*/
-const VERSION = 'alpha 0.1.18';
+const VERSION = 'alpha 0.1.23';
 
 /* Числа из правил. Если что-то захочется подкрутить — это здесь. */
 const RULES = {
@@ -880,7 +964,7 @@ function doTake(pid, m){
       putIn(p, c); t.coins = 0; emit('coins', {from:'bank', to:pid, c});
     }
   } else if (m.what === 'seal'){
-    if (t.seal > 0){ p.seal = 1; t.seal = 0; addLog(p.name + ' берёт Печать купца'); }
+    if (t.seal > 0){ p.seal = 1; t.seal = 0; addLog(p.name + ' берёт Печать купца'); emit('sealtake', {by: pid}); }
   }
   checkTodo();
 }
@@ -1558,6 +1642,17 @@ function mkFace(c, small){
 }
 const mkBack = small => el('div', 'card back' + (small ? ' sm' : ''));
 
+/* Раздача у соседа: значки «карты 3/6 · монеты 0/20 · печать», зелёные — когда это уже взято */
+function takeChips(p, box){
+  if (!(S.phase === 'game' && S.step === 'take' && S.todo && S.todo[p.id])) return false;
+  const x = S.todo[p.id], l = x.l, t = x.t;
+  const chip = (ic, txt, done, title) => { const c = el('span', 'chip' + (done ? ' done' : '')); c.title = title; c.append(el('i', ic), document.createTextNode((done ? '✓ ' : '') + txt)); box.append(c); };
+  if (!todoOpen(x)){ const c = el('span', 'chip done', '✓ всё взял'); box.append(c); return true; }
+  if (t.cards) chip('cb', (t.cards - l.cards) + '/' + t.cards, l.cards === 0, 'Карты из колоды');
+  if (t.coins) chip('ci', (t.coins - l.coins) + '/' + t.coins, l.coins === 0, 'Монеты из Банка');
+  if (t.seal) chip('si', l.seal ? '0/1' : '', !l.seal, 'Печать купца');
+  return true;
+}
 function statusOf(p){
   if (S.phase !== 'game') return '';
   if (S.step === 'take' && S.todo && S.todo[p.id]){
@@ -1644,23 +1739,23 @@ function renderTable(){
     seen.add(p.id);
     const t = (j + 1) / (opps.length + 1);          // 0..1 вдоль верхней дуги (слева направо)
     const x = 50 - 44 * Math.cos(Math.PI * t);
-    const y = 50 - 33 * Math.sin(Math.PI * t);
+    const y = 50 - 31 * Math.sin(Math.PI * t);
     let e = seatEls[p.id];
     if (!e){
       e = el('div', 'seat');
-      e.innerHTML = '<div class="fan"></div><div class="plate"><div class="r1"><span class="sta" title="Жетон Старосты рынка">★</span><span class="nm"></span><span class="cnt" title="Карт на складе"></span></div>' +
+      e.innerHTML = '<div class="fan"></div><div class="plate"><div class="r1"><span class="sta" title="Жетон Старосты рынка">★</span><span class="nm"></span><span class="cnt" title="Карт на руках"><i class="cb"></i><b></b></span></div><div class="chips"></div>' +
         '<span class="st"></span></div><div class="money"><div class="mrow"><span class="pr"></span><span class="sl"></span></div><span class="sum"></span></div><div class="stk"></div>';
       $('seats').append(e); seatEls[p.id] = e;
     }
     e.style.left = x + '%'; e.style.top = y + '%'; e.classList.toggle('lft', x > 55);
     e.style.setProperty('--s', (0.74 + y / 100 * 0.5).toFixed(3));   // дальние сидят «мельче»
-    const ang = Math.round(Math.atan2((50 - x) / 100 * tw, -(50 - y) / 100 * th) * 180 / Math.PI);
+    const ang = 0;                                   // веер держат прямо, над плашкой
     const shown = Math.min(p.count, 12);
     const fan = e.querySelector('.fan'), key = shown + '|' + ang;
     if (e.dataset.k !== key){                       // перестраиваем веер, только если изменилось число карт/угол
       e.dataset.k = key; fan.innerHTML = '';
       fan.style.transform = 'rotate(' + ang + 'deg)';
-      const step = shown > 1 ? Math.min(7, 70 / (shown - 1)) : 0;
+      const step = shown > 1 ? Math.min(10, 84 / (shown - 1)) : 0;
       for (let i = 0; i < shown; i++){
         const b = el('div', 'b back');
         b.style.setProperty('--a', ((i - (shown - 1) / 2) * step).toFixed(1) + 'deg');
@@ -1672,13 +1767,15 @@ function renderTable(){
     e.classList.toggle('sell', S.seller === p.id && S.phase === 'game');
     e.querySelector('.nm').textContent = p.name;
     e.querySelector('.sta').textContent = S.starost === p.id ? '★' : '';
-    e.querySelector('.cnt').textContent = p.count;
+    e.querySelector('.cnt b').textContent = p.count;
     const shownPu = minusStake(p.purse, stakeOf(p.id));
     const pr = e.querySelector('.pr'); pr.innerHTML = ''; pr.append(purseEl(shownPu, {mini:true}));
     e.querySelector('.sum').textContent = coinSum(shownPu);
     fillStake(e.querySelector('.stk'), stakeOf(p.id), p.id, e.querySelector('.plate'));
     const sl = e.querySelector('.sl'); sl.innerHTML = ''; if (p.seal) sl.append(sealEl(p.seal, true));
-    const st = e.querySelector('.st'), s = statusOf(p) + (p.selN && S.step === 'compose' && S.turn === p.id ? ' (' + p.selN + '/3)' : '');
+    const chips = e.querySelector('.chips'); chips.innerHTML = '';
+    const tp = takeChips(p, chips);                 // при раздаче — наглядные значки вместо строки текста
+    const st = e.querySelector('.st'), s = tp ? '' : statusOf(p) + (p.selN && S.step === 'compose' && S.turn === p.id ? ' (' + p.selN + '/3)' : '');
     st.textContent = s; st.classList.toggle('on', waiting && s !== '' && s[0] !== '✓');
   });
   Object.keys(seatEls).forEach(id => { if (!seen.has(id)){ seatEls[id].remove(); delete seatEls[id]; } });
@@ -1686,10 +1783,11 @@ function renderTable(){
   const td = myTodo();
   $('deck').classList.toggle('empty', !S.deckN);
   $('deck').classList.toggle('pulse', !!(td && td.cards > 0));
-  $('deckL').textContent = 'колода · ' + (S.deckN || 0);
+  $('deck').style.setProperty('--th', Math.min(18, Math.max(1, Math.round((S.deckN || 0) / 6))) + 'px');       // толщина стопки зависит от числа карт
+  $('deckL').innerHTML = 'Колода <b>' + (S.deckN || 0) + '</b>';
   const disc = $('disc'); disc.innerHTML = '';
   if (S.discTop) disc.append(mkFace({k:S.discTop}));
-  $('discL').textContent = 'сброс · ' + (S.discN || 0);
+  $('discL').innerHTML = 'Сброс <b>' + (S.discN || 0) + '</b>';
   renderBank(td);
 
   const di = $('dayinfo'); di.innerHTML = '';
@@ -1815,7 +1913,7 @@ function openChange(){
     .forEach(([op, a, b, ok]) => {
       const x = el('button', 'xbtn'); x.disabled = !ok;
       x.append(coinGroup(a[0], a[1]), el('span', 'ar', '→'), coinGroup(b[0], b[1]));
-      x.onclick = e => { e.stopPropagation(); send({t:'change', op}); };
+      x.onclick = e => { e.stopPropagation(); coinSfx(.85); send({t:'change', op}); };
       g.append(x);
     });
   s.append(g, btn('Готово', () => $('changeM').classList.remove('on'), {ghost:true}));
@@ -1981,7 +2079,7 @@ function bagTry(d){                          // true — монета легла
   if (w.guard && !w.guard()) return false;
   if (w.need && trayTotal() + d > w.need) return false;       // крупнее остатка — не идёт
   if (w.cap && trayTotal() + d > w.cap) return false;
-  ui.tray[d]++; bagAnim(w.bag, 'plop'); w.update();
+  ui.tray[d]++; bagAnim(w.bag, 'plop'); coinSfx(.7); w.update();
   return true;
 }
 /* набралась нужная сумма — через короткую паузу (монета долетает) срабатывает действие; если панель успели перестроить, берём актуальный мешочек */
@@ -2187,6 +2285,11 @@ function buildAct(A){
 const SND = {mute: false, bedVol: .2};
 try{ SND.mute = localStorage.getItem('kup_mute') === '1'; }catch(e){}
 const SFX = {};
+let lastCoinSnd = -1;
+function coinSfx(vol, delay){           // три варианта звука монет — случайный, подряд не повторяется
+  let i; do { i = Math.random() * 3 | 0; } while (i === lastCoinSnd);
+  lastCoinSnd = i; sfx(['takecoin', 'takecoin2', 'takecoin3'][i], vol == null ? .85 : vol, delay);
+}
 function sfx(name, vol, delay){
   if (SND.mute) return;
   const go = () => {
@@ -2243,9 +2346,14 @@ const PG_KINDS = {simple:1, gentry:1, royal:1, spoiled:1};
 function buildScoreTbl(){
   const t = $('scoreTbl'); t.innerHTML = '';
   const g = el('div', 'stg'), f = el('div', 'stf');
-  for (let i = 1; i <= 10; i++){ const r = el('div', 'str'); r.dataset.n = i; r.append(el('span', null, String(i)), el('i', null, '→'), el('b', null, String(tri(i)))); g.append(r); }
-  f.append(el('span', 'a', '×2 господ.'), el('span', 'b', '×3 корол.'), el('span', 'c', '−1 порча'));
-  t.append(el('div', 'sth', 'Очки партии'), el('div', 'sts', 'простых карт → очки'), g, f);
+  for (let i = 1; i <= 10; i++){
+    const r = el('div', 'str'); r.dataset.n = i;
+    r.append(el('span', 'sn', String(i)), el('i', 'cb'), el('em', null, '='), el('b', null, String(tri(i))));
+    g.append(r);
+  }
+  const rule = (cls, big, txt) => { const x = el('div', 'rl'); x.append(el('span', cls, big), el('p', null, txt)); return x; };
+  f.append(rule('a', '×2', 'господская'), rule('b', '×3', 'королевская'), rule('c', '−1', 'гнилая'));
+  t.append(el('div', 'sth', 'Очки за партию'), el('div', 'sts', 'Партия — все карты одного товара: сколько карт = сколько очков'), g, f);
 }
 document.addEventListener('pointerdown', e => { if (!(e.target.closest && e.target.closest('#hand .card'))) hidePg(); });   // тап мимо карты (на телефоне) убирает подсказку
 function hidePg(){
@@ -2499,7 +2607,7 @@ function buildHand(newIds){
       c._tm = setTimeout(() => { c.style.visibility = ''; delete c.dataset.pend; c.classList.add('pop'); }, reduce ? 0 : 1100);
       (ui.newQ = ui.newQ || []).push({id: card.id, t: performance.now()});
     }
-    c.addEventListener('pointerenter', e => { if (e.pointerType === 'mouse' && !hd) sfx('perebor', .7); });
+    c.addEventListener('pointerenter', e => { if (e.pointerType === 'mouse' && !hd) sfx('perebor', .22); });
     c.addEventListener('pointerleave', e => { if (e.pointerType === 'mouse') hidePg(); });
     c.addEventListener('pointerdown', e => handDown(e, card, c));
     c.addEventListener('click', e => { e.stopPropagation(); showPg(card); });
@@ -2760,6 +2868,7 @@ function animateEvent(e, src){
     slots.forEach((s, i) => fly({face:null, from:{x: src.x + (i - 1) * 16, y: src.y}, to: center(s), s0: mine ? 1 : 0.6, s1: smScale(), dur: 600, delay: i * 120, done: () => { s.style.visibility = ''; sfx('postavil', .8); }}));
     setTimeout(reveal, 1500);
   } else if (e.type === 'draw'){
+    deckNudge();
     const got = mine ? claimNew(Math.min(e.n, 4)) : [];
     for (let i = 0; i < Math.min(e.n, 4); i++){
       sfx('razdacha', mine ? .9 : .35, i * 130);
@@ -2776,12 +2885,14 @@ function animateEvent(e, src){
     }
   } else if (e.type === 'nap'){
     flyNap(e);
+  } else if (e.type === 'sealtake'){
+    flySeal(e);
   } else if (e.type === 'seal'){
     showSeal(e);
   } else if (e.type === 'toss'){
     for (let i = 0; i < Math.min(e.n, 3); i++) fly({face:null, from:{x: src.x + (i - 1) * 40, y: src.y}, to: center($('disc')), s0: smScale(), s1: 0.6, dur: 560, delay: i * 90});
   } else if (e.type === 'coins'){
-    flyCoins(e.c, src, coinAnchor(e.to));
+    flyCoins(e.c, src, coinAnchor(e.to), (e.from === myId() || e.to === myId()) ? .85 : .35);
   } else if (e.type === 'answer'){
     showAnswer(e);
   }
@@ -2819,6 +2930,22 @@ function flyNap(e){
       done: () => fly({face: e.nap, from: top, to: disc, s0: sMid * 1.15, s1: .6, dur: 520, delay: reduce ? 0 : 520})});
   }, reduce ? 0 : 750);
 }
+function deckNudge(){ const d = $('deck'); d.classList.remove('nudge'); void d.offsetWidth; d.classList.add('nudge'); }
+/* Печать купца берут из стопки: она летит дугой и «впечатывается» на место у игрока */
+function flySeal(e){
+  const mine = e.by === myId(), se = seatEls[e.by];
+  const tgt = mine ? $('mebar').querySelector('.seal') : (se && se.querySelector('.sl .seal'));
+  if (!tgt || reduce) return;
+  const from = center($('sealPile')), to = center(tgt), w = Math.max(24, tgt.getBoundingClientRect().width || 40), B = 64;
+  const g = el('img'); g.src = 'ui/seal.webp'; g.alt = ''; g.draggable = false;
+  g.style.cssText = 'position:fixed;left:0;top:0;width:' + B + 'px;height:' + B + 'px;z-index:60;pointer-events:none;filter:drop-shadow(0 8px 8px rgba(0,0,0,.55))';
+  document.body.append(g); tgt.style.visibility = 'hidden';
+  const T = (p, sc, r) => 'translate(' + (p.x - B / 2) + 'px,' + (p.y - B / 2) + 'px) scale(' + sc + ') rotate(' + r + 'deg)';
+  const mid = {x: (from.x + to.x) / 2, y: Math.min(from.y, to.y) - 90}, sc1 = w / B;
+  const fin = () => { g.remove(); tgt.style.visibility = ''; if (tgt.animate) tgt.animate([{transform: 'scale(1.5)', filter: 'brightness(1.5)'}, {transform: 'scale(.9)', offset: .6}, {transform: 'none', filter: 'none'}], {duration: 420, easing: 'ease-out'}); sfx('postavil', .7); };
+  const an = g.animate([{transform: T(from, 1, -25), offset: 0}, {transform: T(mid, 1.7, 10), offset: .5}, {transform: T(to, sc1 * 1.5, 0), offset: 1}], {duration: 900, easing: 'cubic-bezier(.45,.05,.3,1)', fill: 'forwards'});
+  an.onfinish = fin; setTimeout(() => { if (g.isConnected) fin(); }, 1300);
+}
 /* Использована Печать купца: плашка по центру на 3 секунды */
 function showSeal(e){
   const t = el('div', 'sealmsg'), n = e.amount;
@@ -2845,8 +2972,9 @@ function showAnswer(e){
   ], {duration: 3000, easing: 'ease-out', fill: 'both'});
   a.onfinish = () => t.remove(); setTimeout(() => t.remove(), 3400);
 }
-function flyCoins(c, from, to){
+function flyCoins(c, from, to, vol){
   const list = []; DEN.forEach(d => { for (let i = 0; i < c[d]; i++) list.push(d); });
+  if (list.length){ const n = Math.min(list.length, 8); coinSfx(vol, 0); coinSfx((vol == null ? .85 : vol) * .9, (reduce ? 0 : 650 + (n - 1) * 70) - 90); }   // взяли — и монеты легли
   list.slice(0, 8).forEach((d, i) => {
     const f = el('div', 'fcoin'); f.append(coinEl(d)); document.body.append(f);
     const T = (p, s, lift) => 'translate(' + (p.x - 15) + 'px,' + (p.y - 15 - (lift || 0)) + 'px) scale(' + s + ')';
