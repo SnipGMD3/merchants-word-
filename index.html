@@ -651,6 +651,59 @@ input:not([type=checkbox],[type=radio]):focus{outline:none;filter:drop-shadow(0 
   -webkit-text-stroke:2.6px #3a1c00;paint-order:stroke fill;
   text-shadow:0 1px 0 #3a1c00,0 2px 3px rgba(0,0,0,.6)}
 @media (min-width:701px){.sortb{min-width:226px;justify-content:center;gap:12px;padding-left:20px;padding-right:26px}}
+
+/* экран подсчёта: фон-картинка, затемнённая, чтобы поверх хорошо читалась информация */
+.fx{background:linear-gradient(rgba(8,2,2,.58),rgba(8,2,2,.68)),url(ui/final_bg.webp) center/cover no-repeat,#140606}
+/* чат: читаемый шрифт вместо декоративного */
+.log,.log .c,.chat input{font-family:system-ui,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif}
+.log{font-size:.92rem;line-height:1.35;color:#e3d7bb}
+.log .c{font-weight:600;font-size:.96rem;color:#fff7e4}
+.log .c b{font-weight:800}
+.chat input{font-size:.95rem}
+.fxhead{height:92px;padding-top:28px}
+.fxtot{top:34px;right:46px}
+
+/* экран подсчёта: текст на бумажных плашках, всё чуть ниже (рамка картинки не перекрывается) */
+.fxhead{height:116px;padding-top:36px}
+.fxcnt{top:8px}
+.fxname,.fxtot,.fxpl,.fxscore{background:url(ui/paper.webp) 0 0/100% 100% no-repeat;filter:drop-shadow(0 5px 7px rgba(0,0,0,.55));text-shadow:none}
+.fxname{padding:.45em 2.4em .5em;color:#4a2e14}
+.fxname small{color:#6b4a26}
+.fxname b{color:#8a2a0a}
+.fxtot{top:44px;right:48px;padding:.4em 1.5em .45em;color:#5a3a1a}
+.fxtot b{color:#3a1a08}
+.fxpl{display:inline-block;padding:.45em 3.9em .5em;color:#4a2e14}
+.fxlab{color:#6b4a26}
+.fxnum{color:#8a2a0a;text-shadow:none}
+.fxmul{color:#a33a00}
+.fxscore{inset:0;margin:auto;width:min(88%,560px);height:fit-content;padding:1em 2.4em 1.3em;color:#4a2e14}
+.fxscore .n{color:#4a2e14}
+.fxscore .v{color:#8a2a0a;text-shadow:none}
+.fxscore .t{color:#6b4a26}
+
+/* финальная таблица: бумажные плашки; первое место — золото с блеском и сиянием */
+.podw{color:#ffd9a0;text-shadow:0 0 22px rgba(255,190,60,.95),0 3px 8px rgba(0,0,0,.8);letter-spacing:.1em;text-transform:none}
+.pr{background:url(ui/paper.webp) 0 0/100% 100% no-repeat;border:none;border-radius:0;padding:13px 40px 15px;filter:drop-shadow(0 5px 8px rgba(0,0,0,.55))}
+.pr>*:not(.spark){position:relative;z-index:1}
+.pr .pl{color:#7a5630}
+.pr .nm2{color:#3a2410}
+.pr .nm2 small,.pr .pt small{color:#6b4a26}
+.pr.gold{background:url(ui/paper.webp) 0 0/100% 100% no-repeat;animation:pgold 1.5s ease-in-out infinite;color:#2a1800}
+.pr.gold .pl,.pr.gold .nm2,.pr.gold .nm2 small,.pr.gold .pt small{color:#3a2000}
+.pr.gold::before,.pr.gold::after{content:"";position:absolute;inset:0;z-index:0;pointer-events:none;
+  -webkit-mask:url(ui/paper.webp) 0 0/100% 100% no-repeat;mask:url(ui/paper.webp) 0 0/100% 100% no-repeat}
+.pr.gold::before{background:linear-gradient(110deg,#f2b640,#ffe27a 35%,#fffbd2 50%,#ffe27a 65%,#f2b640);background-size:250% 100%;mix-blend-mode:multiply;animation:shimmer 2.6s linear infinite}
+.pr.gold::after{background:linear-gradient(110deg,transparent 38%,rgba(255,255,255,.95) 50%,transparent 62%);background-size:250% 100%;mix-blend-mode:screen;animation:shimmer 2.1s linear infinite reverse}
+@keyframes pgold{0%,100%{filter:drop-shadow(0 0 12px rgba(255,200,40,.65)) drop-shadow(0 5px 8px rgba(0,0,0,.5))}50%{filter:drop-shadow(0 0 30px rgba(255,215,70,1)) drop-shadow(0 0 10px rgba(255,245,170,.95)) drop-shadow(0 5px 8px rgba(0,0,0,.5))}}
+.pr.gold .pt{color:#8a1c00!important;text-shadow:0 0 8px rgba(255,255,255,.7)}
+
+/* золотая плашка победителя: готовая золотая текстура (без blend-mode, чтобы работало во всех браузерах) + бегущий блик по форме бумаги */
+.pr.gold{background:url(ui/paper_gold.webp) 0 0/100% 100% no-repeat}
+.pr.gold::before{display:none}
+.pr.gold::after{display:none}
+@supports ((-webkit-mask-image:url(ui/paper.webp)) or (mask-image:url(ui/paper.webp))){
+  .pr.gold::after{display:block;mix-blend-mode:normal;background:linear-gradient(110deg,transparent 38%,rgba(255,255,255,.75) 50%,transparent 62%);background-size:250% 100%;animation:shimmer 2.1s linear infinite reverse}
+}
 </style>
 </head>
 <body>
@@ -751,7 +804,7 @@ input:not([type=checkbox],[type=radio]):focus{outline:none;filter:drop-shadow(0 
    Любое действие игрока приходит в handle(pid, m) → меняет S/H → commit() рассылает всё.
    ========================================================= */
 /*ENGINE-START*/
-const VERSION = 'alpha 0.1.27';
+const VERSION = 'alpha 0.1.32';
 
 /* Числа из правил. Если что-то захочется подкрутить — это здесь. */
 const RULES = {
@@ -2399,9 +2452,13 @@ const fxW = (ms, tok) => new Promise((res, rej) => setTimeout(() => FX.tok === t
 const fxA = (e, kf, ms, o) => e.animate(kf, Object.assign({duration: Math.max(1, reduce ? 1 : ms * FX.K), easing: 'ease-out', fill: 'both'}, o || {}));
 const fxR = (a, b) => a + Math.random() * (b - a);
 const fxPop = (e, s) => fxA(e, [{transform: 'scale(1)'}, {transform: 'scale(' + (s || 1.4) + ')', color: '#fff3b0'}, {transform: 'scale(1)'}], 380);
+/* звуки подсчёта: при «пропустить» (быстрая прокрутка) молчим */
+const fxS = (n, v, d) => { if (FX.K >= .5) sfx(n, v, d); };
+let fxTickAt = 0;
+function fxTick(){ const t = performance.now(); if (t - fxTickAt < 55 || FX.K < .5) return; fxTickAt = t; uiSnd('tipoff', .55); }
 async function fxNum(e, from, to, ms, tok){          // число «набегает» от from до to
   const st = Math.min(24, Math.max(1, Math.abs(to - from)));
-  for (let i = 1; i <= st; i++){ await fxW(ms / st, tok); e.textContent = String(Math.round(from + (to - from) * i / st)); }
+  for (let i = 1; i <= st; i++){ await fxW(ms / st, tok); e.textContent = String(Math.round(from + (to - from) * i / st)); fxTick(); }
 }
 function renderFinal(){
   const F = S.final; if (!F) return;
@@ -2433,22 +2490,22 @@ async function finReveal(F, tok){
   const nmEl = el('div', 'fxname'); nmEl.append(el('small', null, 'Карты игрока'), el('b', null, row.name)); head.append(nmEl);
   const tot = el('div', 'fxtot'); tot.append('Всего:', el('b', null, '0')); tot.style.opacity = 0; head.append(tot);
   const totB = tot.querySelector('b');
-  const sc = Math.min(3.4, W * .88 / (nmEl.querySelector('b').offsetWidth || 100)), dy = ($('finalX').clientHeight / 2 - 90);
+  const sc = Math.min(3.4, W * .8 / (nmEl.offsetWidth || 100)), dy = ($('finalX').clientHeight / 2 - 90);
   const big = 'translateY(' + dy + 'px) scale(' + sc + ')';
-  fxA(nmEl, [{transform: big, opacity: 0}, {transform: big, opacity: 1, offset: .2}, {transform: big, opacity: 1, offset: .7}, {transform: 'none', opacity: 1}], 2400, {easing: 'ease-in-out'});
+  fxS('razdacha', .7); fxA(nmEl, [{transform: big, opacity: 0}, {transform: big, opacity: 1, offset: .2}, {transform: big, opacity: 1, offset: .7}, {transform: 'none', opacity: 1}], 2400, {easing: 'ease-in-out'});
   await fxW(2500, tok);
   fxA(tot, [{opacity: 0}, {opacity: 1}], 400);
   /* раскладка */
-  const topZ = 104, Hs = Hh - topZ - 6;
+  const topZ = 136, Hs = Hh - topZ - 6;
   const cw = Math.max(46, Math.min(112, W * .26, (Hs - 16) / 2 / 1.5556)), ch = cw * 1.5556, y1 = topZ, y2 = topZ + ch + 12;
   const posRow = (n, i) => { const step = n < 2 ? 0 : Math.min(cw * 1.12, (W - 24 - cw) / (n - 1)); return (W - (n - 1) * step - cw) / 2 + i * step; };
   const put = (k, x, y) => {
     const c = mkFace({k}); c.classList.add('fxc'); c.style.setProperty('--w', cw + 'px'); c.style.left = x + 'px'; c.style.top = y + 'px';
-    st.append(c); fxA(c, [{transform: 'translateY(-70px) scale(1.3) rotate(-6deg)', opacity: 0}, {transform: 'none', opacity: 1}], 300); return c;
+    fxS('razdacha', .45); st.append(c); fxA(c, [{transform: 'translateY(-70px) scale(1.3) rotate(-6deg)', opacity: 0}, {transform: 'none', opacity: 1}], 300); return c;
   };
   const out = (c, dx, dy2, r, d) => { fxA(c, [{transform: 'none', opacity: 1}, {transform: 'translate(' + dx + 'px,' + dy2 + 'px) rotate(' + r + 'deg) scale(.7)', opacity: 0}], 650, {easing: 'ease-in', delay: reduce ? 0 : d * FX.K}); };
   const cnt = el('div', 'fxcnt'), lab = el('span', 'fxlab'), nw = el('div', 'fxnum'), num = el('b', null, '0'), mul = el('i', 'fxmul');
-  nw.append(num, mul); cnt.append(lab, nw); st.append(cnt);
+  nw.append(num, mul); const fpl = el('div', 'fxpl'); fpl.append(lab, nw); cnt.append(fpl); st.append(cnt);
   let total = 0;
   if (!row.groups.length){ lab.textContent = 'Склад пуст'; await fxW(900, tok); }
   /* 2. партии по очереди */
@@ -2462,25 +2519,25 @@ async function finReveal(F, tok){
       const outs = si.splice(0, pairs);
       for (let i = 0; i < outs.length; i++){ gone.push([put(outs[i], posRow(g.sp.length, i), y2), i]); await fxW(230, tok); }
       await fxW(600, tok);
-      gone.forEach(([c, i], j) => { const s = i % 2 ? 1 : -1; out(c, s * (W * .7 + 200), -ch, s * 28, (j % 8) * 70); });
+      fxS('perebor', .7); gone.forEach(([c, i], j) => { const s = i % 2 ? 1 : -1; out(c, s * (W * .7 + 200), -ch, s * 28, (j % 8) * 70); });
       await fxW(1100, tok); gone.forEach(([c]) => c.remove());
       lab.textContent = prodName(g.prod);
     }
     const n = si.length; let val = tri(n);
     for (let i = 0; i < n; i++){                                          // обычные: число растёт
       put(si[i], posRow(n, i), y1);
-      await fxNum(num, tri(i), tri(i + 1), 260, tok); fxPop(num); await fxW(130, tok);
+      await fxNum(num, tri(i), tri(i + 1), 260, tok); fxPop(num); fxS('postavil', .5); await fxW(130, tok);
     }
     const mults = [...g.ge.map(k => [k, 2]), ...g.ro.map(k => [k, 3])];
     for (let j = 0; j < mults.length; j++){                               // господские ×2, потом королевские ×3
       const [k, m] = mults[j];
       put(k, posRow(mults.length, j), y2); await fxW(500, tok);
-      mul.textContent = '×' + m; fxA(mul, [{opacity: 0, transform: 'scale(.3)'}, {opacity: 1, transform: 'scale(1.3)', offset: .6}, {opacity: 1, transform: 'scale(1)'}], 450); await fxW(750, tok);
-      await fxNum(num, val, val * m, 850, tok); val *= m; fxPop(num, 1.7); fxA(mul, [{opacity: 1}, {opacity: 0}], 300); await fxW(550, tok);
+      mul.textContent = '×' + m; fxS('pechattake', .8); fxA(mul, [{opacity: 0, transform: 'scale(.3)'}, {opacity: 1, transform: 'scale(1.3)', offset: .6}, {opacity: 1, transform: 'scale(1)'}], 450); await fxW(750, tok);
+      await fxNum(num, val, val * m, 850, tok); val *= m; fxPop(num, 1.7); fxS('postavil', .9); fxS('takecoin3', .6, 120); fxA(mul, [{opacity: 1}, {opacity: 0}], 300); await fxW(550, tok);
     }
-    fxA(nw, [{transform: 'scale(1)'}, {transform: 'scale(1.35)'}, {transform: 'scale(1)'}], 650); await fxW(1000, tok);
-    total += val; await fxNum(totB, total - val, total, 500, tok); fxPop(totB, 1.3);
-    st.querySelectorAll('.fxc').forEach((c, i) => out(c, fxR(-80, 80), -ch * 2.2, fxR(-20, 20), (i % 10) * 45));
+    fxS('postavil', .8); fxA(nw, [{transform: 'scale(1)'}, {transform: 'scale(1.35)'}, {transform: 'scale(1)'}], 650); await fxW(1000, tok);
+    total += val; await fxNum(totB, total - val, total, 500, tok); fxPop(totB, 1.3); fxS('takecoin2', .7);
+    fxS('perebor', .7); st.querySelectorAll('.fxc').forEach((c, i) => out(c, fxR(-80, 80), -ch * 2.2, fxR(-20, 20), (i % 10) * 45));
     fxA(cnt, [{opacity: 1}, {opacity: 0}], 500, {delay: reduce ? 0 : 300 * FX.K});
     await fxW(1100, tok); st.querySelectorAll('.fxc').forEach(c => c.remove());
   }
@@ -2488,8 +2545,8 @@ async function finReveal(F, tok){
   cnt.remove(); fxA(tot, [{opacity: 1}, {opacity: 0}], 300);
   const box = el('div', 'fxscore'), v = el('div', 'v', '0');
   box.append(el('div', 'n', row.name), v, el('div', 't', 'очков')); st.append(box);
-  fxA(box, [{opacity: 0, transform: 'scale(.5)'}, {opacity: 1, transform: 'scale(1)'}], 600, {easing: 'cubic-bezier(.2,1.3,.4,1)'});
-  await fxW(500, tok); await fxNum(v, 0, total, 1300, tok); fxPop(v, 1.15); await fxW(500, tok);
+  fxS('razdacha', .7); fxA(box, [{opacity: 0, transform: 'scale(.5)'}, {opacity: 1, transform: 'scale(1)'}], 600, {easing: 'cubic-bezier(.2,1.3,.4,1)'});
+  await fxW(500, tok); await fxNum(v, 0, total, 1300, tok); fxPop(v, 1.15); fxS('pechattake', .9); fxS('takecoin3', .8, 150); await fxW(500, tok);
   FX.done = true; finUI();
 }
 async function finPodium(F, tok){
@@ -2497,9 +2554,13 @@ async function finPodium(F, tok){
   const W = st.clientWidth;
   const t = el('div', 'fxname'); t.append(el('small', null, 'Ярмарка закрыта'), el('b', null, 'Итоги')); head.append(t);
   fxA(t, [{opacity: 0, transform: 'translateY(-20px)'}, {opacity: 1, transform: 'none'}], 600);
-  const pod = el('div', 'pod'), lab = el('div', 'podw', F.winners.length > 1 ? '🏆 ПОБЕДИТЕЛИ 🏆' : '🏆 ПОБЕДИТЕЛЬ 🏆'); pod.append(lab);
+  const pod = el('div', 'pod'), lab = el('div', 'podw', F.winners.length > 1 ? 'Лучшие Негоцианты!' : 'Лучший Негоциант!'); pod.append(lab);
+  const tots = F.rows.map(r => r.total), tMin = Math.min(...tots), tMax = Math.max(...tots);
   const rows = F.rows.map(r => {
     const d = el('div', 'pr'), n2 = el('span', 'nm2', r.name), pt = el('span', 'pt', String(r.total));
+    const k = tMax === tMin ? 1 : (r.total - tMin) / (tMax - tMin);                // чем больше очков, тем ярче цифра
+    pt.style.color = 'hsl(' + Math.round(30 - 10 * k) + ',' + Math.round(22 + 78 * k) + '%,' + Math.round(33 + 12 * k) + '%)';
+    if (k > .97) pt.style.textShadow = '0 0 10px rgba(255,120,0,.55)';
     n2.append(el('small', null, 'монет: ' + r.coins)); pt.append(el('small', null, 'очков'));
     d.append(el('span', 'pl', String(r.place)), n2, pt); pod.append(d); return d;
   });
@@ -2507,10 +2568,10 @@ async function finPodium(F, tok){
   for (let i = rows.length - 1; i >= 0; i--){                           // от последнего места к первому
     const d = rows[i], win = F.winners.includes(F.rows[i].id), s = i % 2 ? 1 : -1;
     if (win) await fxW(500, tok);
-    fxA(d, [{opacity: 0, transform: 'translateX(' + s * (W + 300) + 'px) rotate(' + s * 10 + 'deg) scale(.8)'}, {opacity: 1, transform: 'none'}], win ? 950 : 700, {easing: 'cubic-bezier(.2,1.25,.4,1)'});
+    fxS('razdacha', .7); fxA(d, [{opacity: 0, transform: 'translateX(' + s * (W + 300) + 'px) rotate(' + s * 10 + 'deg) scale(.8)'}, {opacity: 1, transform: 'none'}], win ? 950 : 700, {easing: 'cubic-bezier(.2,1.25,.4,1)'});
     await fxW(win ? 950 : 700, tok);
     if (win){
-      d.classList.add('gold');
+      d.classList.add('gold'); fxS('pechattake', .9); fxS('takecoin3', .8, 200);
       for (let q = 0; q < 16; q++){
         const sp = el('i', 'spark', '★'); sp.style.setProperty('--dx', fxR(-260, 260).toFixed(0) + 'px'); sp.style.setProperty('--dy', fxR(-80, 80).toFixed(0) + 'px');
         sp.style.setProperty('--d', fxR(0, 1.6).toFixed(2) + 's'); sp.style.setProperty('--sz', fxR(0, 1).toFixed(2)); d.append(sp);
