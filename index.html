@@ -914,6 +914,7 @@ input:not([type=checkbox],[type=radio]):focus{outline:none;filter:drop-shadow(0 
     <ul class="players" id="plist"></ul>
     <button id="start" disabled>Начать игру</button>
     <div class="hint" id="lobbyHint"></div>
+    <div class="hint" id="netInfo" style="font-size:.75rem;opacity:.7"></div>
     <button id="rulesLobby" class="ghost">📜 Правила игры</button>
     <button id="leave" class="ghost">Выйти</button>
   </div>
@@ -979,7 +980,7 @@ input:not([type=checkbox],[type=radio]):focus{outline:none;filter:drop-shadow(0 
 <div class="modal" id="rulesM"><div class="sheet rules" id="rulesS"></div></div>
 
 <div class="modal" id="testM"><div class="sheet" id="testS"></div></div>
-<script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js" onerror="this.onerror=null;var s=document.createElement('script');s.src='https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js';document.head.appendChild(s)"></script>
 <script>
 /* =========================================================
    ДВИЖОК ИГРЫ «Честное Купеческое!» (работает только у хоста, DOM не трогает).
@@ -997,7 +998,7 @@ input:not([type=checkbox],[type=radio]):focus{outline:none;filter:drop-shadow(0 
   };
   addEventListener('pointerdown', go, true);
 })();
-const VERSION = 'beta 0.51';
+const VERSION = 'beta 0.52';
 
 /* Числа из правил. Если что-то захочется подкрутить — это здесь. */
 const RULES = {
@@ -1763,7 +1764,7 @@ function needName(){      // ник обязателен перед создан
   const n = $('name'); if (n.value.trim()) return true;
   homeErr('Сначала введи свой ник'); n.focus(); n.classList.remove('shake'); void n.offsetWidth; n.classList.add('shake'); return false;
 }
-const myId = () => isHost ? 'host' : (peer && peer.id);
+const myId = () => isHost ? 'host' : myPid;
 const show = id => document.querySelectorAll('.screen').forEach(s => s.classList.toggle('on', s.id === id));
 const homeErr = t => $('homeErr').textContent = t || '';
 function el(tag, cls, text){ const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
@@ -1771,31 +1772,146 @@ const plural = (n, a, b, c) => { const m = n % 100, k = n % 10; return (m > 10 &
 ['back', ...Object.keys(IMG)].forEach(k => { new Image().src = 'cards/' + (k === 'back' ? 'back.webp' : k + '.' + IMG[k]); });
 ['plaque', 'sun', 'moon'].forEach(k => { new Image().src = 'ui/' + k + '.webp'; });   // прогрев кэша
 
+/* ---------- Транспорты ----------
+   Игра пробует связаться сразу двумя путями, работает тот, до которого достучался браузер:
+   1) WebRTC через PeerJS (напрямую; нужен сервер-посредник 0.peerjs.com — в некоторых странах он недоступен без VPN);
+   2) «ретранслятор»: MQTT поверх обычного WebSocket (wss) на публичных брокерах. WebRTC и STUN не нужны,
+      работает там же, где открываются обычные сайты. Брокеров несколько — хватит, чтобы дошёл любой.
+   Соединение у всех транспортов одинаковое: {peer, open, send(m), close(), on('data'|'close'|'error', fn)}. */
+const MQTT_URLS = ['wss://broker.hivemq.com:8884/mqtt', 'wss://broker.emqx.io:8084/mqtt', 'wss://test.mosquitto.org:8081'];
+const mqT = (c, s) => 'kup1/' + c + '/' + s;
+const mqHost = u => { try{ return new URL(u).hostname.replace(/^(broker|test)\./, ''); }catch(e){ return u; } };
+let mqs = [], myPid = null, netTags = [], netTm = 0;
+const mqEnc = new TextEncoder(), mqDec = new TextDecoder();
+const mqStr = s => { const b = mqEnc.encode(s), o = new Uint8Array(2 + b.length); o[0] = b.length >> 8; o[1] = b.length & 255; o.set(b, 2); return o; };
+function mqPacket(hdr, parts){
+  let n = 0; parts.forEach(p => { n += p.length; });
+  const rl = []; let x = n; do { let d = x % 128; x = (x / 128) | 0; if (x) d |= 128; rl.push(d); } while (x);
+  const out = new Uint8Array(1 + rl.length + n); out[0] = hdr; out.set(rl, 1);
+  let o = 1 + rl.length; parts.forEach(p => { out.set(p, o); o += p.length; }); return out;
+}
+/* Минимальный клиент MQTT 3.1.1 (QoS 0): CONNECT с «завещанием», SUBSCRIBE, PUBLISH, пинг */
+class MQ {
+  constructor(url, will){ this.url = url; this.will = will; this.buf = new Uint8Array(0); this.up = false; this.dead = false; this.h = {}; this.pid = 0; }
+  on(ev, fn){ this.h[ev] = fn; return this; }
+  emit(ev, ...a){ if (this.h[ev]) this.h[ev](...a); }
+  open(){
+    let ws;
+    try{ ws = this.ws = new WebSocket(this.url, 'mqtt'); }catch(e){ return this.fail(); }
+    ws.binaryType = 'arraybuffer';
+    this.tm = setTimeout(() => { if (!this.up) this.fail(); }, 9000);
+    ws.onopen = () => {
+      const cid = 'kup' + Math.random().toString(36).slice(2, 12), w = this.will;
+      const parts = [mqStr('MQTT'), Uint8Array.of(4, w ? 0x06 : 0x02, 0, 30), mqStr(cid)];
+      if (w) parts.push(mqStr(w.topic), mqStr(w.payload));
+      ws.send(mqPacket(0x10, parts));
+    };
+    ws.onmessage = ev => this.feed(new Uint8Array(ev.data));
+    ws.onclose = ws.onerror = () => this.fail();
+  }
+  feed(d){
+    const nb = new Uint8Array(this.buf.length + d.length); nb.set(this.buf); nb.set(d, this.buf.length); this.buf = nb;
+    for (;;){
+      const b = this.buf; if (b.length < 2) return;
+      let i = 1, mul = 1, rl = 0, c;
+      do { if (i >= b.length) return; c = b[i++]; rl += (c & 127) * mul; mul *= 128; } while (c & 128);
+      if (b.length < i + rl) return;
+      const type = b[0] >> 4, body = b.subarray(i, i + rl);
+      this.buf = b.slice(i + rl);
+      if (type === 2){ if (body[1] === 0){ this.up = true; clearTimeout(this.tm); this.ping = setInterval(() => this.raw(Uint8Array.of(0xC0, 0)), 20000); this.emit('up'); } else this.fail(); }
+      else if (type === 3){
+        const qos = (b[0] >> 1) & 3, tl = (body[0] << 8) | body[1];
+        this.emit('msg', mqDec.decode(body.subarray(2, 2 + tl)), mqDec.decode(body.subarray(2 + tl + (qos ? 2 : 0))));
+      }
+    }
+  }
+  raw(p){ if (this.ws && this.ws.readyState === 1){ try{ this.ws.send(p); return true; }catch(e){} } return false; }
+  sub(t){ this.raw(mqPacket(0x82, [Uint8Array.of(0, ++this.pid & 255 || 1), mqStr(t), Uint8Array.of(0)])); }
+  pub(t, s){ return this.raw(mqPacket(0x30, [mqStr(t), mqEnc.encode(s)])); }
+  fail(){ if (this.dead) return; const was = this.up; this.stop(); this.emit('down', was); }
+  stop(){ this.dead = true; clearTimeout(this.tm); clearInterval(this.ping); try{ this.ws.onclose = this.ws.onerror = null; this.ws.close(); }catch(e){} }
+  close(){ if (this.dead) return; if (this.up && this.will) this.pub(this.will.topic, this.will.payload); this.stop(); }   // аккуратный выход = то же, что «завещание»
+}
+function mkConn(id, sendFn){
+  const h = {};
+  return {peer: id, open: true, send: sendFn, close(){ if (h.close) h.close(); }, on(ev, fn){ h[ev] = fn; return this; }, _e(ev, ...a){ if (h[ev]) h[ev](...a); }};
+}
+function netStop(){
+  clearTimeout(netTm); netTm = 0;
+  try{ peer && peer.destroy(); }catch(e){}
+  mqs.forEach(m => { try{ m.close(); }catch(e){} }); mqs = []; mqConns = {}; netTags = [];
+  peer = null;
+}
+function showNet(){ const e = $('netInfo'); if (e) e.textContent = netTags.length ? 'Связь: ' + netTags.join(' + ') : ''; }
+
 /* ---------- Хост ---------- */
 HOOK.broadcast = () => { Object.values(conns).forEach(c => c.open && c.send({t:'state', state:S})); applyState(S); };
 HOOK.hand = (id, cards, newIds) => { if (id === 'host') setHand(cards, newIds); else if (conns[id] && conns[id].open) conns[id].send({t:'hand', cards, newIds}); };
 HOOK.peek = (id, data) => { if (id === 'host') setPeek(data); else if (conns[id] && conns[id].open) conns[id].send(Object.assign({t:'peek'}, data)); };
 
-function createLobby(attempt = 0){
+let mqConns = {};
+function acceptConn(c){
+  c.on('data', m => hostReceive(c, m));
+  c.on('close', () => { delete mqConns[c.peer]; dropPlayer(c.peer); });
+  c.on('error', () => dropPlayer(c.peer));
+  conns[c.peer] = c;
+}
+/* Сообщение игрока, пришедшее хосту через брокер: {j:id} — «я хочу войти», {c:id, m} — данные, {b:id} — вышел */
+function mqHostMsg(mq, s){
+  let x; try{ x = JSON.parse(s); }catch(e){ return; }
+  if (x.j) return void mq.pub(mqT(code, 'c/' + x.j), '{"_ok":1}');
+  if (x.b){ const c = mqConns[x.b]; if (c && c.via === mq) c._e('close'); return; }
+  if (!x.c) return;
+  let c = mqConns[x.c];
+  if (!c){
+    const id = x.c;
+    c = mqConns[id] = mkConn(id, m => { if (c.via) c.via.pub(mqT(code, 'c/' + id), JSON.stringify(m)); });
+    c.via = mq; acceptConn(c);
+  }
+  if (c.via === mq) c._e('data', x.m);        // игрок мог постучаться через несколько брокеров — слушаем только тот, где он начал игру
+}
+
+function createLobby(){
   homeErr(''); if (!needName()) return; TEST = false;
-  code = randCode();
-  peer = new Peer(PREFIX + code);
-  peer.on('open', () => {
-    isHost = true;
-    S = newState(); H = newH();
-    S.players.push(mkPlayer('host', myName(), true));
-    enterLobby(); commit();
+  netStop(); code = randCode();
+  let total = 0, failed = 0, errs = [];
+  const up = tag => {
+    netTags.push(tag);
+    if (!isHost){
+      isHost = true; clearTimeout(netTm);
+      S = newState(); H = newH(); S.players.push(mkPlayer('host', myName(), true));
+      enterLobby(); commit();
+    }
+    showNet();
+  };
+  const lost = (tag, why) => {
+    errs.push(tag + ' — ' + why);
+    if (isHost) return;
+    if (++failed >= total){ netStop(); homeErr('Не удалось создать лобби: нет связи ни с одним сервером (' + errs.join('; ') + ')'); }
+  };
+  if (window.Peer){
+    total++;
+    let opened = false;
+    const p = peer = new Peer(PREFIX + code);
+    p.on('open', () => { opened = true; up('WebRTC'); });
+    p.on('connection', acceptConn);
+    p.on('error', e => { if (!opened){ opened = true; lost('WebRTC', netErr(e)); } else console.warn('PeerJS', e); });
+  }
+  MQTT_URLS.forEach(url => {
+    total++;
+    const tag = 'ретранслятор ' + mqHost(url);
+    const mq = new MQ(url, {topic: mqT(code, 'all'), payload: '{"gone":1}'});
+    mqs.push(mq);
+    mq.on('up', () => { mq.sub(mqT(code, 'h')); up(tag); })
+      .on('msg', (t, s) => mqHostMsg(mq, s))
+      .on('down', was => {
+        if (!was) return lost(tag, 'не открылся');
+        netTags = netTags.filter(x => x !== tag); showNet();
+        Object.values(mqConns).forEach(c => { if (c.via === mq) c._e('close'); });
+      });
+    mq.open();
   });
-  peer.on('connection', c => {
-    c.on('data', m => hostReceive(c, m));
-    c.on('close', () => dropPlayer(c.peer));
-    c.on('error', () => dropPlayer(c.peer));
-    conns[c.peer] = c;
-  });
-  peer.on('error', e => {
-    if (e.type === 'unavailable-id' && attempt < 5) { peer.destroy(); createLobby(attempt + 1); }
-    else homeErr('Не удалось создать лобби: ' + netErr(e));
-  });
+  netTm = setTimeout(() => { if (!isHost){ netStop(); homeErr('Не удалось создать лобби: ни один сервер не ответил за 12 с (' + errs.join('; ') + ')'); } }, 12000);
 }
 function hostReceive(c, m){
   const pid = c.peer;
@@ -1836,42 +1952,88 @@ function joinLobby(){
   homeErr(''); if (!needName()) return;
   const c = $('joinCode').value.trim().toUpperCase();
   if (c.length !== 5) return homeErr('Код состоит из 5 символов');
-  code = c;
-  peer = new Peer();
-  peer.on('open', () => {
-    hostConn = peer.connect(PREFIX + code, {reliable:true});
-    const timer = setTimeout(() => { if (!hostConn.open){ homeErr('Лобби не найдено'); leave(); } }, 8000);
-    hostConn.on('open', () => { clearTimeout(timer); hostConn.send({t:'hello', name:myName(), ver:VERSION}); });
-    hostConn.on('data', m => {
+  netStop(); code = c;
+  const cid = 'p' + Math.random().toString(36).slice(2, 10);
+  let won = null, total = 0, failed = 0, errs = [], reached = false;
+  const kills = [];
+  const giveUp = () => {
+    clearTimeout(netTm); const e = errs.slice(); netStop();
+    homeErr(reached ? 'Лобби с таким кодом не найдено' : 'Нет связи ни с одним сервером (' + e.join('; ') + ')');
+  };
+  const bad = (tag, why, ok) => { errs.push(tag + ' — ' + why); if (ok) reached = true; if (!won && ++failed >= total) giveUp(); };
+  const win = (conn, pid, tag, keep) => {
+    if (won) return; won = conn; hostConn = conn; myPid = pid; clearTimeout(netTm);
+    kills.forEach(k => k(keep)); netTags = [tag];
+    conn.on('data', m => {
       if (m.t === 'state'){
         if (!$('lobby').classList.contains('on') && !$('game').classList.contains('on')) enterLobby();
-        applyState(m.state);
+        applyState(m.state); showNet();
       }
       if (m.t === 'hand') setHand(m.cards, m.newIds);
       if (m.t === 'peek') setPeek(m);
       if (m.t === 'error'){ const msg = m.msg; leave(); homeErr(msg); }
     });
-    hostConn.on('close', () => { leave(); homeErr('Хост закрыл лобби'); });
+    conn.on('close', () => { if (hostConn !== conn) return; leave(); homeErr('Связь с хостом оборвалась или хост закрыл лобби'); });
+    conn.send({t:'hello', name:myName(), ver:VERSION});
+  };
+  if (window.Peer){
+    total++;
+    const p = new Peer(); let done = false;
+    kills.push(keep => { if (keep !== p) try{ p.destroy(); }catch(e){} });
+    p.on('open', () => {
+      const hc = p.connect(PREFIX + code, {reliable:true});
+      hc.on('open', () => { if (won) return; peer = p; win(hc, p.id, 'WebRTC', p); });
+    });
+    p.on('error', e => { if (done || won) return; done = true; bad('WebRTC', netErr(e), e.type === 'peer-unavailable'); });
+  }
+  MQTT_URLS.forEach(url => {
+    total++;
+    const tag = 'ретранслятор ' + mqHost(url);
+    const mq = new MQ(url, {topic: mqT(code, 'h'), payload: JSON.stringify({b:cid})});
+    mqs.push(mq);
+    let conn = null, tj = 0;
+    kills.push(() => { clearInterval(tj); if (mq !== (won && won.mq)) mq.close(); });
+    mq.on('up', () => {
+      mq.sub(mqT(code, 'c/' + cid)); mq.sub(mqT(code, 'all'));
+      let n = 0; const knock = () => { if (won) return clearInterval(tj); if (n++ >= 4){ clearInterval(tj); return bad(tag, 'хост не ответил', true); } mq.pub(mqT(code, 'h'), JSON.stringify({j:cid})); };
+      tj = setInterval(knock, 2000); knock();
+    }).on('msg', (t, s) => {
+      let x; try{ x = JSON.parse(s); }catch(e){ return; }
+      if (t.endsWith('/all')){ if (conn && x.gone) conn._e('close'); return; }
+      if (x._ok){
+        if (conn || won) return;
+        conn = mkConn(cid, m => mq.pub(mqT(code, 'h'), JSON.stringify({c:cid, m})));
+        conn.mq = mq; conn.close = () => mq.close(); win(conn, cid, tag, null);
+        return;
+      }
+      if (conn && won === conn) conn._e('data', x);
+    }).on('down', was => {
+      if (conn && won === conn) conn._e('close');
+      else if (!won) bad(tag, was ? 'связь оборвалась' : 'не открылся', false);
+    });
+    mq.open();
   });
-  peer.on('error', e => { homeErr(e.type === 'peer-unavailable' ? 'Лобби с таким кодом нет' : 'Ошибка: ' + netErr(e)); });
+  if (!total) return homeErr('Нет доступных способов связи');
+  netTm = setTimeout(() => { if (!won) giveUp(); }, 14000);
 }
 /* Понятное описание ошибки. 'network' = браузер не достучался до сервера-посредника PeerJS (0.peerjs.com). */
 function netErr(e){
   const hints = {
-    'network': 'нет связи с сервером PeerJS (0.peerjs.com). Проверь VPN, блокировщик рекламы/защиту от слежки, антивирус',
+    'network': 'нет связи с 0.peerjs.com',
     'server-error': 'сервер PeerJS недоступен',
-    'socket-error': 'сокет к серверу PeerJS не открылся',
-    'socket-closed': 'соединение с сервером PeerJS оборвалось',
-    'webrtc': 'браузер не смог установить WebRTC-соединение'
+    'socket-error': 'сокет к PeerJS не открылся',
+    'socket-closed': 'соединение с PeerJS оборвалось',
+    'webrtc': 'WebRTC-соединение не установилось',
+    'peer-unavailable': 'лобби не найдено'
   };
   console.error('PeerJS error', e);
-  return e.type + (hints[e.type] ? ' — ' + hints[e.type] : '') + (e.message ? ' [' + e.message + ']' : '');
+  return hints[e.type] || e.type;
 }
 
 /* ---------- Общее ---------- */
 function send(m){ isHost ? hostReceive({peer:'host', send(){}}, m) : hostConn && hostConn.open && hostConn.send(m); }
 function leave(){
-  try{ peer && peer.destroy(); }catch(e){}
+  netStop(); myPid = null; showNet();
   TEST = false; BOTS = false; clearInterval(botTimer); tutStop(); bedStop(); musStart(); peer = null; hostConn = null; conns = {}; isHost = false;
   S = newState(); H = newH();
   myHand = []; selIds = new Set(); myPeek = null; mySrc = null; placed = [null, null, null]; handOrder = []; autoSort = true; $('priceM').classList.remove('on');
@@ -1981,7 +2143,7 @@ function render(){
 function renderLobby(){
   $('plist').innerHTML = '';
   S.players.forEach(p => {
-    const li = el('li'); const n = el('span', null, p.name); const t = el('span', 'tag', p.host ? 'хост' : String(p.id).startsWith('bot') ? 'бот' : (p.id === (peer && peer.id) ? 'ты' : ''));
+    const li = el('li'); const n = el('span', null, p.name); const t = el('span', 'tag', p.host ? 'хост' : String(p.id).startsWith('bot') ? 'бот' : (p.id === myPid ? 'ты' : ''));
     li.append(n, t); $('plist').append(li);
   });
   const n = S.players.length;
