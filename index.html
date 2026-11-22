@@ -901,6 +901,47 @@ ul.players li .who{display:flex;align-items:center}
 #tutBtn{--btn:url(ui/btn_blue.webp);color:#eef3ff;text-shadow:0 1px 2px rgba(0,0,0,.8)}
 .shake{animation:shk .4s}
 @keyframes shk{0%,100%{transform:none}20%{transform:translateX(-7px)}40%{transform:translateX(7px)}60%{transform:translateX(-5px)}80%{transform:translateX(4px)}}
+
+/* ================= «Расскажите о своём товаре», подсветка продавца в чате, чат в лобби, полоски прокрутки ================= */
+.directive.tellon{padding:4px 22px}
+.directive .tellmsg{display:block;font-size:1.55rem;font-weight:900;font-synthesis:weight;letter-spacing:.04em;line-height:1.2;color:#fff;
+  -webkit-text-stroke:1.2px #3a1c00;paint-order:stroke fill;
+  text-shadow:0 2px 4px rgba(0,0,0,.85),0 0 14px rgba(255,200,60,.55)}
+.directive .tellmsg.me{font-size:2.15rem;color:#fff2b3;-webkit-text-stroke:2px #4a2508;paint-order:stroke fill;
+  text-shadow:0 2px 3px rgba(0,0,0,.7),0 0 18px rgba(255,200,60,.9);animation:tellpulse 1.4s ease-in-out infinite}
+.directive .tellmsg b{color:var(--acc2)}
+.directive.tellon .tellmsg+b,.directive.tellon .tellmsg+small{margin-top:2px}
+@keyframes tellpulse{0%,100%{transform:scale(1)}50%{transform:scale(1.035)}}
+@media (prefers-reduced-motion:reduce){.directive .tellmsg.me{animation:none}}
+
+.slot.obsempty{width:var(--lw);height:var(--sh);border-radius:5px;border:2px dashed rgba(255,235,180,.22)}
+.slot.obs{cursor:default}
+
+/* ник продавца в чате */
+.log .c b.nk.sellr{display:inline-block;padding:0 .5em;margin-right:.1em;border-radius:.6em;color:#2b1c00;
+  background:linear-gradient(180deg,#ffe27a,#e8a50f);border:1px solid #fff2b3;box-shadow:0 0 8px rgba(255,200,60,.75);text-shadow:none}
+
+/* чат: тонкая полоса прокрутки в цвет интерфейса вместо системной */
+@supports not selector(::-webkit-scrollbar){.log,.panel.mpanel.lob{scrollbar-width:thin;scrollbar-color:rgba(214,170,80,.6) transparent}}   /* Firefox; в Chrome/Safari — кастомная полоса ниже */
+.log::-webkit-scrollbar,.panel.mpanel.lob::-webkit-scrollbar{width:7px;height:7px}
+.log::-webkit-scrollbar-track,.panel.mpanel.lob::-webkit-scrollbar-track{background:transparent;margin:6px 0}
+.log::-webkit-scrollbar-thumb,.panel.mpanel.lob::-webkit-scrollbar-thumb{border-radius:6px;background:linear-gradient(180deg,rgba(236,196,102,.7),rgba(150,98,30,.7));border:1px solid rgba(20,10,4,.6)}
+.log::-webkit-scrollbar-thumb:hover{background:linear-gradient(180deg,#ffe08a,#c98a1a)}
+.log::-webkit-scrollbar-button,.log::-webkit-scrollbar-corner{display:none;width:0;height:0}
+
+/* чат в лобби — справа от меню */
+.menuscr .lobchat{position:absolute;left:65.2%;bottom:3.8%;width:24%;height:44%;display:flex;flex-direction:column;gap:.45em;font-size:1em;z-index:2}
+.menuscr .lobchat .log,.menuscr .lobchat:focus-within .log{flex:1;min-height:0;height:auto;font-size:.82em;transition:none}
+.menuscr .lobchat input{font-size:.9em;flex:none}
+@media (max-aspect-ratio:3/2){
+  .menuscr .lobchat{position:fixed;left:auto;right:1.5vw;bottom:2vh;width:min(26vw,320px);height:40vh}
+}
+
+/* стартовая цена по центру стола */
+.pricefx{position:fixed;left:50%;top:40%;transform:translate(-50%,-50%);z-index:80;pointer-events:none;display:flex;flex-direction:column;align-items:center;gap:.1em;text-align:center}
+.pricefx .pn{font-size:min(11rem,22vh);line-height:1;font-weight:900;font-synthesis:weight;color:#ffe27a;-webkit-text-stroke:6px #4a2508;paint-order:stroke fill;
+  text-shadow:0 8px 14px rgba(0,0,0,.75),0 0 46px rgba(255,200,60,.95);transform-origin:center}
+.pricefx .pl{font-size:min(2.6rem,6vh);font-weight:900;font-synthesis:weight;letter-spacing:.06em;color:#fff7e4;-webkit-text-stroke:3px #4a2508;paint-order:stroke fill;text-shadow:0 3px 6px rgba(0,0,0,.8),0 0 18px rgba(255,200,60,.7)}
 </style>
 </head>
 <body>
@@ -950,6 +991,10 @@ ul.players li .who{display:flex;align-items:center}
     <div class="hint" id="netInfo" style="font-size:.75rem;opacity:.7"></div>
     <button id="rulesLobby" class="ghost">📜 Правила игры</button>
     <button id="leave" class="ghost">Выйти</button>
+  </div>
+  <div class="chat lobchat">
+    <div class="log" id="lobbyLog"></div>
+    <input id="lobbyChatIn" maxlength="140" placeholder="Чат лобби (Enter)" autocomplete="off">
   </div>
   <div class="ver" id="ver2"></div>
  </div>
@@ -1031,7 +1076,7 @@ ul.players li .who{display:flex;align-items:center}
   };
   addEventListener('pointerdown', go, true);
 })();
-const VERSION = 'beta 0.7';
+const VERSION = 'beta 0.8';
 
 /* Числа из правил. Если что-то захочется подкрутить — это здесь. */
 const RULES = {
@@ -1112,7 +1157,7 @@ function partyStats(cards, prod){
 const HOOK = {broadcast(){}, hand(id, cards, newIds){}, peek(id, data){}};   // сюда подключается сеть
 const newState = () => ({phase:'lobby', players:[], log:[], gid:0, seq:0, evts:[], deckN:0, discN:0, discTop:null, disc:[],
   day:0, days:0, round:'m', starost:null, seller:null, step:null, turn:null, lot:null, auction:null, info:null, final:null, notice:'',
-  todo:null, takeTitle:'', pay:null});
+  todo:null, takeTitle:'', pay:null, tell:null, placing:null});
 const newH = () => ({deck:[], discard:[], hands:{}, sentIds:{}, peeks:[], lotCards:[], lotNo:0, insp:null, auc:null, res:null, turns:0, next:null, bought:0, got:[]});
 const mkPlayer = (id, name, host) => ({id, name, host: !!host, count:0, coins:0, purse:{1:0, 5:0, 10:0}, seal:0, selN:0});   // seal: 0 — не взята, 1 — у игрока, 2 — использована
 let S = newState();
@@ -1256,7 +1301,7 @@ function startGame(){
   const gid = S.gid + 1;
   H = newH();
   S.phase = 'game'; S.gid = gid; S.seq = 0; S.evts = []; S.log = []; S.final = null; S.notice = '';
-  S.lot = null; S.auction = null; S.info = null; S.step = null; S.turn = null; S.pay = null; S.todo = null;
+  S.lot = null; S.tell = null; S.placing = null; S.auction = null; S.info = null; S.step = null; S.turn = null; S.pay = null; S.todo = null;
   H.deck = makeDeck();
   S.players.forEach(p => { H.hands[p.id] = []; p.purse = {1:0, 5:0, 10:0}; p.seal = 0; p.selN = 0; sync(p); });
   S.days = cfg.days; S.day = 1; S.round = 'm';
@@ -1283,11 +1328,11 @@ function beginRound(){
 function nextSeller(){
   if (H.turns >= S.players.length) return endRound();
   const sid = orderFrom(S.starost)[H.turns++];
-  S.lot = null; S.auction = null; S.info = null; S.pay = null; H.lotCards = [];
+  S.lot = null; S.tell = null; S.placing = null; S.auction = null; S.info = null; S.pay = null; H.lotCards = [];
   if (hand(sid).length < 3){
     return nextSeller();
   }
-  S.seller = sid; S.step = 'compose'; S.turn = sid;
+  S.seller = sid; S.step = 'compose'; S.turn = sid; S.tell = null; S.placing = null;
 }
 function endRound(){
   const last = S.day === S.days;
@@ -1312,27 +1357,39 @@ function doLot(pid, m){
   if (S.step !== 'compose' || S.turn !== pid) return;
   const ids = m.ids;
   if (!Array.isArray(ids) || ids.length !== 3 || new Set(ids).size !== 3) return;
-  const price = Math.floor(Number(m.price));
-  if (!(price >= 1) || price > 9999) return;
+  /* Цена теперь называется отдельным шагом (doPrice) — чтобы продавец успел рассказать о товаре.
+     Если цена пришла сразу (боты, обучение) — шаг цены пропускаем. */
+  let price = null;
+  if (m.price != null){ price = Math.floor(Number(m.price)); if (!(price >= 1) || price > 9999) return; }
   const h = hand(pid), cards = ids.map(id => h.find(c => c.id === id));
   if (cards.some(c => !c)) return;
   H.hands[pid] = h.filter(c => !ids.includes(c.id));
   H.lotCards = cards;
   S.lot = {n: ++H.lotNo, price, cards: [{open:false}, {open:false}, {open:false}], opened: false, qa: []};
-  pl(pid).selN = 0;
+  pl(pid).selN = 0; S.placing = null;
   emit('lot', {by: pid});
   peek(pid, {lot: S.lot.n, own: true, cards: cards.map(c => c.k)});
-  S.step = 'showcase'; S.turn = pid;
+  S.turn = pid;
+  if (price == null){ S.step = 'price'; S.tell = {by: pid, st: 'lot'}; }       // карты выложены → «Расскажите о своём товаре»
+  else { S.step = 'showcase'; S.tell = {by: pid, st: 'price'}; emit('price', {by: pid, price}); }
+}
+function doPrice(pid, m){
+  if (S.step !== 'price' || S.turn !== pid || !S.lot || S.lot.price != null) return;
+  const price = Math.floor(Number(m.price));
+  if (!(price >= 1) || price > 9999) return;
+  S.lot.price = price;
+  S.step = 'showcase'; S.turn = pid; S.tell = {by: pid, st: 'price'};            // цена названа → снова «Расскажите о своём товаре»
+  emit('price', {by: pid, price});                                                  // всем: число выезжает по центру
 }
 function reveal(i){ S.lot.cards[i] = {open: true, k: H.lotCards[i].k}; }
 
 function doShowcase(pid, m){
   if (S.step !== 'showcase' || S.turn !== pid) return;
   const i = m.i;
-  if (i === -1) return startInspection();
-  if (!(i >= 0 && i < 3) || S.lot.cards[i].open) return;
-  reveal(i);
+  if (i !== -1 && !(i >= 0 && i < 3 && !S.lot.cards[i].open)) return;
+  if (i !== -1) reveal(i);
   startInspection();
+  S.tell = (S.step === 'inspect') ? {by: pid, st: 'showcase'} : null;           // витрина открыта (или нет) → «Расскажите о своём товаре»
 }
 
 /* ---------- Расспрос: вопросы выбираются из списка, ответ вычисляет сама игра по картам лота ---------- */
@@ -1434,6 +1491,7 @@ function nextInspector(){
 }
 function doInsp(pid, m){
   if (S.step !== 'inspect' || S.turn !== pid) return;
+  S.tell = null;
   const p = pl(pid), I = H.insp;
   if (m.a === 'skip'){ I.pos++; return nextInspector(); }
   if (m.a === 'ask'){
@@ -1693,11 +1751,11 @@ function doReturn(pid){
   emit('take', {by: pid, n: specials.length});
   endTurn();
 }
-function endTurn(){ S.lot = null; S.auction = null; S.info = null; S.pay = null; H.res = null; nextSeller(); }
+function endTurn(){ S.lot = null; S.tell = null; S.placing = null; S.auction = null; S.info = null; S.pay = null; H.res = null; nextSeller(); }
 
 /* ---------- конец игры ---------- */
 function finishGame(){
-  S.phase = 'over'; S.step = 'over'; S.turn = null; S.lot = null; S.auction = null; S.info = null; S.pay = null; S.todo = null;
+  S.phase = 'over'; S.step = 'over'; S.turn = null; S.lot = null; S.tell = null; S.placing = null; S.auction = null; S.info = null; S.pay = null; S.todo = null;
   const rows = S.players.map(p => {
     const h = hand(p.id), parts = PORD.map(pr => partyStats(h, pr));
     const total = parts.reduce((a, x) => a + x.value, 0);
@@ -1734,10 +1792,11 @@ function handle(pid, m){
   if (S.phase !== 'game') return;
   S.evts = [];
   switch (m.t){
-    case 'select': if (S.step === 'compose' && S.turn === pid) pl(pid).selN = Math.max(0, Math.min(3, m.n | 0)); break;
+    case 'select': if (S.step === 'compose' && S.turn === pid){ pl(pid).selN = Math.max(0, Math.min(3, m.n | 0)); S.placing = Array.isArray(m.pos) ? [0, 1, 2].map(i => !!m.pos[i]) : null; } break;
     case 'take': doTake(pid, m); break;
     case 'change': doChange(pid, m); break;
     case 'lot': doLot(pid, m); break;
+    case 'price': doPrice(pid, m); break;
     case 'showcase': doShowcase(pid, m); break;
     case 'insp': doInsp(pid, m); break;
     case 'answer': doAnswer(pid, m); break;
@@ -1777,14 +1836,14 @@ let hostConn = null;                        // клиент: соединени�
 const IMG = {bread:'webp', wheat:'webp', rich:'webp', moldy:'webp', cheese:'webp', gouda:'webp', blue:'webp', wormy:'webp', apple:'webp', green:'webp', gold:'webp', rotten:'webp', pepper:'webp', cinnamon:'webp', saffron:'webp', damp:'webp', silk:'webp', wild:'webp', spider:'webp', soaked:'webp', banana:'webp', cavendish:'webp', gros:'webp', black:'webp',
   cat:'webp', auditor:'webp', rat:'webp', pest_cheese:'webp', pest_bread:'webp', pest_apple:'webp', pest_spice:'webp', pest_silk:'webp', pest_banana:'webp'};
 const CAP = {simple:'простой', gentry:'господский ×2', royal:'королевский ×3', spoiled:'порча', rat:'напасть', pest:'напасть', cat:'помощник', auditor:'помощник'};
-const STEP_MSG = {compose:'выкладывает лот', showcase:'решает про витрину', inspect:'осматривает лот', answer:'отвечает на вопрос',
+const STEP_MSG = {compose:'выкладывает лот', price:'называет цену', showcase:'решает про витрину', inspect:'осматривает лот', answer:'отвечает на вопрос',
   auction:'торгуется', pay:'платит за лот', takelot:'забирает лот', cat:'решает, играть ли Кота', rat:'выбирает карты для Крысы',
   buy:'докупает карты', return:'забирает свои карты', openpick:'вскрывает карту'};
 
 let myHand = [], selIds = new Set(), myPeek = null, mySrc = null;
 let placed = [null, null, null], handOrder = [], autoSort = true, hd = null;   // placed — id карт, положенных на стол для лота; handOrder — порядок карт в руке (только у меня)
 let lastSeq = 0, curGid = 0, tableReady = false, hideLot = false;
-let slotSig = '', prevLot = null, toastT = 0, TEST = false;
+let slotSig = '', prevLot = null, toastT = 0, TEST = false, sawPlacing = false;
 const TUT = {hideT:0, bigTry:false, on:false, run:0, hl:[], key:'', ans:null, holdAns:false, keepPg:false, tm:0, ty:0, typing:false, full:'', place:0};
 const ui = {price:'', q:'', qpath:[], qsel:null, mode:null, actKey:'', tray:{1:0, 5:0, 10:0}, trayKey:'', trayAmt:0, bag:null, bagMode:false, lpLot:0, lpVal:null, lpAnim:null, stakeSigs:{}, stakePrev:{}};
 const seatEls = {};
@@ -1797,11 +1856,11 @@ const randCode = () => Array.from({length:5}, () => ALPHABET[Math.random() * ALP
    Правила базы — в файле firebase/database.rules.json, инструкция — firebase/README.md.
    ========================================================= */
 const FIREBASE_CONFIG = {
-  apiKey: 'AIzaSyCrDa1KR6EVlVe4TyxEn8F7PZvKXcxwotw',
-  authDomain: 'merchant-words1.firebaseapp.com',
-  databaseURL: 'https://merchant-words1-default-rtdb.europe-west1.firebasedatabase.app',
-  projectId: 'merchant-words1',
-  appId: '1:935333934013:web:841ea33b889e57f5fa18d4'
+  apiKey: '',
+  authDomain: '',
+  databaseURL: '',
+  projectId: '',
+  appId: ''
 };
 const FB = {state: FIREBASE_CONFIG.apiKey ? 'wait' : 'off', auth: null, db: null, uid: null};   // off — не настроен/недоступен, wait — подключаемся, on — работает
 const fbOn = () => FB.state === 'on' && !!FB.uid;
@@ -2396,9 +2455,12 @@ function applyState(ns){
   const evs = (ns.evts || []).filter(e => e.seq > lastSeq);
   const fresh = tableReady ? evs : [];
   const srcs = fresh.map(e => srcFor(e));
+  sawPlacing = S.phase === 'game' && S.step === 'compose' && S.turn !== myId() && !!S.placing && S.placing.every(Boolean);   // уже видел, как продавец раскладывает карты
   S = ns;
-  if (!(S.phase === 'game' && S.step === 'compose' && S.turn === myId())){ placed = [null, null, null]; $('priceM').classList.remove('on'); }
-  hideLot = fresh.some(e => e.type === 'lot');
+  if (!(S.phase === 'game' && S.step === 'compose' && S.turn === myId())) placed = [null, null, null];
+  if (!(S.phase === 'game' && S.step === 'price' && S.turn === myId())) $('priceM').classList.remove('on');
+  hideLot = fresh.some(e => e.type === 'lot') && !sawPlacing;
+  if (fresh.some(e => e.type === 'price') && !reduce) ui.priceFx = true;
   if (!S.lot) myPeek = null;
   render();
   fresh.forEach((e, i) => animateEvent(e, srcs[i]));
@@ -2495,6 +2557,7 @@ function renderLobby(){
   $('start').disabled = n < 3 || n > 5;
   $('lobbyHint').textContent = (S.notice ? S.notice + '. ' : '') +
     (isHost ? (n < 3 ? 'Для игры нужно минимум 3 игрока (сейчас ' + n + ')' : '') : 'Ждём, пока хост начнёт игру…');
+  fillLog($('lobbyLog'));
 }
 
 function mkFace(c, small){
@@ -2537,6 +2600,14 @@ function statusOf(p){
 /* Крупная подсказка сверху: что сейчас должен сделать ТЫ, либо кого ждём */
 const SELLER_TAKE = ['Карта за продажу', 'Докупка карты'];
 function directive(){
+  const d = directive0(), T = S.tell;
+  if (T && S.lot && S.phase === 'game' && ['price', 'showcase', 'inspect'].includes(S.step)){
+    d.tell = T.by === myId() ? 'Расскажите о своём товаре' : 'Продавец ' + B(nm(T.by)) + ' рассказывает о своём товаре';
+    d.tellMe = T.by === myId();
+  }
+  return d;
+}
+function directive0(){
   const me = myId(), A = S.auction, I = S.info;
   if (S.phase === 'over') return {t:'Ярмарка закрыта — смотри итоги'};
   switch (S.step){
@@ -2593,6 +2664,22 @@ function directive(){
   return {t:''};
 }
 
+/* чат/журнал: ник продавца подсвечивается плашкой */
+function fillLog(lg){
+  if (!lg) return;
+  const sellerName = (S.phase === 'game' && S.seller) ? nm(S.seller) : null;
+  lg.innerHTML = '';
+  S.log.forEach(it => {
+    const d = el('div', it.c ? 'c' : '');
+    if (it.c){
+      const nb = el('b', 'nk', it.n); nb.style.setProperty('--pc', CHAT_COL[(it.ci || 0) % CHAT_COL.length]);
+      if (sellerName && it.n === sellerName){ nb.classList.add('sellr'); nb.title = 'Продавец'; }
+      d.append(nb, ': ', it.s);
+    } else d.textContent = it.s;
+    lg.append(d);
+  });
+  lg.scrollTop = lg.scrollHeight;
+}
 function renderTable(){
   const me = myId(), ps = S.players;
   const meIdx = Math.max(0, ps.findIndex(p => p.id === me));
@@ -2677,20 +2764,15 @@ function renderTable(){
   if (S.day === S.days) di.append(el('small', null, 'Последний день: карты не раздаются'));
 
   const dr = directive(), dv = $('directive');
-  dv.innerHTML = dr.t + (dr.sub ? '<small>' + dr.sub + '</small>' : '');
+  dv.innerHTML = (dr.tell ? '<span class="tellmsg' + (dr.tellMe ? ' me' : '') + '">' + dr.tell + '</span>' : '') + dr.t + (dr.sub ? '<small>' + dr.sub + '</small>' : '');
+  dv.classList.toggle('tellon', !!dr.tell);
   dv.classList.toggle('me', !!dr.me); dv.classList.toggle('blink', !!dr.blink); dv.classList.toggle('big', !!dr.big);
 
   $('midMsg').textContent = (S.step === 'take' && td && td.cards > 0 && SELLER_TAKE.includes(S.takeTitle)) ? 'ВОЗЬМИ КАРТУ' : '';
 
   renderLot(); renderMe();
 
-  const lg = $('log'); lg.innerHTML = '';
-  S.log.forEach(it => {
-    const d = el('div', it.c ? 'c' : '');
-    if (it.c){ const nb = el('b', null, it.n + ': '); nb.style.setProperty('--pc', CHAT_COL[(it.ci || 0) % CHAT_COL.length]); d.append(nb, it.s); } else d.textContent = it.s;
-    lg.append(d);
-  });
-  lg.scrollTop = lg.scrollHeight;
+  fillLog($('log'));
 
   renderAct();
   if (S.phase === 'over') renderFinal();
@@ -2840,7 +2922,9 @@ function renderLot(){
   const peekC = (L && myPeek && myPeek.lot === L.n) ? myPeek.cards : null;
   const mode = slotMode();
   const cMe = composeMe();
-  const sig = L ? [L.n, L.cards.map(c => c.taken ? 'x' : c.open ? c.k : '-').join(), peekC ? peekC.join() : '', mode || '', hideLot ? 1 : 0].join('|') : (cMe ? 'compose|' + placed.map(x => x == null ? '-' : x).join() : '');
+  const cObs = !L && !cMe && S.phase === 'game' && S.step === 'compose';     // чужой продавец раскладывает карты — рубашки видны всем сразу
+  const obsP = cObs ? [0, 1, 2].map(i => S.placing && S.placing[i] ? 1 : 0) : null;
+  const sig = L ? [L.n, L.cards.map(c => c.taken ? 'x' : c.open ? c.k : '-').join(), peekC ? peekC.join() : '', mode || '', hideLot ? 1 : 0].join('|') : (cMe ? 'compose|' + placed.map(x => x == null ? '-' : x).join() : (cObs ? 'obs|' + obsP.join('') : ''));
   if (sig !== slotSig){
     slotSig = sig; sl.innerHTML = '';
     if (!L && cMe){                             // продавец: три места, куда кладутся карты лота (пустое — мигает; положенную карту нажатием возвращаем в руку)
@@ -2857,6 +2941,14 @@ function renderLot(){
         sl.append(w);
       });
       ui.landIdx = -1;
+    } else if (cObs){
+      const prevObs = ui.obsP || [0, 0, 0];
+      obsP.forEach((on, i) => {
+        const w = el('div', 'slot ' + (on ? 'placed obs' : 'obsempty'));
+        if (on){ const b = mkBack(true); if (!prevObs[i]){ b.classList.add('land'); sfx('postavil', .5); } w.append(b); }
+        sl.append(w);
+      });
+      ui.obsP = obsP;
     } else if (L){
       L.cards.forEach((c, i) => {
         if (c.taken){ const g = el('div', 'slot'); g.append(mkBack(true)); g.style.visibility = 'hidden'; sl.append(g); return; }   // карту уже забрали: место остаётся пустым
@@ -2872,18 +2964,21 @@ function renderLot(){
       });
     }
     prevLot = L ? {n:L.n, open:L.cards.map(c => c.open)} : null;
+    if (!cObs) ui.obsP = null;
   }
   const go = $('lotgo'); go.innerHTML = '';
   if (!L && cMe && placed.every(x => x != null)){
-    const b = el('button', null, 'Выставить'); b.onclick = openPrice; go.append(b); go.style.display = 'block';
+    const b = el('button', null, 'Выставить'); b.onclick = putLot; go.append(b); go.style.display = 'block';
   } else go.style.display = 'none';
   const info = $('lotinfo'); info.innerHTML = '';
   if (!L){ info.style.display = 'none'; return; }
   info.style.display = '';
   const lt = el('div', 'lt'); lt.append('Лот ', el('b', null, nm(S.seller)));
+  if (L.price == null){ info.append(lt, el('div', 'lp', 'Цена не названа')); return; }
   /* «Ставка Х монет»: до первой ставки — цена продавца, дальше — текущая ставка; при изменении число «пересчитывается» с анимацией */
   const A = S.auction, val = S.pay ? S.pay.amount : (A && A.by ? A.high : L.price);
   const bv = el('b', null, String(val));
+  if (ui.priceFx) bv.style.visibility = 'hidden';
   if (ui.lpLot !== L.n){ ui.lpLot = L.n; ui.lpVal = val; ui.lpAnim = null; }
   else if (ui.lpVal !== val){ ui.lpAnim = {from: ui.lpVal, to: val, t0: performance.now()}; ui.lpVal = val; }
   if (ui.lpAnim && ui.lpAnim.to === val && !reduce){
@@ -3066,6 +3161,12 @@ function buildAct(A){
   }
 
   if (S.step === 'compose' && turnMe) return false;      // подсказок нет: мигающие карты в руке и пустые места на столе
+  if (S.step === 'price' && turnMe){                     // карты уже на столе: сначала рассказываем о товаре, цену — по кнопке
+    const r = row(btn('Назвать цену', () => openPrice()));
+    r.style.justifyContent = 'center';
+    add(el('div', 'big sh', 'Назвать цену лота?'), r);
+    return false;
+  }
   if (S.step === 'showcase' && turnMe){
     const r = row(btn('Без витрины', () => send({t:'showcase', i:-1}), {ghost:true}));
     r.style.justifyContent = 'center';
@@ -3826,8 +3927,9 @@ function dragEnd(e){
     }
   }
   buildHand(); slotSig = ''; renderLot();
-  if (placed.join() !== before) send({t:'select', n: placed.filter(x => x != null).length});
+  if (placed.join() !== before) sendPlaced();
 }
+const sendPlaced = () => send({t:'select', n: placed.filter(x => x != null).length, pos: placed.map(x => x != null)});   // остальные видят рубашки в тех же местах
 /* нажали на карту на столе — она возвращается в руку (на своё прежнее место) */
 function unplace(i){
   const id = placed[i]; if (id == null) return;
@@ -3836,7 +3938,7 @@ function unplace(i){
   const card = myHand.find(c => c.id === id);
   placed[i] = null;
   buildHand(); slotSig = ''; renderLot();
-  send({t:'select', n: placed.filter(x => x != null).length});
+  sendPlaced();
   const e = $('hand').querySelector('.card[data-id="' + id + '"]');
   if (e && card && !reduce){
     e.style.visibility = 'hidden';
@@ -3846,10 +3948,15 @@ function unplace(i){
   }
 }
 
-/* кнопка «выставить» под тремя картами → окно с ценой */
+/* кнопка «выставить» под тремя картами: карты ложатся в лот и видны всем; окно с ценой само НЕ открывается —
+   сначала продавец рассказывает о товаре («Расскажите о своём товаре»), потом жмёт «Назвать цену» */
 function closePrice(){ $('priceM').classList.remove('on'); }
-function openPrice(){
+function putLot(){
   if (!composeMe() || placed.some(x => x == null)) return;
+  send({t:'lot', ids: placed.slice()});
+}
+function openPrice(){
+  if (!(S.phase === 'game' && S.step === 'price' && S.turn === myId())) return;
   const m = $('priceM'), box = $('priceS'); box.innerHTML = '';
   const MX = TUT.on ? 3 : 9999;      // в обучении лот должен купиться — цену выше 3 не дадим
   let v = Math.min(MX, Math.max(1, Math.floor(Number(ui.price) || 1)));
@@ -3859,15 +3966,15 @@ function openPrice(){
   const minus = el('button', 'pbtn', '−'), plus = el('button', 'pbtn', '+');
   minus.onclick = () => set(Number(num.value) - 1);
   plus.onclick = () => set(Number(num.value) + 1);
-  const ok = el('button', 'pok', 'Выложить лот');
+  const ok = el('button', 'pok', 'Назвать цену');
   ok.onclick = () => {
     set(num.value); ui.price = v;
-    if (!composeMe() || placed.some(x => x == null)) return closePrice();
-    closePrice(); send({t:'lot', ids: placed.slice(), price: v});
+    if (!(S.step === 'price' && S.turn === myId())) return closePrice();
+    closePrice(); send({t:'price', price: v});
   };
   num.onkeydown = e => { if (e.key === 'Enter') ok.click(); };
   const prow = el('div', 'prow'); prow.append(minus, num, plus);
-  const back = el('button', 'ghost', 'Поменять карты'); back.onclick = closePrice;
+  const back = el('button', 'ghost', 'Ещё расскажу о товаре'); back.onclick = closePrice;
   box.append(el('h3', null, 'Назови цену лота'), el('p', null, 'Цену менять нельзя.'), prow, ok, back);
   m.classList.add('on'); num.focus(); num.select();
 }
@@ -3911,14 +4018,42 @@ function srcFor(e){
   if (e.type === 'coins') return coinAnchor(e.from);
   return center($('deck'));
 }
+/* Продавец назвал цену: число выезжает по центру стола, снизу «Стартовая цена», потом число уходит в поле цены лота */
+function priceFx(price){
+  const target = () => document.querySelector('#lotinfo .lp b');
+  const done = () => { ui.priceFx = false; const b = target(); if (b) b.style.visibility = ''; };
+  if (reduce || !document.body.animate){ done(); return; }
+  document.querySelectorAll('.pricefx').forEach(x => x.remove());
+  const w = el('div', 'pricefx'), n = el('div', 'pn', String(price)), l = el('div', 'pl', 'Стартовая цена');
+  w.append(n, l); document.body.append(w);
+  sfx('hit', .7);
+  const IN = 560, HOLD = 1700, OUT = 750;
+  n.animate([{transform:'scale(.15) translateY(40px)', opacity:0}, {transform:'scale(1.18)', opacity:1, offset:.65}, {transform:'scale(1)', opacity:1}], {duration: IN, easing:'cubic-bezier(.2,1.2,.4,1)', fill:'forwards'});
+  l.animate([{opacity:0, transform:'translateY(-18px)'}, {opacity:1, transform:'none'}], {duration: 420, delay: 260, easing:'ease-out', fill:'both'});
+  setTimeout(() => {
+    const t = target(), a = n.getBoundingClientRect();
+    n.getAnimations().forEach(x => x.cancel());
+    l.getAnimations().forEach(x => x.cancel());
+    l.animate([{opacity:1}, {opacity:0}], {duration: 320, easing:'ease-in', fill:'forwards'});
+    let to = {transform:'scale(.2)', opacity:0};
+    if (t){
+      const r = t.getBoundingClientRect();
+      if (r.width){ to = {transform: 'translate(' + (r.left + r.width / 2 - a.left - a.width / 2) + 'px,' + (r.top + r.height / 2 - a.top - a.height / 2) + 'px) scale(' + Math.max(.05, r.height / a.height) + ')', opacity: 1}; }
+    }
+    const f = n.animate([{transform:'none', opacity:1}, to], {duration: OUT, easing:'cubic-bezier(.55,0,.25,1)', fill:'forwards'});
+    f.onfinish = () => { w.remove(); done(); };
+    setTimeout(() => { if (w.isConnected){ w.remove(); done(); } }, OUT + 400);
+  }, IN + HOLD);
+}
 function animateEvent(e, src){
   if (e.type === 'note'){ toast(e.s); return; }
   const mine = e.by === myId(), se = seatEls[e.by];
   if (se){ se.classList.add('flash'); setTimeout(() => se.classList.remove('flash'), 750); }
+  if (e.type === 'price'){ priceFx(e.price); return; }
   if (e.type === 'lot'){
     const slots = [...$('slots').children];
     const reveal = () => slots.forEach(s => { s.style.visibility = ''; });
-    if (mine){ reveal(); return; }
+    if (mine || sawPlacing){ reveal(); sfx('postavil', .8); return; }
     slots.forEach((s, i) => fly({face:null, from:{x: src.x + (i - 1) * 16, y: src.y}, to: center(s), s0: mine ? 1 : 0.6, s1: smScale(), dur: 600, delay: i * 120, done: () => { s.style.visibility = ''; sfx('postavil', .8); }}));
     setTimeout(reveal, 1500);
   } else if (e.type === 'draw'){
@@ -4213,6 +4348,7 @@ $('deck').onclick = () => { const t = myTodo(); if (t && t.cards > 0) send({t:'t
 $('sealPile').onclick = () => { const t = myTodo(); if (t && t.seal > 0) send({t:'take', what:'seal'}); };
 $('disc').onclick = openDisc;
 $('chatIn').addEventListener('keydown', e => { if (e.key === 'Enter'){ const s = $('chatIn').value.trim(); if (s){ send({t:'chat', s}); $('chatIn').value = ''; } } });
+$('lobbyChatIn').addEventListener('keydown', e => { if (e.key === 'Enter'){ const s = $('lobbyChatIn').value.trim(); if (s){ send({t:'chat', s}); $('lobbyChatIn').value = ''; } } });
 /* кнопка «Размен» слева у края стола: монеты вместо слов */
 $('chgBtn').append(coinEl(10), el('span', 'ar', '⇄'), coinEl(5), el('span', 'tx', 'Размен'));
 $('chgBtn').onclick = openChange;
@@ -4588,8 +4724,9 @@ async function tutScript(){
   let stage = '';
   const stg = (k, text, hl) => { if (stage !== k){ stage = k; say(text, {hl, next:false}); } };
   await until(() => {
-    if (S.step !== 'compose') return true;
-    if ($('priceM').classList.contains('on')) stg('p', 'Цена это минимум, с которого начнутся торги. Выставь и жми «Выложить лот».', ['#priceS']);
+    if (S.step !== 'compose' && S.step !== 'price') return true;
+    if ($('priceM').classList.contains('on')) stg('p', 'Цена это минимум, с которого начнутся торги. Назови её и жми «Назвать цену».', ['#priceS']);
+    else if (S.step === 'price') stg('n', 'Карты на столе, их уже видят все. Расскажи купцам о товаре, а когда будешь готов - жми «Назвать цену».', ['#act']);
     else if (placed.every(x => x != null)) stg('g', 'Не дурно, жми выставить.', ['#lotgo']);
     else stg('c', 'Гляди, ты сейчас продавец. Выбери три любые карты своего товара и выложи на платок - это то, что ты продаешь.', ['#hand', '#slots']);
     return false;
