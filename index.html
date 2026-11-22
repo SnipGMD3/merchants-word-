@@ -697,6 +697,30 @@ input:not([type=checkbox],[type=radio]):focus{outline:none;filter:drop-shadow(0 
   --pb:14px;filter:drop-shadow(0 .4em .6em rgba(0,0,0,.6))}
 .mpanel input,.mpanel button{font-size:1em}
 .mpanel .row{gap:.5em}
+/* профиль */
+.panel.profcard{position:absolute;left:39.3%;top:43%;width:21.4%;height:12.9%;flex-direction:row;align-items:center;justify-content:flex-start;gap:.7em;padding:.35em .7em;cursor:pointer;--pb:14px;filter:drop-shadow(0 .4em .6em rgba(0,0,0,.6));transition:transform .15s}
+.panel.profcard:hover{transform:translateY(-2px)}
+.pava{--s:3.5em;flex:none;width:var(--s);height:var(--s);border-radius:50%;border:2px solid #e8c773;background:#5a1d14 center/cover no-repeat;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:calc(var(--s)*.5);color:#fff3cf;text-transform:uppercase;box-shadow:0 2px 6px rgba(0,0,0,.6);overflow:hidden}
+.pinfo{min-width:0;flex:1;display:flex;flex-direction:column;gap:.18em}
+.pnm{font-weight:800;font-size:1.15em;color:#fff3cf;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-shadow:0 1px 2px #000}
+.plv{font-size:.78em;overflow:hidden;color:#f1dfae;display:flex;justify-content:space-between;gap:.5em;white-space:nowrap}
+.prk{opacity:.6;font-size:.92em}
+.pbar{position:relative;height:1.05em;border-radius:.6em;background:rgba(0,0,0,.55);border:1px solid rgba(232,199,115,.55);overflow:hidden}
+.pbar i{position:absolute;left:0;top:0;bottom:0;width:0;background:linear-gradient(#ffd36a,#c98a1a);transition:width .5s}
+.pbar span{position:absolute;inset:0;text-align:center;font-size:.68em;line-height:1.5;color:#fff;text-shadow:0 1px 2px #000;font-weight:700}
+.sheet.auth{width:min(420px,94vw);gap:10px;align-items:stretch}
+.auth h3{margin:0;text-align:center}
+.auth .tabs{display:flex;gap:6px}.auth .tabs button{flex:1;padding:8px}
+.auth>*{flex:none}
+.auth .pbar{height:1.6em}.auth .pbar span{line-height:1.7;font-size:.8em}
+.auth .err{color:#ff8a93;font-size:.9rem;min-height:1.2em;text-align:center}
+.auth button.lnk{border-image:none!important;border:0!important;background:none!important;box-shadow:none!important;filter:none!important;color:#9fc1ff;font-weight:400;font-size:.88rem;padding:4px;text-decoration:underline;min-height:0}
+.auth .big{--s:96px;align-self:center;cursor:pointer}
+.auth .stats{display:grid;grid-template-columns:1fr 1fr;gap:4px 12px;font-size:.9rem;color:#cdd5e6}
+.auth .rankbox{border:1px dashed rgba(255,255,255,.25);border-radius:10px;padding:8px;text-align:center;color:#aab;font-size:.9rem}
+.pav{display:inline-block;flex:none;width:1.5em;height:1.5em;border-radius:50%;margin-right:.25em;vertical-align:middle;background:#5a1d14 center/cover no-repeat;border:1px solid #e8c773;font-size:.8em;line-height:1.55em;text-align:center;font-weight:800;color:#fff3cf;text-transform:uppercase;overflow:hidden}
+ul.players li .pav{width:1.9em;height:1.9em;line-height:1.9em;font-size:.85em;margin-right:.5em}
+ul.players li .who{display:flex;align-items:center}
 #homeErr{position:fixed;right:16px;bottom:16px;z-index:30;max-width:min(360px,40vw);padding:.55em .9em;border-radius:10px;background:rgba(24,8,8,.88);border:1px solid rgba(255,138,147,.5);font-size:.92rem;text-align:left;box-shadow:0 4px 14px rgba(0,0,0,.5)}
 #homeErr:empty{display:none}
 #tutBtn.glow{color:#fff3cf;border-color:#ffd36a;animation:tutjump 1.3s ease-in-out infinite}
@@ -883,6 +907,8 @@ input:not([type=checkbox],[type=radio]):focus{outline:none;filter:drop-shadow(0 
 <div id="loadScr"><img src="ui/throbber.webp" alt=""></div>
 <div id="tutShield"></div><div id="tutFrames"></div>
 <div class="tut" id="tut"><img class="tm" src="ui/merchant.webp" alt=""><div class="tt">Лавр Золотозуб</div><div class="tbox"><div class="tn">Лавр Золотозуб</div><div class="tx" id="tutTx"></div><div class="tbtns" id="tutBtns"></div></div><button class="tskip" id="tutSkip">Пропустить обучение</button></div>
+<div class="modal" id="authM"><div class="sheet auth" id="authS"></div></div>
+<div class="modal" id="profM"><div class="sheet auth" id="profS"></div></div>
 <div id="intro"><video id="introV" src="ui/intro.mp4" playsinline preload="auto"></video></div>
 
 <!-- ЭКРАН 1: вход -->
@@ -891,7 +917,6 @@ input:not([type=checkbox],[type=radio]):focus{outline:none;filter:drop-shadow(0 
  <div class="stage">
   <h1 class="vh">Честное Купеческое!</h1>
   <div class="panel mpanel">
-    <input id="name" maxlength="16" placeholder="Твоё имя" autocomplete="off">
     <div class="row">
       <input id="joinCode" maxlength="5" placeholder="КОД" autocomplete="off" style="text-transform:uppercase;letter-spacing:.3em;text-align:center">
       <button id="join" class="ghost">Войти</button>
@@ -899,6 +924,14 @@ input:not([type=checkbox],[type=radio]):focus{outline:none;filter:drop-shadow(0 
     <button id="create">Создать лобби</button>
     <button id="tutBtn" class="ghost">🎓 Обучение</button>
     <button id="rulesHome" class="ghost">📜 Правила игры</button>
+  </div>
+  <div class="panel profcard" id="profCard" title="Открыть профиль">
+    <div class="pava" id="pAva"></div>
+    <div class="pinfo">
+      <div class="pnm" id="pNm"></div>
+      <div class="plv"><span id="pLv"></span><span class="prk" id="pRk" title="Ранговая система появится позже">🔒 Ранг: —</span></div>
+      <div class="pbar"><i id="pBar"></i><span id="pXp"></span></div>
+    </div>
   </div>
   <div class="ver" id="ver"></div>
  </div>
@@ -998,7 +1031,7 @@ input:not([type=checkbox],[type=radio]):focus{outline:none;filter:drop-shadow(0 
   };
   addEventListener('pointerdown', go, true);
 })();
-const VERSION = 'beta 0.52';
+const VERSION = 'beta 0.7';
 
 /* Числа из правил. Если что-то захочется подкрутить — это здесь. */
 const RULES = {
@@ -1757,13 +1790,258 @@ const ui = {price:'', q:'', qpath:[], qsel:null, mode:null, actKey:'', tray:{1:0
 const seatEls = {};
 const reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
 const randCode = () => Array.from({length:5}, () => ALPHABET[Math.random() * ALPHABET.length | 0]).join('');
-try{ $('name').value = localStorage.getItem('kup_name') || ''; }catch(e){}
-$('name').addEventListener('input', () => { try{ localStorage.setItem('kup_name', $('name').value.trim().slice(0, 16)); }catch(e){} });
-const myName = () => ($('name').value.trim() || 'Игрок').slice(0, 16);
-function needName(){      // ник обязателен перед созданием лобби и входом в него
-  const n = $('name'); if (n.value.trim()) return true;
-  homeErr('Сначала введи свой ник'); n.focus(); n.classList.remove('shake'); void n.offsetWidth; n.classList.add('shake'); return false;
+/* =========================================================
+   FIREBASE. Аккаунты (Authentication, вход по нику+паролю) и профили (Realtime Database) живут в облаке,
+   там же — главный «ретранслятор» лобби. Вставь сюда настройки своего проекта (Firebase → Project settings → Your apps → Web app → firebaseConfig).
+   Пока apiKey пустой, игра работает по-старому: локальные профили + PeerJS/MQTT.
+   Правила базы — в файле firebase/database.rules.json, инструкция — firebase/README.md.
+   ========================================================= */
+const FIREBASE_CONFIG = {
+  apiKey: 'AIzaSyCrDa1KR6EVlVe4TyxEn8F7PZvKXcxwotw',
+  authDomain: 'merchant-words1.firebaseapp.com',
+  databaseURL: 'https://merchant-words1-default-rtdb.europe-west1.firebasedatabase.app',
+  projectId: 'merchant-words1',
+  appId: '1:935333934013:web:841ea33b889e57f5fa18d4'
+};
+const FB = {state: FIREBASE_CONFIG.apiKey ? 'wait' : 'off', auth: null, db: null, uid: null};   // off — не настроен/недоступен, wait — подключаемся, on — работает
+const fbOn = () => FB.state === 'on' && !!FB.uid;
+const loadJs = src => new Promise((ok, bad) => { const e = document.createElement('script'); e.src = src; e.onload = ok; e.onerror = () => bad(new Error('не загрузился ' + src)); document.head.append(e); });
+const withTimeout = (p, ms, what) => Promise.race([p, new Promise((_, r) => setTimeout(() => r(new Error('таймаут: ' + what)), ms))]);
+async function nickEmail(name){            // ник → служебный адрес (Firebase хочет email). Хэш, чтобы влезала кириллица и регистр не имел значения
+  const t = String(name).trim().toLowerCase();
+  try{ const h = new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode('kup:' + t))); return Array.from(h.slice(0, 14), x => x.toString(16).padStart(2, '0')).join('') + '@kupec.game'; }
+  catch(e){ let a = 5381, b = 52711; for (const ch of t){ a = ((a * 33) ^ ch.charCodeAt(0)) >>> 0; b = ((b * 31) + ch.charCodeAt(0)) >>> 0; } return 'x' + a.toString(16) + b.toString(16) + '@kupec.game'; }
 }
+function fbAuthErr(e){
+  const c = (e && (e.code || e.message)) || '';
+  if (/email-already-in-use/.test(c)) return 'Такой ник уже занят. Выбери другой или войди';
+  if (/invalid-credential|wrong-password|user-not-found|invalid-login/.test(c)) return 'Неверный ник или пароль';
+  if (/weak-password/.test(c)) return 'Пароль слишком простой (минимум 6 символов)';
+  if (/network|таймаут/.test(c)) return 'Нет связи с сервером. Проверь интернет и попробуй ещё раз';
+  if (/too-many/.test(c)) return 'Слишком много попыток. Подожди минуту';
+  if (/operation-not-allowed|configuration-not-found/.test(c)) return 'В Firebase не включён вход по email/паролю (Authentication → Sign-in method)';
+  if (/PERMISSION_DENIED|permission/i.test(c)) return 'База данных не пускает: проверь правила (firebase/database.rules.json)';
+  return 'Ошибка: ' + c;
+}
+async function fbLoadProfile(u){
+  FB.uid = u.uid;
+  const ref = FB.db.ref('users/' + u.uid);
+  let d = (await withTimeout(ref.once('value'), 9000, 'профиль')).val();
+  if (!d){
+    d = {name: String(u.displayName || 'Купец').slice(0, 16), xp: 0, av: '', games: 0, wins: 0, pts: 0, lastGame: '', t: firebase.database.ServerValue.TIMESTAMP};
+    await withTimeout(ref.set(d), 9000, 'создание профиля'); d.t = Date.now();
+  }
+  PROF.cur = Object.assign({}, d, {uid: u.uid, lastGid: d.lastGame || 0}); pfRender();
+  try{ localStorage.setItem('kup_hadacc', '1'); }catch(e){}
+}
+async function fbInit(){
+  try{
+    const base = 'https://www.gstatic.com/firebasejs/10.12.5/firebase-';
+    await withTimeout((async () => { await loadJs(base + 'app-compat.js'); await Promise.all([loadJs(base + 'auth-compat.js'), loadJs(base + 'database-compat.js')]); })(), 12000, 'загрузка Firebase');
+    firebase.initializeApp(FIREBASE_CONFIG); FB.auth = firebase.auth(); FB.db = firebase.database();
+    const u = await withTimeout(new Promise(res => { const un = FB.auth.onAuthStateChanged(x => { un(); res(x); }); }), 9000, 'вход');
+    FB.state = 'on';
+    if (u) await fbLoadProfile(u);
+  }catch(e){ console.warn('Firebase недоступен, работаем локально:', e); FB.state = 'off'; FB.uid = null; }
+}
+
+/* =========================================================
+   ПРОФИЛЬ. Сервера у нас нет, поэтому профили хранятся в самом браузере (localStorage):
+   ник, пароль (хранится только хэш PBKDF2), опыт, аватарка. Перенос на другое устройство — через файл профиля.
+   Уровень: с n на n+1 нужно 100·n опыта (100, 200, 300 …), максимум — 100 уровень. Опыт = очки (богатство), набранные за партию.
+   ========================================================= */
+const PF_KEY = 'kup_profiles', PF_CUR = 'kup_cur', PF_MAXL = 100;
+const lvXp = n => 50 * n * (n - 1);                   // всего опыта, чтобы достичь уровня n
+function lvInfo(xp){
+  let L = 1; while (L < PF_MAXL && xp >= lvXp(L + 1)) L++;
+  const base = lvXp(L), need = L >= PF_MAXL ? 0 : lvXp(L + 1) - base;
+  return {L, cur: xp - base, need, max: L >= PF_MAXL};
+}
+const pfRank = L => null;                              // ранговая система появится позже
+let PROFS = {}, PROF = {cur: null}, AVS = {};          // PROFS — все профили этого браузера; AVS — аватарки и уровни игроков за столом
+try{ PROFS = JSON.parse(localStorage.getItem(PF_KEY) || '{}') || {}; }catch(e){ PROFS = {}; }
+const pfSave = () => { try{ localStorage.setItem(PF_KEY, JSON.stringify(PROFS)); }catch(e){ toast('Не удалось сохранить профиль (память браузера недоступна)'); } };
+const pfKey = n => String(n).trim().toLowerCase();
+function pfLoad(){ let k = null; try{ k = localStorage.getItem(PF_CUR); }catch(e){} PROF.cur = (k && PROFS[k]) || null; }
+function pfSetCur(p){ PROF.cur = p; try{ p ? localStorage.setItem(PF_CUR, pfKey(p.name)) : localStorage.removeItem(PF_CUR); }catch(e){} pfRender(); }
+async function pfHash(pw, salt){
+  const e = new TextEncoder();
+  try{
+    const k = await crypto.subtle.importKey('raw', e.encode(pw), 'PBKDF2', false, ['deriveBits']);
+    const b = new Uint8Array(await crypto.subtle.deriveBits({name: 'PBKDF2', salt: e.encode(salt), iterations: 120000, hash: 'SHA-256'}, k, 256));
+    return Array.from(b, x => x.toString(16).padStart(2, '0')).join('');
+  }catch(err){                                          // страница открыта не по https — простой запасной хэш
+    let h = 5381; const t = salt + '|' + pw; for (let i = 0; i < 4000; i++) h = ((h * 33) ^ t.charCodeAt(i % t.length)) >>> 0;
+    return 'f' + h.toString(16);
+  }
+}
+const myName = () => PROF.cur ? PROF.cur.name : 'Игрок';
+const pfMe = () => PROF.cur ? {av: PROF.cur.av || '', lv: lvInfo(PROF.cur.xp || 0).L} : null;
+const avOf = id => (isHost && id === 'host') ? pfMe() : AVS[id];
+function setAva(e, info, name){
+  if (!e) return;
+  const key = (info && info.av ? info.av.length + ':' + info.av.slice(-24) : '') + '|' + name;
+  if (e.dataset.k === key) return; e.dataset.k = key;
+  if (info && info.av){ e.style.backgroundImage = 'url(' + info.av + ')'; e.textContent = ''; }
+  else { e.style.backgroundImage = ''; e.textContent = (name || '?').trim().charAt(0); }
+}
+function pfPersist(patch){      // сохранить изменения профиля: в облако или локально
+  const p = PROF.cur; if (!p) return;
+  if (FB.state === 'on' && p.uid) FB.db.ref('users/' + p.uid).update(patch).catch(e => toast('Не удалось сохранить профиль: ' + fbAuthErr(e)));
+  else pfSave();
+}
+function pfRender(){
+  const p = PROF.cur, card = $('profCard'); if (!card) return;
+  if (!p){ $('pNm').textContent = FB.state === 'wait' ? 'Подключаюсь…' : 'Профиль не выбран'; $('pLv').textContent = FB.state === 'wait' ? 'Связь с сервером' : 'Нажми, чтобы войти'; $('pBar').style.width = '0'; $('pXp').textContent = ''; setAva($('pAva'), null, '?'); return; }
+  const li = lvInfo(p.xp || 0);
+  $('pNm').textContent = p.name; $('pLv').textContent = 'Уровень ' + li.L;
+  $('pBar').style.width = (li.max ? 100 : Math.min(100, li.cur / li.need * 100)) + '%';
+  $('pXp').textContent = li.max ? 'максимум' : li.cur + ' / ' + li.need + ' опыта';
+  setAva($('pAva'), p, p.name);
+}
+/* аватарка: центрируем, ужимаем до 96×96 и храним как маленькую картинку (несколько КБ) */
+function pfPickAva(done){
+  const f = document.createElement('input'); f.type = 'file'; f.accept = 'image/*';
+  f.onchange = () => {
+    const file = f.files && f.files[0]; if (!file) return;
+    const img = new Image(), url = URL.createObjectURL(file);
+    img.onload = () => {
+      const c = document.createElement('canvas'); c.width = c.height = 96; const x = c.getContext('2d');
+      const m = Math.min(img.width, img.height); x.drawImage(img, (img.width - m) / 2, (img.height - m) / 2, m, m, 0, 0, 96, 96);
+      URL.revokeObjectURL(url);
+      let d = c.toDataURL('image/webp', .82); if (!d.startsWith('data:image/webp')) d = c.toDataURL('image/jpeg', .82);
+      done(d);
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); toast('Не получилось открыть картинку'); };
+    img.src = url;
+  };
+  f.click();
+}
+/* окно входа / создания профиля */
+function openAuth(first, tab){
+  const S_ = $('authS'); let mode = tab || ((FB.state === 'on' ? (() => { try{ return localStorage.getItem('kup_hadacc'); }catch(e){ return ''; } })() : Object.keys(PROFS).length) ? 'in' : 'new');
+  const draw = () => {
+    S_.innerHTML = '';
+    S_.append(el('h3', null, first ? 'Добро пожаловать, купец!' : 'Профиль'));
+    const tabs = el('div', 'tabs'), b1 = el('button', mode === 'in' ? 'on' : 'ghost', 'Войти'), b2 = el('button', mode === 'new' ? 'on' : 'ghost', 'Создать профиль');
+    b1.onclick = () => { mode = 'in'; draw(); }; b2.onclick = () => { mode = 'new'; draw(); }; tabs.append(b1, b2); S_.append(tabs);
+    const nm = el('input'); nm.placeholder = 'Ник (2–16 символов)'; nm.maxLength = 16; nm.autocomplete = 'username';
+    const pw = el('input'); pw.type = 'password'; pw.placeholder = 'Пароль' + (mode === 'new' ? ' (от ' + (FB.state === 'on' ? 6 : 4) + ' символов)' : ''); pw.autocomplete = mode === 'new' ? 'new-password' : 'current-password';
+    const pw2 = el('input'); pw2.type = 'password'; pw2.placeholder = 'Повтори пароль'; pw2.autocomplete = 'new-password';
+    const er = el('div', 'err');
+    S_.append(nm, pw); if (mode === 'new') S_.append(pw2); S_.append(er);
+    let busy = false;
+    const go = async () => {
+      if (busy) return; er.style.color = ''; er.textContent = ''; const name = nm.value.trim().replace(/\s+/g, ' '), key = pfKey(name);
+      if (FB.state === 'wait') return er.textContent = 'Подключаюсь к серверу, секунду…';
+      if (FB.state === 'on'){                                   // ---- облачный аккаунт ----
+        if (name.length < 2) return er.textContent = 'Ник — минимум 2 символа';
+        if (!pw.value) return er.textContent = 'Введи пароль';
+        if (mode === 'new'){
+          if (pw.value.length < 6) return er.textContent = 'Пароль — минимум 6 символов';
+          if (pw.value !== pw2.value) return er.textContent = 'Пароли не совпадают';
+        }
+        busy = true; ok.disabled = true; er.style.color = '#cdd5e6'; er.textContent = 'Подождите…';
+        try{
+          const email = await nickEmail(name);
+          if (mode === 'new'){
+            const cr = await withTimeout(FB.auth.createUserWithEmailAndPassword(email, pw.value), 15000, 'регистрация');
+            await cr.user.updateProfile({displayName: name}).catch(() => {});
+            await fbLoadProfile(cr.user);
+          } else {
+            const cr = await withTimeout(FB.auth.signInWithEmailAndPassword(email, pw.value), 15000, 'вход');
+            await fbLoadProfile(cr.user);
+          }
+          closeAuth();
+        }catch(e){ er.style.color = ''; er.textContent = fbAuthErr(e); }
+        busy = false; ok.disabled = false; return;
+      }
+      if (mode === 'new'){
+        if (name.length < 2) return er.textContent = 'Ник — минимум 2 символа';
+        if (PROFS[key]) return er.textContent = 'Такой ник уже есть в этом браузере. Войди или выбери другой';
+        if (pw.value.length < 4) return er.textContent = 'Пароль — минимум 4 символа';
+        if (pw.value !== pw2.value) return er.textContent = 'Пароли не совпадают';
+        const salt = Math.random().toString(36).slice(2) + Date.now().toString(36);
+        PROFS[key] = {name, salt, hash: await pfHash(pw.value, salt), xp: 0, av: '', games: 0, wins: 0, pts: 0, lastGid: 0, t: Date.now()};
+        pfSave(); pfSetCur(PROFS[key]); closeAuth();
+      } else {
+        const p = PROFS[key]; if (!p) return er.textContent = 'Профиль не найден. Проверь ник или создай новый';
+        if (await pfHash(pw.value, p.salt) !== p.hash) return er.textContent = 'Неверный пароль';
+        pfSetCur(p); closeAuth();
+      }
+    };
+    const ok = btn(mode === 'new' ? 'Создать и войти' : 'Войти', go); S_.append(ok);
+    [nm, pw, pw2].forEach(i => i.addEventListener('keydown', e => { if (e.key === 'Enter') go(); }));
+    if (FB.state !== 'on'){ const imp = el('button', 'lnk', '📂 Загрузить профиль из файла'); imp.onclick = () => pfImport(er, () => { mode = 'in'; draw(); }); S_.append(imp); }
+    if (!first || PROF.cur){ const x = btn('Закрыть', closeAuth, {ghost: true}); S_.append(x); }
+    el_hint(S_, first ? (FB.state === 'on' ? 'Аккаунт хранится на сервере: входи с любого устройства по нику и паролю.' : 'Сервер не подключён — профиль хранится в этом браузере. Чтобы играть на другом устройстве, сохрани его в файл (в окне профиля).') : '');
+    setTimeout(() => nm.focus(), 50);
+  };
+  draw(); $('authM').classList.add('on');
+}
+function el_hint(p, t){ if (t) p.append(el('div', 'hint', t)); }
+function closeAuth(){ if (!PROF.cur) return; $('authM').classList.remove('on'); }
+function pfImport(er, done){
+  const f = document.createElement('input'); f.type = 'file'; f.accept = '.json,application/json';
+  f.onchange = () => {
+    const file = f.files && f.files[0]; if (!file) return; const r = new FileReader();
+    r.onload = () => {
+      try{
+        const d = JSON.parse(r.result), p = d && d.kup === 1 && d.p; if (!p || !p.name || !p.hash || !p.salt) throw 0;
+        const k = pfKey(p.name); if (!PROFS[k] || (PROFS[k].xp || 0) <= (p.xp || 0)) PROFS[k] = {name: String(p.name).slice(0, 16), salt: String(p.salt), hash: String(p.hash), xp: +p.xp || 0, av: String(p.av || ''), games: +p.games || 0, wins: +p.wins || 0, pts: +p.pts || 0, lastGid: 0, t: +p.t || Date.now()};
+        pfSave(); er.style.color = '#8fe3a0'; er.textContent = 'Профиль «' + PROFS[k].name + '» загружен. Войди с его паролем'; done(k);
+      }catch(e){ er.style.color = ''; er.textContent = 'Это не файл профиля'; }
+    };
+    r.readAsText(file);
+  };
+  f.click();
+}
+/* окно профиля */
+function openProf(){
+  const p = PROF.cur; if (!p) return openAuth(true);
+  const S_ = $('profS'); S_.innerHTML = '';
+  const li = lvInfo(p.xp || 0);
+  S_.append(el('h3', null, 'Профиль'));
+  const av = el('div', 'pava big'); av.title = 'Сменить аватарку'; setAva(av, p, p.name); av.onclick = () => pfPickAva(d => { p.av = d; pfPersist({av: d}); pfRender(); openProf(); });
+  S_.append(av, el('div', 'hint', 'Нажми на аватарку, чтобы поставить свою картинку'));
+  const nm = el('div', 'pnm', p.name); nm.style.textAlign = 'center'; nm.style.fontSize = '1.4rem'; S_.append(nm);
+  const bar = el('div', 'pbar'); bar.style.fontSize = '1rem';
+  const bi = el('i'); bi.style.width = (li.max ? 100 : li.cur / li.need * 100) + '%'; bar.append(bi, el('span', null, li.max ? 'Максимальный уровень' : li.cur + ' / ' + li.need + ' опыта до ' + (li.L + 1) + ' уровня'));
+  S_.append(el('div', null, 'Уровень ' + li.L), bar);
+  const rk = el('div', 'rankbox'); rk.innerHTML = '🔒 Ранг: <b>скоро</b><br><small>Ранговая система появится позже</small>'; S_.append(rk);
+  const st = el('div', 'stats');
+  [['Партий сыграно', p.games || 0], ['Побед', p.wins || 0], ['Всего очков', p.pts || 0], ['Всего опыта', p.xp || 0]].forEach(([a, b]) => st.append(el('span', null, a), el('b', null, String(b))));
+  S_.append(st);
+  if (p.av){ const rm = el('button', 'lnk', 'Убрать аватарку'); rm.onclick = () => { p.av = ''; pfPersist({av: ''}); pfRender(); openProf(); }; S_.append(rm); }
+  const ex = el('button', 'lnk', '💾 Сохранить профиль в файл (для переноса)'); if (FB.state === 'on') ex.style.display = 'none'; ex.onclick = () => {
+    const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify({kup: 1, p})], {type: 'application/json'}));
+    a.download = 'kupecheskoe-' + pfKey(p.name) + '.json'; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 3000);
+  };
+  S_.append(ex, btn(FB.state === 'on' ? 'Выйти из профиля' : 'Сменить профиль', () => { $('profM').classList.remove('on'); if (FB.state === 'on'){ FB.auth.signOut().catch(() => {}); FB.uid = null; PROF.cur = null; pfRender(); } else pfSetCur(null); openAuth(true, 'in'); }, {ghost: true}), btn('Закрыть', () => $('profM').classList.remove('on')));
+  $('profM').classList.add('on');
+}
+/* начисление опыта: очки партии (богатство) = опыт. Один раз за партию, после подиума; тренировка и тест не считаются */
+function pfAward(){
+  const p = PROF.cur, F = S.final; if (!p || !F || F.stage !== 'podium' || BOTS || TEST) return;
+  const gk = code + ':' + S.gid; if (p.lastGid === gk) return;
+  const row = F.rows.find(r => r.id === myId()); if (!row) return;
+  const before = lvInfo(p.xp || 0).L, gain = Math.max(0, row.total | 0);
+  p.lastGid = gk; p.xp = (p.xp || 0) + gain; p.pts = (p.pts || 0) + gain; p.games = (p.games || 0) + 1; if (F.winners.includes(row.id)) p.wins = (p.wins || 0) + 1;
+  pfPersist({xp: p.xp, pts: p.pts, games: p.games, wins: p.wins || 0, lastGame: gk}); pfRender();
+  const after = lvInfo(p.xp).L;
+  toast('+' + gain + ' опыта' + (after > before ? ' · новый уровень: ' + after + '!' : ''));
+}
+function needName(){      // профиль обязателен перед созданием лобби, входом в него и обучением
+  if (PROF.cur) return true;
+  if (FB.state === 'wait'){ homeErr('Подключаюсь к серверу — секунду…'); return false; }
+  homeErr('Сначала войди в профиль или создай его'); openAuth(true); return false;
+}
+pfRender();
+$('profCard').onclick = () => openProf();
+$('authM').addEventListener('click', e => { if (e.target === $('authM') && PROF.cur) closeAuth(); });
+$('profM').addEventListener('click', e => { if (e.target === $('profM')) $('profM').classList.remove('on'); });
+const authStart = () => { if (FB.state !== 'on') pfLoad(); pfRender(); if (!PROF.cur) openAuth(true); else $('authM').classList.remove('on'); };
+if (FB.state === 'wait'){ pfRender(); fbInit().then(authStart); } else authStart();
 const myId = () => isHost ? 'host' : myPid;
 const show = id => document.querySelectorAll('.screen').forEach(s => s.classList.toggle('on', s.id === id));
 const homeErr = t => $('homeErr').textContent = t || '';
@@ -1836,8 +2114,10 @@ function mkConn(id, sendFn){
   const h = {};
   return {peer: id, open: true, send: sendFn, close(){ if (h.close) h.close(); }, on(ev, fn){ h[ev] = fn; return this; }, _e(ev, ...a){ if (h[ev]) h[ev](...a); }};
 }
+let fbStops = [], fbConns = {}, fbRoot = null, fbEvts = [], fbGid = -1, fbQ = false;
 function netStop(){
   clearTimeout(netTm); netTm = 0;
+  fbStops.forEach(f => { try{ f(); }catch(e){} }); fbStops = []; fbConns = {}; fbRoot = null; fbEvts = []; fbGid = -1; fbQ = false;
   try{ peer && peer.destroy(); }catch(e){}
   mqs.forEach(m => { try{ m.close(); }catch(e){} }); mqs = []; mqConns = {}; netTags = [];
   peer = null;
@@ -1845,14 +2125,15 @@ function netStop(){
 function showNet(){ const e = $('netInfo'); if (e) e.textContent = netTags.length ? 'Связь: ' + netTags.join(' + ') : ''; }
 
 /* ---------- Хост ---------- */
-HOOK.broadcast = () => { Object.values(conns).forEach(c => c.open && c.send({t:'state', state:S})); applyState(S); };
+HOOK.broadcast = () => { Object.values(conns).forEach(c => c.open && c.send({t:'state', state:S})); fbPublish(); applyState(S); };
 HOOK.hand = (id, cards, newIds) => { if (id === 'host') setHand(cards, newIds); else if (conns[id] && conns[id].open) conns[id].send({t:'hand', cards, newIds}); };
 HOOK.peek = (id, data) => { if (id === 'host') setPeek(data); else if (conns[id] && conns[id].open) conns[id].send(Object.assign({t:'peek'}, data)); };
 
 let mqConns = {};
+function sendAvs(){ const o = Object.assign({}, AVS, {host: pfMe() || undefined}); Object.values(conns).forEach(c => c.open && c.send({t:'avs', avs:o})); }
 function acceptConn(c){
   c.on('data', m => hostReceive(c, m));
-  c.on('close', () => { delete mqConns[c.peer]; dropPlayer(c.peer); });
+  c.on('close', () => { delete mqConns[c.peer]; if (c.fb){ delete fbConns[c.peer]; if (fbRoot) fbRoot.child('to/' + c.peer).remove().catch(() => {}); } dropPlayer(c.peer); });
   c.on('error', () => dropPlayer(c.peer));
   conns[c.peer] = c;
 }
@@ -1871,6 +2152,43 @@ function mqHostMsg(mq, s){
   if (c.via === mq) c._e('data', x.m);        // игрок мог постучаться через несколько брокеров — слушаем только тот, где он начал игру
 }
 
+/* Firebase-транспорт: хост пишет общее состояние в lobbies/КОД/state, личные сообщения (рука, ошибки) — в очередь to/uid,
+   игроки пишут хосту в очередь in. Присутствие — players/uid с onDisconnect: обрыв замечается сразу, зависших лобби не остаётся. */
+function fbPublish(){
+  if (!fbRoot) return;
+  if (S.gid !== fbGid){ fbGid = S.gid; fbEvts = []; }
+  const last = fbEvts.length ? fbEvts[fbEvts.length - 1].seq : 0;
+  (S.evts || []).forEach(e => { if (e.seq > last) fbEvts.push(e); });   // события анимаций копим, чтобы слияние записей их не теряло
+  fbEvts = fbEvts.slice(-60);
+  if (fbQ) return; fbQ = true;
+  Promise.resolve().then(() => {
+    fbQ = false; if (!fbRoot) return;
+    fbRoot.child('state').set(JSON.stringify(Object.assign({}, S, {evts: fbEvts}))).catch(e => console.warn('state', e));
+  });
+}
+function fbHostMsg(v){
+  if (!v || typeof v.m !== 'string' || typeof v.u !== 'string') return;
+  let m; try{ m = JSON.parse(v.m); }catch(e){ return; }
+  let c = fbConns[v.u];
+  if (!c){
+    const id = v.u;
+    c = fbConns[id] = mkConn(id, msg => { if (msg.t !== 'state' && fbRoot) fbRoot.child('to/' + id).push(JSON.stringify(msg)).catch(() => {}); });
+    c.fb = true; acceptConn(c);
+  }
+  c._e('data', m);
+}
+function fbHostStart(onUp, onFail){
+  const root = FB.db.ref('lobbies/' + code);
+  root.child('meta').transaction(cur => cur ? undefined : {host: FB.uid, ver: VERSION, t: firebase.database.ServerValue.TIMESTAMP}).then(r => {
+    if (!r.committed) return onFail('код занят');
+    root.onDisconnect().remove();
+    const inRef = root.child('in'), pl = root.child('players');
+    const h1 = inRef.on('child_added', snap => { const v = snap.val(); snap.ref.remove().catch(() => {}); fbHostMsg(v); }, e => console.warn('in', e));
+    const h2 = pl.on('child_removed', snap => { const c = fbConns[snap.key]; if (c) c._e('close'); });
+    fbStops.push(() => { inRef.off('child_added', h1); pl.off('child_removed', h2); root.onDisconnect().cancel(); root.remove().catch(() => {}); });
+    fbRoot = root; onUp();
+  }).catch(e => onFail((e && (e.code || e.message)) || 'ошибка'));
+}
 function createLobby(){
   homeErr(''); if (!needName()) return; TEST = false;
   netStop(); code = randCode();
@@ -1889,6 +2207,10 @@ function createLobby(){
     if (isHost) return;
     if (++failed >= total){ netStop(); homeErr('Не удалось создать лобби: нет связи ни с одним сервером (' + errs.join('; ') + ')'); }
   };
+  if (fbOn()){
+    total++;
+    fbHostStart(() => up('Firebase'), why => lost('Firebase', why));
+  }
   if (window.Peer){
     total++;
     let opened = false;
@@ -1920,7 +2242,8 @@ function hostReceive(c, m){
     if (S.phase !== 'lobby') return c.send({t:'error', msg:'Игра уже идёт'});
     if (S.players.length >= 5) return c.send({t:'error', msg:'Лобби заполнено (максимум 5 игроков)'});
     S.players.push(mkPlayer(pid, String(m.name || 'Игрок').slice(0, 16)));
-    return commit();
+    const f = m.pf; AVS[pid] = {av: f && typeof f.av === 'string' && f.av.length < 20000 ? f.av : '', lv: f ? (f.lv | 0) : 0};
+    sendAvs(); return commit();
   }
   const p = S.players.find(x => x.id === pid);
   if (!p) return;
@@ -1937,7 +2260,7 @@ function backToLobby(notice){
   commit();
 }
 function dropPlayer(id){
-  delete conns[id];
+  delete conns[id]; if (AVS[id]){ delete AVS[id]; sendAvs(); }
   const p = S.players.find(x => x.id === id);
   if (!p) return;
   const name = p.name, inGame = S.phase === 'game';
@@ -1969,13 +2292,34 @@ function joinLobby(){
         if (!$('lobby').classList.contains('on') && !$('game').classList.contains('on')) enterLobby();
         applyState(m.state); showNet();
       }
+      if (m.t === 'avs'){ AVS = m.avs || {}; if (S.players.length) render(); }
       if (m.t === 'hand') setHand(m.cards, m.newIds);
       if (m.t === 'peek') setPeek(m);
       if (m.t === 'error'){ const msg = m.msg; leave(); homeErr(msg); }
     });
     conn.on('close', () => { if (hostConn !== conn) return; leave(); homeErr('Связь с хостом оборвалась или хост закрыл лобби'); });
-    conn.send({t:'hello', name:myName(), ver:VERSION});
+    conn.send({t:'hello', name:myName(), ver:VERSION, pf:pfMe()});
   };
+  if (fbOn()){
+    total++;
+    const uid = FB.uid, root = FB.db.ref('lobbies/' + code);
+    root.child('meta').once('value').then(async snap => {
+      if (won) return;
+      if (!snap.exists()) return bad('Firebase', 'лобби не найдено', true);
+      const conn = mkConn(uid, m => { root.child('in').push({u: uid, m: JSON.stringify(m)}).catch(() => {}); });
+      conn.fb = true;
+      await root.child('to/' + uid).remove().catch(() => {});
+      if (won) return;
+      const pres = root.child('players/' + uid), toRef = root.child('to/' + uid), stRef = root.child('state'), mtRef = root.child('meta');
+      pres.onDisconnect().remove(); pres.set(true).catch(() => {});
+      win(conn, uid, 'Firebase', null);
+      const hTo = toRef.on('child_added', sn => { const v = sn.val(); sn.ref.remove().catch(() => {}); try{ conn._e('data', JSON.parse(v)); }catch(e){} });
+      const hSt = stRef.on('value', sn => { const v = sn.val(); if (!v) return; try{ const o = JSON.parse(v); if (o.players && o.players.some(p => p.id === uid)) conn._e('data', {t:'state', state:o}); }catch(e){} });
+      const hMt = mtRef.on('value', sn => { if (!sn.exists()) conn._e('close'); });
+      const stop = () => { toRef.off('child_added', hTo); stRef.off('value', hSt); mtRef.off('value', hMt); pres.onDisconnect().cancel(); pres.remove().catch(() => {}); };
+      fbStops.push(stop); conn.close = stop;
+    }).catch(e => bad('Firebase', (e && (e.code || e.message)) || 'ошибка', false));
+  }
   if (window.Peer){
     total++;
     const p = new Peer(); let done = false;
@@ -2033,7 +2377,7 @@ function netErr(e){
 /* ---------- Общее ---------- */
 function send(m){ isHost ? hostReceive({peer:'host', send(){}}, m) : hostConn && hostConn.open && hostConn.send(m); }
 function leave(){
-  netStop(); myPid = null; showNet();
+  netStop(); myPid = null; AVS = {}; showNet();
   TEST = false; BOTS = false; clearInterval(botTimer); tutStop(); bedStop(); musStart(); peer = null; hostConn = null; conns = {}; isHost = false;
   S = newState(); H = newH();
   myHand = []; selIds = new Set(); myPeek = null; mySrc = null; placed = [null, null, null]; handOrder = []; autoSort = true; $('priceM').classList.remove('on');
@@ -2143,7 +2487,7 @@ function render(){
 function renderLobby(){
   $('plist').innerHTML = '';
   S.players.forEach(p => {
-    const li = el('li'); const n = el('span', null, p.name); const t = el('span', 'tag', p.host ? 'хост' : String(p.id).startsWith('bot') ? 'бот' : (p.id === myPid ? 'ты' : ''));
+    const li = el('li'); const n = el('span', 'who'); const pv = el('span', 'pav'), inf = avOf(p.id); setAva(pv, inf, p.name); n.append(pv, p.name + (inf && inf.lv ? '  · ур. ' + inf.lv : '')); const t = el('span', 'tag', p.host ? 'хост' : String(p.id).startsWith('bot') ? 'бот' : (p.id === myPid ? 'ты' : ''));
     li.append(n, t); $('plist').append(li);
   });
   const n = S.players.length;
@@ -2265,7 +2609,7 @@ function renderTable(){
     let e = seatEls[p.id];
     if (!e){
       e = el('div', 'seat');
-      e.innerHTML = '<div class="fan"></div><div class="plate"><div class="r1"><span class="sta" title="Жетон Старосты рынка">★</span><span class="nm"></span><span class="cnt" title="Карт на руках"><i class="cb"></i><b></b></span></div><div class="chips"></div>' +
+      e.innerHTML = '<div class="fan"></div><div class="plate"><div class="r1"><span class="sta" title="Жетон Старосты рынка">★</span><span class="pav"></span><span class="nm"></span><span class="cnt" title="Карт на руках"><i class="cb"></i><b></b></span></div><div class="chips"></div>' +
         '<span class="st"></span><div class="bagbox"><span class="sl" title="Печать купца"></span><div class="bagw" title="Монеты игрока"><b class="bn"></b></div></div><div class="stk"></div></div>';
       $('seats').append(e); seatEls[p.id] = e;
     }
@@ -2287,7 +2631,7 @@ function renderTable(){
     const waiting = S.phase === 'game' && ((S.step === 'take' && S.todo && S.todo[p.id] && todoOpen(S.todo[p.id])) || S.turn === p.id);
     e.classList.toggle('pick', waiting);
     e.classList.toggle('sell', S.seller === p.id && S.phase === 'game');
-    e.querySelector('.nm').textContent = p.name;
+    e.querySelector('.nm').textContent = p.name; setAva(e.querySelector('.pav'), avOf(p.id), p.name);
     e.querySelector('.sta').textContent = S.starost === p.id ? '★' : '';
     e.querySelector('.cnt b').textContent = p.count;
     const shownPu = minusStake(p.purse, stakeOf(p.id));
@@ -3043,7 +3387,7 @@ function renderFinal(){
     FX.key = key; FX.tok++; FX.K = 1; FX.done = false;
     (F.stage === 'podium' ? finPodium : finReveal)(F, FX.tok).catch(() => {});
   }
-  finUI();
+  pfAward(); finUI();
 }
 function finUI(){
   const F = S.final, bar = $('fxBar'); if (!F) return;
@@ -4329,6 +4673,7 @@ async function tutScript(){
   tutStop(); leave();
 }
 function tutStart(){
+  if (!needName()) return;
   botLobby(1); S.players[1].name = 'Оборванец'; startGame();
   try{ localStorage.setItem('kup_tutseen', '1'); }catch(e){}
   S.todo = null; H.next = null; S.step = null; S.turn = null; S.takeTitle = ''; S.starost = 'host';
