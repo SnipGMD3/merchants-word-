@@ -1865,11 +1865,11 @@ const randCode = () => Array.from({length:5}, () => ALPHABET[Math.random() * ALP
    Правила базы — в файле firebase/database.rules.json, инструкция — firebase/README.md.
    ========================================================= */
 const FIREBASE_CONFIG = {
-  apiKey: '',
-  authDomain: '',
-  databaseURL: '',
-  projectId: '',
-  appId: ''
+  apiKey: 'AIzaSyCrDa1KR6EVlVe4TyxEn8F7PZvKXcxwotw',
+  authDomain: 'merchant-words1.firebaseapp.com',
+  databaseURL: 'https://merchant-words1-default-rtdb.europe-west1.firebasedatabase.app',
+  projectId: 'merchant-words1',
+  appId: '1:935333934013:web:841ea33b889e57f5fa18d4'
 };
 const FB = {state: FIREBASE_CONFIG.apiKey ? 'wait' : 'off', auth: null, db: null, uid: null};   // off — не настроен/недоступен, wait — подключаемся, on — работает
 const fbOn = () => FB.state === 'on' && !!FB.uid;
