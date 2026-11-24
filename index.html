@@ -942,6 +942,12 @@ ul.players li .who{display:flex;align-items:center}
 .pricefx .pn{font-size:min(11rem,22vh);line-height:1;font-weight:900;font-synthesis:weight;color:#ffe27a;-webkit-text-stroke:6px #4a2508;paint-order:stroke fill;
   text-shadow:0 8px 14px rgba(0,0,0,.75),0 0 46px rgba(255,200,60,.95);transform-origin:center}
 .pricefx .pl{font-size:min(2.6rem,6vh);font-weight:900;font-synthesis:weight;letter-spacing:.06em;color:#fff7e4;-webkit-text-stroke:3px #4a2508;paint-order:stroke fill;text-shadow:0 3px 6px rgba(0,0,0,.8),0 0 18px rgba(255,200,60,.7)}
+
+/* плашка «связь потеряна» у игрока, который переподключается */
+#netBan{position:fixed;left:50%;top:10px;transform:translate(-50%,-140%);z-index:300;padding:.55em 1.4em;border-radius:.6em;pointer-events:none;
+  background:linear-gradient(180deg,#8d1d1d,#5c1010);color:#fff2d8;border:2px solid #e8b84a;font-size:1.05rem;font-weight:700;font-synthesis:weight;
+  box-shadow:0 6px 18px rgba(0,0,0,.6);transition:transform .25s ease}
+#netBan.on{transform:translate(-50%,0)}
 </style>
 </head>
 <body>
@@ -1058,6 +1064,7 @@ ul.players li .who{display:flex;align-items:center}
 <div class="modal" id="rulesM"><div class="sheet rules" id="rulesS"></div></div>
 
 <div class="modal" id="testM"><div class="sheet" id="testS"></div></div>
+<div id="netBan">Связь потеряна — переподключаемся…</div>
 <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js" onerror="this.onerror=null;var s=document.createElement('script');s.src='https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js';document.head.appendChild(s)"></script>
 <script>
 /* =========================================================
@@ -1076,7 +1083,7 @@ ul.players li .who{display:flex;align-items:center}
   };
   addEventListener('pointerdown', go, true);
 })();
-const VERSION = 'beta 0.8';
+const VERSION = 'beta 0.9';
 
 /* Числа из правил. Если что-то захочется подкрутить — это здесь. */
 const RULES = {
@@ -1158,7 +1165,7 @@ const HOOK = {broadcast(){}, hand(id, cards, newIds){}, peek(id, data){}};   // 
 const newState = () => ({phase:'lobby', players:[], log:[], gid:0, seq:0, evts:[], deckN:0, discN:0, discTop:null, disc:[],
   day:0, days:0, round:'m', starost:null, seller:null, step:null, turn:null, lot:null, auction:null, info:null, final:null, notice:'',
   todo:null, takeTitle:'', pay:null, tell:null, placing:null});
-const newH = () => ({deck:[], discard:[], hands:{}, sentIds:{}, peeks:[], lotCards:[], lotNo:0, insp:null, auc:null, res:null, turns:0, next:null, bought:0, got:[]});
+const newH = () => ({seen:{}, peekLast:{}, deck:[], discard:[], hands:{}, sentIds:{}, peeks:[], lotCards:[], lotNo:0, insp:null, auc:null, res:null, turns:0, next:null, bought:0, got:[]});
 const mkPlayer = (id, name, host) => ({id, name, host: !!host, count:0, coins:0, purse:{1:0, 5:0, 10:0}, seal:0, selN:0});   // seal: 0 — не взята, 1 — у игрока, 2 — использована
 let S = newState();
 let H = newH();
@@ -1181,7 +1188,7 @@ const CHAT_COL = ['#ff8a8a', '#6fd3ff', '#7be28f', '#ffd23f', '#d79bff'];     //
 function addLog(s){ S.log.push({c:0, s}); if (S.log.length > 80) S.log.splice(0, S.log.length - 80); }
 function addChat(name, s){ S.log.push({c:1, n:name, s, ci: Math.max(0, S.players.findIndex(x => x.name === name))}); if (S.log.length > 80) S.log.splice(0, S.log.length - 80); }
 function emit(type, o){ S.evts.push(Object.assign({seq: ++S.seq, type}, o || {})); }
-function peek(to, data){ H.peeks.push({to, data}); }
+function peek(to, data){ H.peeks.push({to, data}); if (H.peekLast) H.peekLast[to] = data; }
 function note(s){ emit('note', {s}); }
 
 /* ---------- монеты ---------- */
@@ -1233,7 +1240,9 @@ function doChange(pid, m){          // размен монет с Банком (
 }
 
 /* Разослать всё: сначала руки и тайные подсказки, потом общее состояние. */
+let NETVER = 0;                  // растёт с каждым снимком состояния: по нему игроки замечают потерянные сообщения
 function commit(){
+  S.ver = ++NETVER;
   S.players.forEach(p => { p.count = hand(p.id).length; sync(p); });
   S.deckN = H.deck.length; S.discN = H.discard.length;
   S.disc = H.discard.map(c => c.k);
@@ -2129,22 +2138,23 @@ function mqPacket(hdr, parts){
 }
 /* Минимальный клиент MQTT 3.1.1 (QoS 0): CONNECT с «завещанием», SUBSCRIBE, PUBLISH, пинг */
 class MQ {
-  constructor(url, will){ this.url = url; this.will = will; this.buf = new Uint8Array(0); this.up = false; this.dead = false; this.h = {}; this.pid = 0; }
+  constructor(url, will, auto){ this.url = url; this.will = will; this.auto = !!auto; this.n = 0; this.buf = new Uint8Array(0); this.up = false; this.dead = false; this.h = {}; this.pid = 0; }
   on(ev, fn){ this.h[ev] = fn; return this; }
   emit(ev, ...a){ if (this.h[ev]) this.h[ev](...a); }
   open(){
+    this.buf = new Uint8Array(0); this.up = false;
     let ws;
     try{ ws = this.ws = new WebSocket(this.url, 'mqtt'); }catch(e){ return this.fail(); }
     ws.binaryType = 'arraybuffer';
-    this.tm = setTimeout(() => { if (!this.up) this.fail(); }, 9000);
+    this.tm = setTimeout(() => { if (!this.up && ws === this.ws) this.fail(); }, 9000);
     ws.onopen = () => {
       const cid = 'kup' + Math.random().toString(36).slice(2, 12), w = this.will;
       const parts = [mqStr('MQTT'), Uint8Array.of(4, w ? 0x06 : 0x02, 0, 30), mqStr(cid)];
       if (w) parts.push(mqStr(w.topic), mqStr(w.payload));
       ws.send(mqPacket(0x10, parts));
     };
-    ws.onmessage = ev => this.feed(new Uint8Array(ev.data));
-    ws.onclose = ws.onerror = () => this.fail();
+    ws.onmessage = ev => { if (ws === this.ws) this.feed(new Uint8Array(ev.data)); };
+    ws.onclose = ws.onerror = () => { if (ws === this.ws) this.fail(); };
   }
   feed(d){
     const nb = new Uint8Array(this.buf.length + d.length); nb.set(this.buf); nb.set(d, this.buf.length); this.buf = nb;
@@ -2155,7 +2165,7 @@ class MQ {
       if (b.length < i + rl) return;
       const type = b[0] >> 4, body = b.subarray(i, i + rl);
       this.buf = b.slice(i + rl);
-      if (type === 2){ if (body[1] === 0){ this.up = true; clearTimeout(this.tm); this.ping = setInterval(() => this.raw(Uint8Array.of(0xC0, 0)), 20000); this.emit('up'); } else this.fail(); }
+      if (type === 2){ if (body[1] === 0){ this.up = true; this.n = 0; clearTimeout(this.tm); clearInterval(this.ping); this.ping = setInterval(() => this.raw(Uint8Array.of(0xC0, 0)), 15000); this.emit('up'); } else this.fail(); }
       else if (type === 3){
         const qos = (b[0] >> 1) & 3, tl = (body[0] << 8) | body[1];
         this.emit('msg', mqDec.decode(body.subarray(2, 2 + tl)), mqDec.decode(body.subarray(2 + tl + (qos ? 2 : 0))));
@@ -2165,8 +2175,20 @@ class MQ {
   raw(p){ if (this.ws && this.ws.readyState === 1){ try{ this.ws.send(p); return true; }catch(e){} } return false; }
   sub(t){ this.raw(mqPacket(0x82, [Uint8Array.of(0, ++this.pid & 255 || 1), mqStr(t), Uint8Array.of(0)])); }
   pub(t, s){ return this.raw(mqPacket(0x30, [mqStr(t), mqEnc.encode(s)])); }
-  fail(){ if (this.dead) return; const was = this.up; this.stop(); this.emit('down', was); }
-  stop(){ this.dead = true; clearTimeout(this.tm); clearInterval(this.ping); try{ this.ws.onclose = this.ws.onerror = null; this.ws.close(); }catch(e){} }
+  cut(){ clearTimeout(this.tm); clearInterval(this.ping); const ws = this.ws; this.ws = null; if (ws){ try{ ws.onclose = ws.onerror = ws.onmessage = null; ws.close(); }catch(e){} } }
+  /* обрыв: у «живучего» клиента (хост) пробуем открыться заново с нарастающей паузой, у обычного — сообщаем и умираем */
+  fail(){
+    if (this.dead) return;
+    const was = this.up; this.up = false; this.cut();
+    if (this.auto){
+      this.emit('down', was);
+      const d = Math.min(12000, 800 * Math.pow(2, Math.min(this.n++, 4)));
+      clearTimeout(this.rt); this.rt = setTimeout(() => { if (!this.dead) this.open(); }, d);
+      return;
+    }
+    this.dead = true; this.emit('down', was);
+  }
+  stop(){ this.dead = true; clearTimeout(this.rt); this.cut(); }
   close(){ if (this.dead) return; if (this.up && this.will) this.pub(this.will.topic, this.will.payload); this.stop(); }   // аккуратный выход = то же, что «завещание»
 }
 function mkConn(id, sendFn){
@@ -2174,12 +2196,14 @@ function mkConn(id, sendFn){
   return {peer: id, open: true, send: sendFn, close(){ if (h.close) h.close(); }, on(ev, fn){ h[ev] = fn; return this; }, _e(ev, ...a){ if (h[ev]) h[ev](...a); }};
 }
 let fbStops = [], fbConns = {}, fbRoot = null, fbEvts = [], fbGid = -1, fbQ = false;
+const NET = {uid:null, last:0, seen:0, rec:0, tick:0, rt:0};   // клиент: свой постоянный id, номер последнего снимка, когда слышали хоста, идёт ли переподключение
+const RTC_CFG = {iceServers:[{urls:'stun:stun.l.google.com:19302'}, {urls:'stun:stun1.l.google.com:19302'}, {urls:'stun:global.stun.twilio.com:3478'}, {urls:'stun:stun.cloudflare.com:3478'}]};
 function netStop(){
-  clearTimeout(netTm); netTm = 0;
+  clearTimeout(netTm); netTm = 0; clearInterval(NET.tick); NET.tick = 0;
   fbStops.forEach(f => { try{ f(); }catch(e){} }); fbStops = []; fbConns = {}; fbRoot = null; fbEvts = []; fbGid = -1; fbQ = false;
-  try{ peer && peer.destroy(); }catch(e){}
+  const pr = peer; peer = null;      // WebRTC закрываем с задержкой, чтобы успело уйти прощальное «bye» / «хост закрыл лобби»
+  if (pr) setTimeout(() => { try{ pr.destroy(); }catch(e){} }, 300);
   mqs.forEach(m => { try{ m.close(); }catch(e){} }); mqs = []; mqConns = {}; netTags = [];
-  peer = null;
 }
 function showNet(){ const e = $('netInfo'); if (e) e.textContent = netTags.length ? 'Связь: ' + netTags.join(' + ') : ''; }
 
@@ -2189,12 +2213,57 @@ HOOK.hand = (id, cards, newIds) => { if (id === 'host') setHand(cards, newIds); 
 HOOK.peek = (id, data) => { if (id === 'host') setPeek(data); else if (conns[id] && conns[id].open) conns[id].send(Object.assign({t:'peek'}, data)); };
 
 let mqConns = {};
-function sendAvs(){ const o = Object.assign({}, AVS, {host: pfMe() || undefined}); Object.values(conns).forEach(c => c.open && c.send({t:'avs', avs:o})); }
+function sendAvsNow(){ const o = Object.assign({}, AVS, {host: pfMe() || undefined}); Object.values(conns).forEach(c => c.open && c.send({t:'avs', avs:o})); }
+let avsT = 0;
+function sendAvs(){ clearTimeout(avsT); avsT = setTimeout(sendAvsNow, 350); }       // когда заходят сразу все — шлём аватарки одним пакетом, а не по пять раз
 function acceptConn(c){
   c.on('data', m => hostReceive(c, m));
-  c.on('close', () => { delete mqConns[c.peer]; if (c.fb){ delete fbConns[c.peer]; if (fbRoot) fbRoot.child('to/' + c.peer).remove().catch(() => {}); } dropPlayer(c.peer); });
-  c.on('error', () => dropPlayer(c.peer));
+  c.on('close', () => connLost(c));
+  c.on('error', () => connLost(c));
   conns[c.peer] = c;
+}
+/* Транспортное соединение привязываем к постоянному id игрока (uid из hello): так игрок может вернуться по другому пути (брокер/WebRTC) на своё место */
+function bindConn(c, uid){
+  const old = conns[uid];
+  if (old && old !== c){ old.pid = null; try{ old.close(); }catch(e){} }
+  if (c.peer !== uid && conns[c.peer] === c) delete conns[c.peer];
+  c.pid = uid; conns[uid] = c;
+}
+/* Связь с игроком пропала: не выкидываем сразу, даём время вернуться (hostTick выкинет, если не вернулся) */
+function connLost(c){
+  const id = c.pid || c.peer;
+  if (mqConns[c.peer] === c) delete mqConns[c.peer];
+  if (c.fb){ delete fbConns[c.peer]; if (fbRoot) fbRoot.child('to/' + c.peer).remove().catch(() => {}); }
+  if (conns[id] !== c) return;       // его уже заменило новое соединение
+  delete conns[id];
+  markOff(id);
+}
+function markOff(id){
+  const p = S.players.find(x => x.id === id);
+  if (!p || p.off || p.host || String(id).startsWith('bot')) return;
+  p.off = Date.now(); addLog(p.name + ': нет связи, ждём…'); commit();
+}
+/* Дослать игроку то, что он мог потерять: снимок состояния, руку, личную подсказку */
+function resync(pid, withState){
+  const c = conns[pid]; if (!c || !c.open || !S.players.some(x => x.id === pid)) return;
+  if (withState) c.send({t:'state', state:S});
+  if (S.phase === 'game' || S.phase === 'over'){
+    c.send({t:'hand', cards: hand(pid).map(x => ({id: x.id, k: x.k})), newIds: []});
+    const pk = H.peekLast && H.peekLast[pid];
+    if (pk && S.lot && pk.lot === S.lot.n) c.send(Object.assign({t:'peek'}, pk));
+  }
+}
+/* Раз в пару секунд: «пульс» всем (с номером снимка — по нему клиент понимает, что что-то потерял) + проверка, кто пропал */
+function hostTick(){
+  if (!isHost) return;
+  const now = Date.now();
+  Object.keys(conns).forEach(id => { const c = conns[id]; if (c && c.open) c.send({t:'hb', v: S.ver || 0}); });
+  S.players.slice().forEach(p => {
+    if (p.host || String(p.id).startsWith('bot')) return;
+    const seen = H.seen[p.id] || (H.seen[p.id] = now);
+    if (!p.off){ if (now - seen > 16000) markOff(p.id); }
+    else if (now - p.off > (S.phase === 'game' ? 90000 : 15000)) dropPlayer(p.id);
+  });
 }
 /* Сообщение игрока, пришедшее хосту через брокер: {j:id} — «я хочу войти», {c:id, m} — данные, {b:id} — вышел */
 function mqHostMsg(mq, s){
@@ -2208,6 +2277,7 @@ function mqHostMsg(mq, s){
     c = mqConns[id] = mkConn(id, m => { if (c.via) c.via.pub(mqT(code, 'c/' + id), JSON.stringify(m)); });
     c.via = mq; acceptConn(c);
   }
+  if (c.via !== mq && x.m && x.m.t === 'hello') c.via = mq;   // игрок сам выбрал этот брокер (первый вход или возвращение) — переходим на него
   if (c.via === mq) c._e('data', x.m);        // игрок мог постучаться через несколько брокеров — слушаем только тот, где он начал игру
 }
 
@@ -2250,14 +2320,15 @@ function fbHostStart(onUp, onFail){
 }
 function createLobby(){
   homeErr(''); if (!needName()) return; TEST = false;
-  netStop(); code = randCode();
+  netStop(); code = randCode(); NETVER = 0;
   let total = 0, failed = 0, errs = [];
   const up = tag => {
-    netTags.push(tag);
+    if (!netTags.includes(tag)) netTags.push(tag);
     if (!isHost){
       isHost = true; clearTimeout(netTm);
       S = newState(); H = newH(); S.players.push(mkPlayer('host', myName(), true));
       enterLobby(); commit();
+      clearInterval(NET.tick); NET.tick = setInterval(hostTick, 2500);
     }
     showNet();
   };
@@ -2273,39 +2344,52 @@ function createLobby(){
   if (window.Peer){
     total++;
     let opened = false;
-    const p = peer = new Peer(PREFIX + code);
+    const p = peer = new Peer(PREFIX + code, {config: RTC_CFG});
     p.on('open', () => { opened = true; up('WebRTC'); });
     p.on('connection', acceptConn);
+    p.on('disconnected', () => { if (opened) setTimeout(() => { try{ if (peer === p && !p.destroyed) p.reconnect(); }catch(e){} }, 1500); });   // потеряли сервер-посредник: возвращаемся под тем же кодом
     p.on('error', e => { if (!opened){ opened = true; lost('WebRTC', netErr(e)); } else console.warn('PeerJS', e); });
   }
   MQTT_URLS.forEach(url => {
     total++;
     const tag = 'ретранслятор ' + mqHost(url);
-    const mq = new MQ(url, {topic: mqT(code, 'all'), payload: '{"gone":1}'});
+    const mq = new MQ(url, {topic: mqT(code, 'all'), payload: '{"gone":1}'}, true);
+    let tried = false;
     mqs.push(mq);
     mq.on('up', () => { mq.sub(mqT(code, 'h')); up(tag); })
       .on('msg', (t, s) => mqHostMsg(mq, s))
       .on('down', was => {
-        if (!was) return lost(tag, 'не открылся');
+        if (!was){ if (!tried){ tried = true; lost(tag, 'не открылся'); } return; }
         netTags = netTags.filter(x => x !== tag); showNet();
-        Object.values(mqConns).forEach(c => { if (c.via === mq) c._e('close'); });
+        Object.values(mqConns).forEach(c => { if (c.via === mq) c._e('close'); });    // эти игроки вернутся сами — через этот же брокер или другой
       });
     mq.open();
   });
   netTm = setTimeout(() => { if (!isHost){ netStop(); homeErr('Не удалось создать лобби: ни один сервер не ответил за 12 с (' + errs.join('; ') + ')'); } }, 12000);
 }
 function hostReceive(c, m){
-  const pid = c.peer;
+  const pid = c.pid || c.peer, now = Date.now();
   if (m.t === 'hello'){
     if (m.ver !== VERSION) return c.send({t:'error', msg:'Версия игры не совпадает (у тебя ' + m.ver + ', у хоста ' + VERSION + '). Обнови страницу: Ctrl+F5'});
-    if (S.phase !== 'lobby') return c.send({t:'error', msg:'Игра уже идёт'});
-    if (S.players.length >= 5) return c.send({t:'error', msg:'Лобби заполнено (максимум 5 игроков)'});
-    S.players.push(mkPlayer(pid, String(m.name || 'Игрок').slice(0, 16)));
-    const f = m.pf; AVS[pid] = {av: f && typeof f.av === 'string' && f.av.length < 20000 ? f.av : '', lv: f ? (f.lv | 0) : 0};
-    sendAvs(); return commit();
+    const uid = (typeof m.uid === 'string' && m.uid !== 'host' && /^[A-Za-z0-9_-]{3,40}$/.test(m.uid)) ? m.uid : c.peer;
+    const ex = S.players.find(x => x.id === uid);
+    if (!ex){
+      if (S.phase !== 'lobby') return c.send({t:'error', msg:'Игра уже идёт'});
+      if (S.players.length >= 5) return c.send({t:'error', msg:'Лобби заполнено (максимум 5 игроков)'});
+    }
+    bindConn(c, uid); H.seen[uid] = now;
+    const f = m.pf; AVS[uid] = {av: f && typeof f.av === 'string' && f.av.length < 20000 ? f.av : '', lv: f ? (f.lv | 0) : 0};
+    if (ex){ if (ex.off){ ex.off = 0; addLog(ex.name + ' снова в игре'); } }       // вернулся на своё место (или повторный hello)
+    else S.players.push(mkPlayer(uid, String(m.name || 'Игрок').slice(0, 16)));
+    sendAvs(); commit(); resync(uid); return;
   }
   const p = S.players.find(x => x.id === pid);
   if (!p) return;
+  H.seen[pid] = now;
+  if (p.off){ p.off = 0; addLog(p.name + ' снова в игре'); commit(); }
+  if (m.t === 'ack'){ if ((m.v | 0) < (m.hv | 0)) resync(pid, true); return; }   // отстал от хоста — значит, потерял снимок: досылаем
+  if (m.t === 'sync'){ resync(pid, true); return; }
+  if (m.t === 'bye'){ dropPlayer(pid); return; }
   if (m.t === 'ping'){ addLog(p.name + ': пинг'); return commit(); }
   if (m.t === 'chat'){ const s = String(m.s || '').trim().slice(0, 140); if (s){ addChat(p.name, s); commit(); } return; }
   if (m.t === 'fcont'){ finCont(pid); return; }
@@ -2319,7 +2403,7 @@ function backToLobby(notice){
   commit();
 }
 function dropPlayer(id){
-  delete conns[id]; if (AVS[id]){ delete AVS[id]; sendAvs(); }
+  delete conns[id]; if (H.seen) delete H.seen[id]; if (AVS[id]){ delete AVS[id]; sendAvs(); }
   const p = S.players.find(x => x.id === id);
   if (!p) return;
   const name = p.name, inGame = S.phase === 'game';
@@ -2335,29 +2419,59 @@ function joinLobby(){
   const c = $('joinCode').value.trim().toUpperCase();
   if (c.length !== 5) return homeErr('Код состоит из 5 символов');
   netStop(); code = c;
-  const cid = 'p' + Math.random().toString(36).slice(2, 10);
+  NET.uid = fbOn() ? FB.uid : 'p' + Math.random().toString(36).slice(2, 10);    // постоянный id игрока: по нему хост узнаёт нас при возвращении
+  NET.last = 0; NET.rec = 0; NET.seen = Date.now(); clearTimeout(NET.rt);
+  connectTo(false);
+}
+const showRec = on => { const e = $('netBan'); if (e) e.classList.toggle('on', !!on); };
+/* Связь с хостом пропала: сохраняем стол как есть, показываем плашку и пробуем вернуться на своё место */
+function reconnect(){
+  if (isHost || !NET.uid || NET.rec || !myPid) return;
+  NET.rec = Date.now(); hostConn = null; showRec(true);
+  tryRejoin();
+}
+function tryRejoin(){
+  if (!NET.rec) return;
+  if (Date.now() - NET.rec > 45000){ leave(); return homeErr('Связь с хостом потеряна, вернуться не удалось'); }
+  netStop(); connectTo(true);
+}
+function lostLink(conn){ if (hostConn === conn) reconnect(); }
+setInterval(() => { if (!isHost && hostConn && myPid && !NET.rec && Date.now() - NET.seen > 20000) reconnect(); }, 3000);   // хост молчит (пульс приходит раз в 2,5 с)
+function connectTo(rejoin){
+  const cid = NET.uid;
   let won = null, total = 0, failed = 0, errs = [], reached = false;
   const kills = [];
   const giveUp = () => {
     clearTimeout(netTm); const e = errs.slice(); netStop();
+    if (rejoin){ clearTimeout(NET.rt); NET.rt = setTimeout(tryRejoin, 1200); return; }
     homeErr(reached ? 'Лобби с таким кодом не найдено' : 'Нет связи ни с одним сервером (' + e.join('; ') + ')');
   };
   const bad = (tag, why, ok) => { errs.push(tag + ' — ' + why); if (ok) reached = true; if (!won && ++failed >= total) giveUp(); };
   const win = (conn, pid, tag, keep) => {
     if (won) return; won = conn; hostConn = conn; myPid = pid; clearTimeout(netTm);
     kills.forEach(k => k(keep)); netTags = [tag];
+    NET.seen = Date.now(); NET.rec = 0; showRec(false);
+    let seated = false;      // пришёл ли снимок, где мы уже числимся игроком: пока нет — hello мог потеряться, повторяем
+    const hello = () => conn.send({t:'hello', name:myName(), ver:VERSION, pf:pfMe(), uid: pid, rejoin: !!rejoin});
+    const helloT = setInterval(() => { if (seated || hostConn !== conn) return clearInterval(helloT); hello(); }, 2000);
     conn.on('data', m => {
+      NET.seen = Date.now();
       if (m.t === 'state'){
+        if (m.state && m.state.players && m.state.players.some(x => x.id === pid)) seated = true;
+        const v = m.state && m.state.ver | 0;
+        if (v && v <= NET.last) return;                  // уже есть такой или новее (повторная доставка)
+        if (v) NET.last = v;
         if (!$('lobby').classList.contains('on') && !$('game').classList.contains('on')) enterLobby();
         applyState(m.state); showNet();
       }
+      if (m.t === 'hb') conn.send({t:'ack', v: NET.last, hv: m.v | 0});      // «я жив, вот какой снимок у меня»
       if (m.t === 'avs'){ AVS = m.avs || {}; if (S.players.length) render(); }
       if (m.t === 'hand') setHand(m.cards, m.newIds);
       if (m.t === 'peek') setPeek(m);
       if (m.t === 'error'){ const msg = m.msg; leave(); homeErr(msg); }
     });
-    conn.on('close', () => { if (hostConn !== conn) return; leave(); homeErr('Связь с хостом оборвалась или хост закрыл лобби'); });
-    conn.send({t:'hello', name:myName(), ver:VERSION, pf:pfMe()});
+    conn.on('close', () => { clearInterval(helloT); lostLink(conn); });
+    hello();
   };
   if (fbOn()){
     total++;
@@ -2381,11 +2495,12 @@ function joinLobby(){
   }
   if (window.Peer){
     total++;
-    const p = new Peer(); let done = false;
+    const p = new Peer(undefined, {config: RTC_CFG}); let done = false;
     kills.push(keep => { if (keep !== p) try{ p.destroy(); }catch(e){} });
     p.on('open', () => {
       const hc = p.connect(PREFIX + code, {reliable:true});
-      hc.on('open', () => { if (won) return; peer = p; win(hc, p.id, 'WebRTC', p); });
+      hc.on('open', () => { if (won) return; peer = p; win(hc, cid, 'WebRTC', p); });
+      hc.on('error', () => { if (won === hc) lostLink(hc); });
     });
     p.on('error', e => { if (done || won) return; done = true; bad('WebRTC', netErr(e), e.type === 'peer-unavailable'); });
   }
@@ -2436,6 +2551,12 @@ function netErr(e){
 /* ---------- Общее ---------- */
 function send(m){ isHost ? hostReceive({peer:'host', send(){}}, m) : hostConn && hostConn.open && hostConn.send(m); }
 function leave(){
+  clearTimeout(NET.rt); NET.rec = 0; showRec(false);
+  try{
+    if (isHost) Object.values(conns).forEach(c => { if (c.open) c.send({t:'error', msg:'Хост закрыл лобби'}); });
+    else if (hostConn && hostConn.open) hostConn.send({t:'bye'});          // осознанный выход: хост убирает нас сразу, без ожидания возвращения
+  }catch(e){}
+  NET.uid = null;
   netStop(); myPid = null; AVS = {}; showNet();
   TEST = false; BOTS = false; clearInterval(botTimer); tutStop(); bedStop(); musStart(); peer = null; hostConn = null; conns = {}; isHost = false;
   S = newState(); H = newH();
@@ -2549,7 +2670,7 @@ function render(){
 function renderLobby(){
   $('plist').innerHTML = '';
   S.players.forEach(p => {
-    const li = el('li'); const n = el('span', 'who'); const pv = el('span', 'pav'), inf = avOf(p.id); setAva(pv, inf, p.name); n.append(pv, p.name + (inf && inf.lv ? '  · ур. ' + inf.lv : '')); const t = el('span', 'tag', p.host ? 'хост' : String(p.id).startsWith('bot') ? 'бот' : (p.id === myPid ? 'ты' : ''));
+    const li = el('li'); const n = el('span', 'who'); const pv = el('span', 'pav'), inf = avOf(p.id); setAva(pv, inf, p.name); n.append(pv, p.name + (inf && inf.lv ? '  · ур. ' + inf.lv : '') + (p.off ? '  · нет связи…' : '')); const t = el('span', 'tag', p.host ? 'хост' : String(p.id).startsWith('bot') ? 'бот' : (p.id === myPid ? 'ты' : ''));
     li.append(n, t); $('plist').append(li);
   });
   const n = S.players.length;
@@ -2583,6 +2704,7 @@ function takeChips(p, box){
 }
 function statusOf(p){
   if (S.phase !== 'game') return '';
+  if (p.off) return 'нет связи…';
   if (S.step === 'take' && S.todo && S.todo[p.id]){
     const x = S.todo[p.id], l = x.l, t = x.t, a = [];
     if (!todoOpen(x)) return '✓ взял всё';
