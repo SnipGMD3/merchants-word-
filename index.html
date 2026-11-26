@@ -3,13 +3,34 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<script>
+/* Телефон в альбомной ориентации: страница верстается в «виртуальном» окне высотой ~560 px (ширина — по пропорциям экрана),
+   браузер сам уменьшает его до размеров экрана. Так весь интерфейс рассчитывается на один понятный размер, а не на сотни разных телефонов.
+   Класс cmp — компактная раскладка (низкие окна), phone — телефон, portrait — телефон стоит вертикально (на столе просим повернуть). */
+(function(){
+  var root = document.documentElement, vp = document.querySelector('meta[name=viewport]'), last = 0, TH = 560;
+  function isPhone(){ try { return matchMedia('(pointer:coarse)').matches && Math.min(screen.width, screen.height) <= 600; } catch (e) { return false; } }
+  function apply(){
+    var ph = isPhone(), land = innerWidth > innerHeight;
+    root.classList.toggle('phone', ph); root.classList.toggle('portrait', ph && !land);
+    if (ph && land){
+      var w = Math.max(880, Math.min(1320, Math.round(TH * innerWidth / innerHeight)));
+      if (Math.abs(w - last) > 6){ last = w; vp.setAttribute('content', 'width=' + w + ', user-scalable=no'); }
+    } else if (last){ last = 0; vp.setAttribute('content', 'width=device-width, initial-scale=1'); }
+    root.classList.toggle('cmp', innerHeight <= 640 && innerWidth > innerHeight);
+    root.style.setProperty('--vk', Math.min(1, innerWidth / 1130).toFixed(3));
+  }
+  apply(); addEventListener('resize', apply); addEventListener('orientationchange', function(){ setTimeout(apply, 120); });
+})();
+</script>
 <title>Честное Купеческое!</title>
 <style>
 @font-face{font-family:"Foxcroft NF";src:url(fonts/foxcroft.woff) format("woff");font-display:swap}
-:root{--bg:#141a26;--felt:#1f3b4d;--felt2:#16293a;--ink:#efe4cd;--mute:#8b97ab;--acc:#e3790f;--acc2:#f0a24c;--red:#e63946;--blue:#3a86ff;--green:#2a9d5c;--yellow:#e3790f;--hb:240px}
+@font-face{font-family:"Saxonia Antiqua";src:url(fonts/saxonia.ttf) format("truetype");font-display:swap}
+:root{--bg:#141a26;--felt:#1f3b4d;--felt2:#16293a;--ink:#efe4cd;--mute:#8b97ab;--acc:#e3790f;--acc2:#f0a24c;--red:#e63946;--blue:#3a86ff;--green:#2a9d5c;--yellow:#e3790f;--hb:240px;--ff:"Saxonia Antiqua","Foxcroft NF","Trebuchet MS","Segoe UI",sans-serif}
 *{box-sizing:border-box}
 html,body{height:100%;margin:0}
-body{background:radial-gradient(ellipse at 50% 0%,#22304a,var(--bg) 70%);color:var(--ink);font:17px/1.4 "Foxcroft NF","Trebuchet MS","Segoe UI",sans-serif;font-synthesis:none;overflow-x:hidden}
+body{background:radial-gradient(ellipse at 50% 0%,#22304a,var(--bg) 70%);color:var(--ink);font:17px/1.4 var(--ff);font-synthesis:none;overflow-x:hidden}
 .screen{display:none;min-height:100%;padding:24px}
 .screen.on{display:flex;flex-direction:column;align-items:center}
 h1{font-size:clamp(2rem,6vw,3.2rem);margin:6vh 0 4px;letter-spacing:.5px}
@@ -92,7 +113,7 @@ ul.players .tag{color:var(--acc);font-size:.8rem}
 .sgt{position:absolute;left:7%;right:7%;top:63%;bottom:7%;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;column-gap:.3em;text-align:center;line-height:1;font-size:calc(var(--pw)*.082);color:var(--ink);
   -webkit-text-stroke:calc(var(--pw)*.016) #1a0f05;paint-order:stroke fill;text-shadow:0 1px 0 rgba(0,0,0,.55)}
 .sgt b{color:var(--acc2);font-weight:900;font-synthesis:weight;overflow-wrap:anywhere}
-.daypl .d1,.daypl .d2{font-family:'Foxcroft NF','Arial Black','Segoe UI Black',sans-serif;font-weight:900;color:var(--ink);line-height:1;letter-spacing:.03em;
+.daypl .d1,.daypl .d2{font-family:var(--ff),'Arial Black','Segoe UI Black',sans-serif;font-weight:900;color:var(--ink);line-height:1;letter-spacing:.03em;
   -webkit-text-stroke:calc(var(--pw)*.026) #000;paint-order:stroke fill;text-shadow:0 2px 0 rgba(0,0,0,.35)}
 .daypl .d1{font-size:calc(var(--pw)*.125)}
 .daypl .d2{font-size:calc(var(--pw)*.115);margin-top:calc(var(--pw)*.01)}
@@ -508,6 +529,7 @@ ul.players .tag{color:var(--acc);font-size:.8rem}
   .mebar{left:6px;bottom:6px;padding:6px 8px;max-width:190px}.mebar .purse{--k:.9;gap:6px}.mebar .seal{--k:1.1}.mebar .sum{font-size:1.5rem}
   .chgb{padding:6px 7px}.chgb .tx{display:none}
   .hud .btns button{padding:5px 8px;font-size:.78rem}
+  .hud .btns .sbt{display:none}
   :root{--pw:110px}
 }
 @media (prefers-reduced-motion:reduce){.pw.hot .coin{animation:none}.hand .card,.fan .b,.seat{transition:none}.card.flip,.directive.me,.directive.blink,.pulse::after,.seal.can,.slot.empty,.hand.pick .card:not(.sel){animation:none}}
@@ -523,6 +545,7 @@ ul.players .tag{color:var(--acc);font-size:.8rem}
 .fxtot b{display:inline-block;color:var(--ink);font-size:1.6rem;margin-left:6px}
 .fxst{flex:1;position:relative;min-height:0}
 .fx .card.fxc{position:absolute;margin:0}
+.fx.tutend .fxst{margin-bottom:90px}      /* обучение: внизу окно Лавра, подиум не должен уходить под него */
 .fxcnt{position:absolute;left:0;right:0;top:0;text-align:center;pointer-events:none;z-index:2}
 .fxlab{display:block;font-size:1.05rem;letter-spacing:.14em;text-transform:uppercase;color:var(--mute)}
 .fxnum{position:relative;display:inline-flex;align-items:baseline;font-weight:800;font-size:3rem;line-height:1.05;color:var(--acc);text-shadow:0 3px 14px rgba(0,0,0,.6)}
@@ -686,6 +709,42 @@ input:not([type=checkbox],[type=radio]):focus{outline:none;filter:drop-shadow(0 
 .sortb{font-family:system-ui,'Segoe UI',Roboto,Arial,sans-serif;font-size:1.02rem;font-weight:900;letter-spacing:.02em;color:#1b0f00;
   text-shadow:0 0 3px rgba(255,236,170,.95),0 1px 0 rgba(255,236,170,.9)}
 
+
+/* ================= «Памятка»: кнопка под «Сортировкой руки» (слева значок деревянного лотка сброса) и окно с картами ================= */
+.sortb.memob{bottom:calc(var(--hb) - 22px)}
+.sortb.memob .tr{position:relative;flex:none;width:30px;height:44px}
+.sortb.memob .tr::before{content:"";position:absolute;left:50%;top:50%;width:44px;height:29px;transform:translate(-50%,-50%) rotate(90deg);background:url(ui/tray.webp) center/100% 100% no-repeat;filter:drop-shadow(0 2px 3px rgba(0,0,0,.6))}
+@media (max-width:700px){.sortb.memob .tr{width:22px;height:32px}.sortb.memob .tr::before{width:32px;height:21px}}
+.sheet.memo{width:min(880px,96vw);gap:6px;align-items:stretch;padding:12px 20px 10px}
+.memo h3{text-align:center;font-size:1.45rem;color:var(--acc2)}
+.memo .mm-sec{font-size:.78rem;letter-spacing:.28em;text-transform:uppercase;color:#e8c773;border-bottom:1px solid rgba(232,199,115,.3);padding-bottom:3px;margin-top:4px}
+.memo .mm-row{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;padding:4px 0 0}
+.memo .mm-fig{display:flex;flex-direction:column;align-items:center;gap:4px;width:68px}
+.memo .mm-grid{display:grid;grid-template-columns:auto auto;justify-content:center;align-items:start;gap:0 22px}
+.memo .mm-col{min-width:0}
+.memo .mm-prow{max-width:238px}
+.memo .mm-cap{font-size:.72rem;line-height:1.1;text-align:center;color:var(--ink);min-height:1.7em}
+.memo .mm-c{--w:60px;cursor:pointer;flex:none;transition:transform .15s,filter .15s}
+.memo .mm-c:hover{transform:translateY(-4px)}
+.memo .mm-c.on{transform:translateY(-5px);filter:drop-shadow(0 0 3px #ffd36a) drop-shadow(0 0 10px rgba(255,190,70,.9))}
+.memo .mm-desc{min-height:3.3em;padding:7px 12px 9px;border-radius:10px;background:rgba(10,6,3,.5);border:1px solid rgba(232,199,115,.3);font-size:.95rem;line-height:1.35;color:#f3e7cc}
+.memo .mm-desc b{color:var(--acc2)}
+.memo .mm-desc.hint{color:var(--mute)}
+.memo .mm-four{min-height:158px;justify-content:flex-start;align-items:flex-start;gap:8px;padding-top:0}
+.memo .mm-four .mm-fig{width:94px}
+.memo .mm-four .card{--w:80px}
+.memo .mm-four .mm-fig{animation:mmpop .42s cubic-bezier(.2,1.25,.3,1) backwards;animation-delay:calc(var(--i)*80ms)}
+.memo .mm-four .mm-cap b{display:block;font-size:.86rem;color:var(--acc2);letter-spacing:.02em}
+@keyframes mmpop{from{opacity:0;transform:translateY(-22px) scale(.55)}}
+@media (max-width:760px){.memo .mm-grid{grid-template-columns:1fr}.memo .mm-prow{max-width:none}}
+.memo .mm-foot{display:flex;align-items:center;gap:12px;margin-top:2px}
+.memo .mm-bub{flex:1;min-height:2.4em;padding:8px 12px;border-radius:10px;background:rgba(10,6,3,.5);border:1px solid rgba(232,199,115,.3);font-size:.9rem;line-height:1.3;color:#f3e7cc;visibility:hidden}
+.memo .mm-bub.on{visibility:visible;animation:mmpop .3s ease-out}
+.memo .mm-seal{flex:none;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;user-select:none;-webkit-user-select:none;outline:none}
+.memo .mm-seal img{width:58px;height:58px;object-fit:contain;filter:drop-shadow(0 3px 4px rgba(0,0,0,.6));transition:transform .15s}
+.memo .mm-seal:hover img,.memo .mm-seal.on img{transform:scale(1.08) rotate(-4deg)}
+.memo .mm-seal small{font-size:.7rem;color:var(--mute)}
+
 /* ================= главное меню и лобби на фоне-картинке =================
    .stage — это картинка 1674×940, растянутая «cover»; всё внутри позиционируется в процентах и масштабируется шрифтом. */
 .vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);margin:0}
@@ -716,6 +775,81 @@ input:not([type=checkbox],[type=radio]):focus{outline:none;filter:drop-shadow(0 
 .auth .err{color:#ff8a93;font-size:.9rem;min-height:1.2em;text-align:center}
 .auth button.lnk{border-image:none!important;border:0!important;background:none!important;box-shadow:none!important;filter:none!important;color:#9fc1ff;font-weight:400;font-size:.88rem;padding:4px;text-decoration:underline;min-height:0}
 .auth .big{--s:96px;align-self:center;cursor:pointer}
+/* значок уровня: 20 спрайтов, каждые 5 уровней новый; последний — ровно на 100 уровне */
+.lvb{position:relative;display:inline-flex;align-items:center;justify-content:center;--s:3.6em;width:var(--s);height:var(--s);flex:none;background:center/contain no-repeat;filter:drop-shadow(0 2px 3px rgba(0,0,0,.75));vertical-align:middle}
+.lvb b{font-weight:400;font-size:calc(var(--s)*.36);line-height:1;color:#fff8e0;text-shadow:0 0 2px #000,0 1px 2px #000,0 0 7px rgba(0,0,0,.85);margin-top:.04em}
+.lvb.l3 b{font-size:calc(var(--s)*.27)}
+.lvb.sm{--s:1.7em;margin:0 0 0 .35em}
+.lvslot{flex:none;display:flex;align-items:center;justify-content:center}
+.lvslot .lvb{--s:3.9em}
+.mrow2{display:flex;gap:.5em}.mrow2 button{flex:1;min-width:0;padding-left:.2em;padding-right:.2em;white-space:nowrap}
+/* окно профиля: пропорции 3:2 — как фон ui/profile_bg.webp, сам фон слегка затемнён */
+.sheet.prof{--w:min(840px,94vw,calc((100vh - 32px) * 1.5));--pb:calc(var(--w) / 42);--tint:rgba(9,5,2,.46);
+  width:var(--w);max-width:none;max-height:none;aspect-ratio:3/2;padding:0;overflow:hidden;position:relative;display:block;font-size:max(calc(var(--w) / 56),9px);
+  background:linear-gradient(var(--tint),var(--tint)),url(ui/profile_bg.webp) center/cover no-repeat,#2a1c10;background-clip:padding-box}
+.sheet.prof::before{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at 50% 45%,rgba(0,0,0,0) 35%,rgba(0,0,0,.45) 100%),linear-gradient(90deg,rgba(8,4,1,.62) 0,rgba(8,4,1,.18) 42%,rgba(8,4,1,.5) 100%)}
+.prof .pgrid{position:absolute;inset:0;display:grid;grid-template-columns:15em 1fr;gap:1.8em;padding:1.5em 2em 1.4em 1.8em}
+.prof .pleft{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.7em;text-align:center}
+.prof .pemb{position:relative;width:13em;height:13em}
+.prof .pemb .pava{--s:100%;font-size:5em;border:3px solid #e8c773;box-shadow:0 6px 18px rgba(0,0,0,.7),0 0 0 3px rgba(60,30,6,.8);cursor:pointer}
+.prof .pemb .lvb{--s:8.2em;position:absolute;right:-3.4em;bottom:-2.6em}
+.prof .pleft .hint{font-size:.9em;color:#e8dab4;line-height:1.3;margin-top:2.4em;text-shadow:0 1px 3px #000}
+.prof .pright{display:flex;flex-direction:column;justify-content:center;gap:.9em;min-width:0}
+.prof .ptitle{font-size:.9em;letter-spacing:.32em;text-transform:uppercase;color:#e8c773;text-shadow:0 1px 3px #000}
+.prof .pname{font-size:2.9em;line-height:1.05;color:#fff3cf;text-shadow:0 2px 4px #000,0 0 18px rgba(0,0,0,.7);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:800}
+.prof .lvline{display:flex;align-items:baseline;justify-content:space-between;gap:1em;font-size:1.12em;color:#f6e7bd;text-shadow:0 1px 3px #000}
+.prof .lvline b{color:#ffd36a;font-weight:800;font-size:1.25em}
+.prof .pbar{height:1.9em;border-radius:1em;font-size:1em;box-shadow:0 .2em .6em rgba(0,0,0,.6)}
+.prof .pbar span{font-size:.92em;line-height:2}
+.prof .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:.7em}
+.prof .stat{background:rgba(10,6,3,.62);border:1px solid rgba(232,199,115,.45);border-radius:.8em;padding:.6em .4em;text-align:center;backdrop-filter:blur(2px)}
+.prof .stat small{display:block;font-size:.8em;color:#d8c79b;letter-spacing:.03em}
+.prof .stat b{display:block;font-size:1.65em;color:#fff3cf;font-weight:800;line-height:1.2;text-shadow:0 1px 3px #000}
+.prof .rankbox{border:1px dashed rgba(232,199,115,.45);border-radius:.8em;padding:.55em .8em;color:#e6d6ab;font-size:.95em;background:rgba(10,6,3,.4);display:flex;justify-content:space-between;gap:1em;align-items:center}
+.prof .rankbox small{opacity:.8}
+.prof .pact{display:flex;align-items:center;justify-content:space-between;gap:1em}
+.prof .pact .lks{display:flex;flex-direction:column;align-items:flex-start;gap:.1em}
+.prof button.lnk{border-image:none!important;border:0!important;background:none!important;box-shadow:none!important;filter:none!important;color:#9fd0ff;font-weight:400;font-size:.9em;padding:.2em 0;text-decoration:underline;min-height:0;text-align:left}
+.prof .pact button:not(.lnk){font-size:1em;padding-left:.4em;padding-right:.4em}
+@media (max-width:640px),(max-height:420px){
+  .sheet.prof{--w:min(94vw,560px);aspect-ratio:auto;font-size:13px;max-height:94vh;overflow:auto}
+  .prof .pgrid{position:relative;inset:auto;grid-template-columns:1fr;padding:1.2em}
+  .prof .pleft{flex-direction:row;justify-content:center;gap:1.4em}
+  .prof .pemb{width:9em;height:9em}.prof .pemb .pava{font-size:3.6em}.prof .pemb .lvb{--s:5.6em;right:-2.2em;bottom:-1.6em}
+  .prof .pleft .hint{margin:0;text-align:left;max-width:12em}
+  .prof .pname{font-size:2.1em}.prof .stats{grid-template-columns:1fr 1fr}
+}
+/* настройки */
+.sheet.settings{width:min(480px,94vw);gap:14px;align-items:stretch;padding:6px 10px}
+.settings h3{text-align:center;font-size:1.5rem;color:var(--acc2)}
+.settings .setsec{font-size:.78rem;letter-spacing:.28em;text-transform:uppercase;color:#e8c773;border-bottom:1px solid rgba(232,199,115,.3);padding-bottom:3px;margin-top:2px}
+.settings .setrow{display:flex;flex-direction:column;gap:6px}
+.settings .settop{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.settings .settop small{display:block;color:var(--mute);font-weight:400;font-size:.76rem}
+.settings .slr{display:flex;align-items:center;gap:10px}
+.settings .slr output{min-width:3.2em;text-align:right;font-weight:700;color:#fff3cf}
+/* ползунок из спрайтов: дорожка ui/rng_track, бегунок ui/rng_thumb1–4, заполнение — жёлто-оранжевое. Бегунок ходит от начала до конца канавки */
+.rng{--H:30px;position:relative;flex:1;height:var(--H);margin:0 calc(var(--H)*.35);touch-action:none;cursor:pointer;user-select:none;-webkit-user-select:none;outline:none;-webkit-tap-highlight-color:transparent}
+.rng .rtrack{position:absolute;inset:0;border:solid transparent;border-width:0 calc(var(--H)*.82);border-image:url(ui/rng_track.webp) 0 64 0 64 fill / 0 calc(var(--H)*.82) 0 calc(var(--H)*.82) stretch;filter:drop-shadow(0 2px 2px rgba(0,0,0,.55))}
+.rng .rch{position:absolute;left:calc(var(--H)*.8);right:calc(var(--H)*.82);top:calc(var(--H)*.28);bottom:calc(var(--H)*.32);border-radius:99px;overflow:hidden}
+.rng .rfill{position:absolute;left:0;top:0;bottom:0;width:calc(var(--v)*100%);background:linear-gradient(#ffe08a,#f0a24c 38%,#e3790f 70%,#b85f0a);box-shadow:inset 0 1px 0 rgba(255,244,190,.65),0 0 7px rgba(255,160,40,.55)}
+.rng .rthumb{position:absolute;top:50%;left:calc(var(--H)*.8 + var(--v)*(100% - var(--H)*1.62));width:calc(var(--H)*1.31);height:calc(var(--H)*1.5);transform:translate(-50%,-50%);background:url(ui/rng_thumb1.webp) center/contain no-repeat;filter:drop-shadow(0 2px 3px rgba(0,0,0,.6));transition:transform .08s}
+.rng:hover .rthumb,.rng:focus-visible .rthumb{background-image:url(ui/rng_thumb2.webp)}
+.rng.drag .rthumb{background-image:url(ui/rng_thumb3.webp);transform:translate(-50%,-50%) scale(1.06)}
+.rng.off .rthumb{background-image:url(ui/rng_thumb4.webp)}
+.rng.off .rfill{filter:grayscale(1) brightness(.65);box-shadow:none}
+.settings .profrow{display:flex;flex-direction:column;gap:10px}
+.settings .profrow button{width:100%;white-space:nowrap}
+.settings .fonts{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.settings .fopt{border:1px solid rgba(232,199,115,.4);border-radius:10px;padding:8px 6px;text-align:center;cursor:pointer;background:rgba(10,6,3,.45);transition:border-color .12s,background .12s}
+.settings .fopt:hover{background:rgba(60,36,10,.6)}
+.settings .fopt.on{border-color:#ffd36a;background:rgba(120,80,10,.45);box-shadow:0 0 10px rgba(255,200,60,.35)}
+.settings .fopt .fs{font-size:1.25rem;line-height:1.2;color:#fff3cf}
+.settings .fopt small{display:block;color:var(--mute);font-size:.74rem;margin-top:2px}
+.settings .whoami{display:flex;align-items:center;gap:10px;min-width:0}
+.settings .whoami .pava{--s:40px}
+.settings .whoami b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.settings .setfoot{display:flex;gap:8px;justify-content:center;margin-top:4px}
 .auth .stats{display:grid;grid-template-columns:1fr 1fr;gap:4px 12px;font-size:.9rem;color:#cdd5e6}
 .auth .rankbox{border:1px dashed rgba(255,255,255,.25);border-radius:10px;padding:8px;text-align:center;color:#aab;font-size:.9rem}
 .pav{display:inline-block;flex:none;width:1.5em;height:1.5em;border-radius:50%;margin-right:.25em;vertical-align:middle;background:#5a1d14 center/cover no-repeat;border:1px solid #e8c773;font-size:.8em;line-height:1.55em;text-align:center;font-weight:800;color:#fff3cf;text-transform:uppercase;overflow:hidden}
@@ -736,9 +870,9 @@ ul.players li .who{display:flex;align-items:center}
 .menuscr .ver{position:absolute;left:4%;bottom:3.4%;margin:0;color:#d6c7a2;font-size:.75em;text-shadow:0 1px 2px #000}
 
 /* «Сортировка руки»: прежний шрифт игры, кнопка шире, текст с обводкой */
-.sortb{font-family:inherit;font-size:1.05rem;font-weight:400;letter-spacing:.06em;word-spacing:.15em;color:#fff4d2;white-space:nowrap;
-  -webkit-text-stroke:2.6px #3a1c00;paint-order:stroke fill;
-  text-shadow:0 1px 0 #3a1c00,0 2px 3px rgba(0,0,0,.6)}
+.sortb{font-family:inherit;font-size:1.05rem;font-weight:400;letter-spacing:.06em;word-spacing:.15em;white-space:nowrap;
+  -webkit-text-stroke:0;color:#fff;
+  text-shadow:0 1px 0 #000,0 2px 3px #000,0 0 6px rgba(0,0,0,.85)}
 @media (min-width:701px){.sortb{min-width:226px;justify-content:center;gap:12px;padding-left:20px;padding-right:26px}}
 
 /* экран подсчёта: фон-картинка, затемнённая, чтобы поверх хорошо читалась информация */
@@ -849,21 +983,68 @@ ul.players li .who{display:flex;align-items:center}
 #intro video{width:100%;height:100%;object-fit:cover;display:block}
 
 /* ================= обучение: диалоговое окно как в визуальных новеллах, Лавр Золотозуб стоит над ним ================= */
-#tutShield{position:fixed;inset:0;z-index:140;background:rgba(0,0,0,.52);display:none;touch-action:none}
+/* обучение: табула очков выезжает на центр экрана и слегка увеличивается, пока Лавр о ней говорит */
+.rcol.lift{z-index:30}
+.scoretbl.lift{display:block;transform-origin:0 0}
+#tutDim{position:fixed;inset:0;width:100%;height:100%;z-index:140;pointer-events:none;opacity:0;transition:opacity .3s}
+#tutDim.on{opacity:1}
+#tutShield{position:fixed;inset:0;z-index:140;background:transparent;display:none;touch-action:none}      /* только перехватывает нажатия; затемнение рисует #tutDim */
 #tutShield.on{display:block}
-#tutShield.clear{background:transparent}
 #tutFrames{position:fixed;inset:0;z-index:141;pointer-events:none}
-.tfr{position:fixed;border:3px solid var(--acc2);border-radius:12px;box-shadow:0 0 18px 3px rgba(240,162,76,.85);animation:tpulse 1.3s ease-in-out infinite}
-@keyframes tpulse{0%,100%{border-color:var(--acc2)}50%{border-color:#fff3dc}}
+/* рамка вокруг подсвеченного элемента: тонкая золотая линия с тёмным кантом, мягкое дыхание свечения и бегущий блик по кромке */
+@property --tfa{syntax:'<angle>';inherits:false;initial-value:0deg}
+.tfr{position:fixed;box-sizing:border-box;border:2px solid #ffe6a0;border-radius:15px;
+  box-shadow:0 0 0 1px rgba(70,35,0,.8),0 0 0 5px rgba(255,205,90,.16),0 0 20px 3px rgba(255,176,56,.5),inset 0 0 16px rgba(255,205,100,.22);
+  transition:left .12s linear,top .12s linear,width .12s linear,height .12s linear;animation:tglow 2s ease-in-out infinite}
+.tfr::before{content:"";position:absolute;inset:-4px;border-radius:19px;padding:3px;pointer-events:none;
+  background:conic-gradient(from var(--tfa),transparent 0 66%,rgba(255,252,225,.95) 86%,transparent 100%);
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box exclude,linear-gradient(#000 0 0);
+  animation:tspin 2.6s linear infinite}
+.tfr::after{content:"";position:absolute;inset:0;border-radius:15px;border:2px solid rgba(255,214,120,.8);pointer-events:none;animation:tping 2s ease-out infinite}
+@keyframes tglow{50%{border-color:#fff7dc;box-shadow:0 0 0 1px rgba(70,35,0,.8),0 0 0 5px rgba(255,205,90,.28),0 0 28px 6px rgba(255,190,70,.7),inset 0 0 20px rgba(255,210,110,.32)}}
+@keyframes tspin{to{--tfa:360deg}}
+@keyframes tping{0%{inset:0;opacity:.85}70%,100%{inset:-14px;opacity:0;border-radius:24px}}
+/* подсвеченные карты в руке светятся сами — по настоящему контуру карты, а не прямоугольником */
+.hand .card.tuthl{z-index:12;animation:tcard 1.7s ease-in-out infinite;
+  filter:drop-shadow(0 6px 8px rgba(0,0,0,.55)) drop-shadow(0 0 1.5px #fff3c0) drop-shadow(0 0 6px #ffc548) drop-shadow(0 0 14px rgba(255,160,40,.85))}
+@keyframes tcard{50%{filter:drop-shadow(0 6px 8px rgba(0,0,0,.55)) drop-shadow(0 0 2px #fff) drop-shadow(0 0 9px #ffd873) drop-shadow(0 0 22px rgba(255,170,50,1))}}
+@media (prefers-reduced-motion:reduce){.tfr,.tfr::before,.tfr::after,.hand .card.tuthl{animation:none}}
 .tut{--lh:clamp(110px,min(24vh,34vw),230px);--lw:calc(var(--lh)*1.4275);position:fixed;left:50%;bottom:10px;width:min(1040px,96vw);z-index:150;pointer-events:none;
   transform:translate(-50%,170%);opacity:0;transition:transform .55s cubic-bezier(.2,1.1,.35,1),opacity .3s}
 .tut.on{transform:translate(-50%,0);opacity:1}
 .tut .tm{position:absolute;left:1.5%;bottom:calc(100% - 30px);height:var(--lh);width:var(--lw);z-index:0;filter:drop-shadow(0 6px 8px rgba(0,0,0,.6));transform-origin:50% 100%;animation:tbob 3.6s ease-in-out infinite}
 @keyframes tbob{0%,100%{transform:scale(1,1)}50%{transform:scale(1.012,1.02)}}
+.tut .tm,.tut .tt{pointer-events:auto}   /* Лавр и табличка с именем тоже «твёрдые»: под ними ничего не наводится и не нажимается */
 .tut .tt{position:absolute;left:calc(1.5% + var(--lw) + 6px);bottom:calc(100% - 13px);width:clamp(170px,22vw,250px);aspect-ratio:405/118;background:url(ui/dlgtab.webp) center/100% 100% no-repeat;z-index:2;
   display:flex;align-items:center;justify-content:center;padding-bottom:3px;font-size:clamp(.7rem,1.7vh,.95rem);letter-spacing:.1em;text-transform:uppercase;color:#ffd98a;text-shadow:0 1px 2px #000;white-space:nowrap}
 .tut .tbox{position:relative;z-index:1;pointer-events:auto;box-sizing:border-box;min-height:clamp(130px,19vh,190px);padding:6px 8px 2px;
   border:solid transparent;border-width:32px 70px 46px 52px;border-image:url(ui/dlgbox.webp) 62 135 90 100 fill / 32px 70px 46px 52px stretch;display:flex;flex-direction:column}
+/* выделенные слова в репликах Лавра: цвет по смыслу + подчёркивание, а цифры монет и иксы — крупнее */
+.tut .tx .hw{--hc:#ffd36a;color:var(--hc);font-weight:800;text-shadow:0 0 .6em color-mix(in srgb,var(--hc) 45%,transparent),0 1px 3px #000;
+  background:linear-gradient(var(--hc),var(--hc)) 0 100%/100% .09em no-repeat;padding-bottom:.05em;-webkit-box-decoration-break:clone;box-decoration-break:clone;animation:hwline .5s ease-out both}
+.tut .tx.done .hw,.tut .tx.done .hw:is(.hw-c,.hw-x2,.hw-x3,.hw-n,.hw-j,.hw-a){animation:none}
+@keyframes hwline{from{background-size:0 .09em}}
+@keyframes hwpop{0%{transform:scale(.4);opacity:0}60%{transform:scale(1.18)}100%{transform:scale(1);opacity:1}}
+.tut .tx .hw-t{--hc:#3fe3da}                                 /* Господские — бирюзовый, как их рамка */
+.tut .tx .hw-k{--hc:#ffcf3f;animation:hwline .5s ease-out both,hwglow 2.2s ease-in-out .5s infinite}   /* Королевские — золотой, мерцает */
+@keyframes hwglow{50%{text-shadow:0 0 .9em rgba(255,214,90,.95),0 0 .3em rgba(255,240,170,.8),0 1px 3px #000}}
+.tut .tx .hw-s{--hc:#c4d457}                                 /* порча, гниль */
+.tut .tx .hw-r{--hc:#ff7f6d;background:none;text-decoration:underline wavy #ff7f6d;text-decoration-thickness:.07em;text-underline-offset:.2em}   /* напасти */
+.tut .tx .hw-b{--hc:#8ec5ff}                                 /* помощники */
+.tut .tx .hw-g{--hc:#8fe3a0}
+.tut .tx .hw-z{--hc:#c9ced6}                                 /* обычный товар — серый */
+.tut .tx .hw-p{--hc:#ff6a5c}                                 /* печать купца, «Нет» — красный */
+.tut .tx .hw-w{--hc:#c5d2ee;font-style:italic;font-weight:600;background:none;text-decoration:underline dotted;text-decoration-thickness:.06em;text-underline-offset:.2em}   /* шёпотом, тайно */
+.tut .tx .hw-i{--hc:#e0b0ff;font-style:italic;display:inline-block;transform:skewX(-7deg);background:none;text-decoration:underline dotted;text-decoration-thickness:.07em;text-underline-offset:.2em}   /* с издёвкой */
+.tut .tx .hw-j{--hc:#ffe27a;display:inline-block;animation:hwpop .5s cubic-bezier(.2,1.4,.4,1) both}   /* радость, азарт */
+.tut .tx .hw-a{--hc:#ff6b5a;display:inline-block;background:none;text-decoration:underline wavy #ff6b5a;text-decoration-thickness:.07em;text-underline-offset:.2em;animation:hwpop .4s ease-out both,hwshake .22s linear .45s infinite}   /* возмущение, тревога */
+@keyframes hwshake{0%,100%{translate:0 0;rotate:0deg}25%{translate:-.5px .5px;rotate:-.8deg}75%{translate:.5px -.5px;rotate:.8deg}}
+.tut .tx .hw-c,.tut .tx .hw-x2,.tut .tx .hw-x3,.tut .tx .hw-n{display:inline-block;line-height:1;background:none;padding:0 .04em;font-weight:900;animation:hwpop .45s cubic-bezier(.2,1.4,.4,1) both}
+.tut .tx .hw-c{--hc:#ffd24a;font-size:1.22em}                /* монеты */
+.tut .tx .hw-n{--hc:#ffb35c;font-size:1.22em}                /* очки */
+.tut .tx .hw-x2{--hc:#3fe3da;font-size:1.32em;letter-spacing:.02em}   /* множитель ×2 */
+.tut .tx .hw-x3{--hc:#ffcf3f;font-size:1.4em;letter-spacing:.02em}    /* множитель ×3 */
+@media (prefers-reduced-motion:reduce){.tut .tx .hw{animation:none!important}}
 .tut .tx{flex:1;font-size:clamp(1.02rem,2.1vh + .35rem,1.4rem);line-height:1.38;color:#f6e8cf;text-shadow:0 1px 3px #000;padding:0 6px;cursor:default}
 .tut .tn{display:none}
 .tut .tbtns{display:flex;justify-content:flex-end;gap:10px;margin-top:4px;padding-right:6px;min-height:8px}
@@ -873,7 +1054,7 @@ ul.players li .who{display:flex;align-items:center}
 .tut .tskip:hover{opacity:1}
 .tut.top{bottom:auto;top:10px;display:flex;align-items:flex-end;transform:translate(-50%,-170%)}
 .tut.top.on{transform:translate(-50%,0)}
-.tut.top .tm{position:static;flex:none;height:calc(var(--lh)*.72);width:calc(var(--lw)*.72);margin-right:-26px;margin-bottom:-6px;z-index:2;pointer-events:none}
+.tut.top .tm{position:static;flex:none;height:calc(var(--lh)*.72);width:calc(var(--lw)*.72);margin-right:-26px;margin-bottom:-6px;z-index:2;pointer-events:auto}
 .tut.top .tt{display:none}
 .tut.top .tbox{flex:1;min-width:0}
 .tut.top .tn{display:block;font-size:.8rem;letter-spacing:.12em;text-transform:uppercase;color:#ffd98a;padding:0 6px}
@@ -948,15 +1129,128 @@ ul.players li .who{display:flex;align-items:center}
   background:linear-gradient(180deg,#8d1d1d,#5c1010);color:#fff2d8;border:2px solid #e8b84a;font-size:1.05rem;font-weight:700;font-synthesis:weight;
   box-shadow:0 6px 18px rgba(0,0,0,.6);transition:transform .25s ease}
 #netBan.on{transform:translate(-50%,0)}
+
+/* =====================================================================
+   КОМПАКТНЫЙ РЕЖИМ (html.cmp): низкие окна — телефоны в альбомной ориентации и маленькие окна. Рассчитан на высоту ~480–640 px.
+   ===================================================================== */
+.chatT{display:none}
+html.cmp{--pw:108px}
+html.cmp .hud{top:3px;left:6px;right:6px;gap:6px}
+html.cmp .hud .code{font-size:.78rem;letter-spacing:.14em}
+html.cmp #ver3{display:none}
+html.cmp .hud button{padding:4px 12px;font-size:.74rem}
+html.cmp .hud .btns{gap:4px}
+html.cmp .hud .btns .sbt{display:none}
+html.cmp .hud .dayinfo{top:22px}
+html.cmp .directive{top:5px;width:min(520px,calc(100vw - 2 * (var(--pw) + 215px)));padding:3px 10px}
+html.cmp .directive.big{font-size:1.05rem;padding:4px 12px}
+html.cmp .directive.blink{font-size:.95rem}
+html.cmp .directive small{font-size:.66rem}
+html.cmp .directive.tellon{padding:2px 14px}
+html.cmp .directive .tellmsg{font-size:.88rem;letter-spacing:.01em;line-height:1.15}
+html.cmp .directive .tellmsg.me{font-size:1.1rem;-webkit-text-stroke:1px #4a2508}
+html.cmp .directive.tellon .tellmsg+b,html.cmp .directive.tellon .tellmsg+small{margin-top:0}
+html.cmp .toast{top:56px;font-size:.8rem;padding:5px 12px}
+html.cmp .midmsg{font-size:1.4rem;padding:8px 18px}
+html.cmp .table{top:34px;bottom:calc(var(--hb) + 4px);width:100vw;min-height:190px}
+html.cmp{--dx:calc(var(--cwid)*.4615 + 72px)}
+/* колода, сброс, банк, печати — ближе к платку */
+html.cmp .deck,html.cmp .disc{width:64px;height:100px;margin:-50px 0 0 -32px}
+html.cmp{--ax:232px}
+html.cmp .deck{left:calc(50% - var(--ax))}
+html.cmp .disc{left:calc(50% + var(--ax))}
+html.cmp .disc{filter:drop-shadow(0 4px 4px rgba(0,0,0,.55))}
+html.cmp .disc::before{width:118px;height:80px}
+html.cmp .disc .card{--w:52px}
+html.cmp .deck-l,html.cmp .disc-l{margin-top:56px;font-size:.72rem}
+html.cmp .deck-l{left:calc(50% - var(--ax))}
+html.cmp .disc-l{left:calc(50% + var(--ax))}
+html.cmp .bank{left:calc(50% - var(--ax) - 118px);top:68%}
+html.cmp .sealpile{left:calc(50% + var(--ax) + 116px);top:68%}
+html.cmp .lotzone,html.cmp .deck,html.cmp .disc{top:44%}
+html.cmp .deck-l,html.cmp .disc-l{top:44%}
+html.cmp .mystk{left:calc(50% - var(--ax) - 6px);top:calc(44% + 104px)}
+html.cmp .bank .purse{--k:.95;gap:9px}
+html.cmp .bank .bl,html.cmp .sealpile .bl{font-size:.66rem}
+html.cmp .sealpile .stack{min-height:48px;min-width:56px}
+html.cmp .sealpile .stack .seal{--k:1}
+html.cmp .sealpile .stack .seal+.seal{margin-left:-34px}
+/* игроки за столом мельче */
+html.cmp .seat{transform:scale(calc(var(--s,1)*.8*var(--vk,1)))}
+/* левый столбик кнопок и моя панель */
+html.cmp .mebar{left:6px;bottom:4px;max-width:240px;--pb:11px;padding:0 3px;gap:2px}
+html.cmp .mebar .purse{--k:1;gap:7px}html.cmp .mebar .seal{--k:1.15}html.cmp .mebar .sum{font-size:1.7rem}
+html.cmp .mebar>.top{font-size:.8rem}html.cmp .mebar .mid{gap:8px}html.cmp .mebar .pw .pc{font-size:.66rem}html.cmp .mebar small{font-size:.62rem}
+html.cmp .chgb,html.cmp .sortb{left:6px;font-size:.7rem;padding:3px 10px 3px 7px;min-width:0;gap:6px}
+html.cmp .sortb .bk{width:14px;height:22px}html.cmp .sortb .bk+.bk{margin-left:-11px}
+html.cmp .sortb.memob .tr{width:16px;height:22px}html.cmp .sortb.memob .tr::before{width:22px;height:15px}
+html.cmp .chgb{bottom:calc(var(--mbh,120px) + 70px)}
+html.cmp .chgb .coin{--k:.45}
+html.cmp .sortb{bottom:calc(var(--mbh,120px) + 40px)}
+html.cmp .sortb.memob{bottom:calc(var(--mbh,120px) + 10px)}
+/* справа: чат прячется за кнопку, таблица очков — в полосе руки */
+html.cmp .rcol{right:6px;bottom:4px;z-index:9}
+html.cmp .scoretbl{zoom:.74}
+html.cmp .chatT{display:block;position:absolute;right:6px;top:36px;z-index:9;width:34px;height:34px;padding:0;font-size:1rem;line-height:1;border-radius:50%;
+  background:rgba(10,14,22,.88);border:1px solid rgba(255,255,255,.3);color:var(--ink)}
+html.cmp .chatT.dot::after{content:"";position:absolute;right:-1px;top:-1px;width:11px;height:11px;border-radius:50%;background:var(--red);border:2px solid #0a0e16}
+html.cmp .chatT.on{border-color:var(--acc)}
+html.cmp .rcol .chat{display:none}
+html.cmp .rcol.chatopen .chat{display:flex;position:fixed;right:6px;top:74px;width:min(320px,42vw);z-index:30;background:rgba(10,14,22,.94);padding:6px;border-radius:12px;border:1px solid rgba(255,255,255,.25)}
+html.cmp .rcol.chatopen .log{height:min(150px,34vh);font-size:.78rem}
+html.cmp .chat input{padding:6px 10px;font-size:.8rem}
+/* окно действий */
+html.cmp .act,html.cmp .act.cmp{width:340px;bottom:calc(var(--hb) + 4px);padding:5px 10px;gap:3px;max-height:none}
+html.cmp .act .row.g2 button{padding:7px 12px 8px;min-width:0}html.cmp .act .row.g2{gap:6px 8px}
+html.cmp .bag{width:56px;height:63px}html.cmp .bagtxt{font-size:.95rem}
+html.cmp .act button .bt{font-size:1.05rem}html.cmp .act button .pt{font-size:.7rem}
+html.cmp .act .t.c{font-size:.95rem}
+/* окно «Сброс» (ящик): целиком в экране вместе с заголовком и кнопкой */
+html.cmp #discS.sheet{width:min(620px,94vw)}
+html.cmp #discS .dttl{top:-38px;font-size:1.4rem}
+html.cmp #discS .dtin{gap:8px}html.cmp #discS .dtin .card{--w:64px}
+html.cmp #discS>button{bottom:-48px}
+/* обучение: окно Лавра ниже и мельче, чтобы оставлять столу место */
+html.cmp .tut{--lh:98px;width:min(940px,calc(100vw - 20px))}
+html.cmp .tut:not(.top){bottom:5px}
+html.cmp .tut.top{top:6px}
+html.cmp .tut .tbox{min-height:80px;padding:4px 8px 0}
+html.cmp .tut .tx{font-size:.98rem;line-height:1.3}
+html.cmp .tut .tbtns{margin-top:0}
+html.cmp .tut .tbtns button{padding:4px 16px;font-size:.88rem}
+html.cmp .tut .tt{width:150px}
+html.cmp .tut .tskip{font-size:.7rem;padding:2px 10px}
+html.cmp .tut.top .tn{font-size:.7rem}
+/* итоги партии: пять строк подиума и шапка должны уместиться без прокрутки */
+html.cmp .fxhead{height:66px;padding-top:10px}
+html.cmp .fxname{font-size:.8rem}
+html.cmp .fxtot{top:14px;right:40px;font-size:.8rem}html.cmp .fxtot b{font-size:1.2rem}
+html.cmp .fxbar{min-height:54px;padding:4px 16px 10px}
+html.cmp .pod{gap:0;padding:2px 0}
+html.cmp .pod .pr{padding:7px 36px 9px;gap:10px;width:min(520px,70vw)}
+html.cmp .pod .pr .pl{font-size:1.2rem}html.cmp .pod .pr .nm2{font-size:1.05rem}html.cmp .pod .pr .nm2 small{font-size:.62rem}
+html.cmp .pod .pr .pt{font-size:1.3rem}html.cmp .pod .pr .pt small{font-size:.6rem}
+html.cmp .lotinfo{top:auto;bottom:calc(var(--sh)/2 + 3px);display:block;white-space:nowrap;padding:0 8px;--pb:9px;line-height:1.15}
+html.cmp .lotinfo .lt{font-size:.8rem}html.cmp .lotinfo .lt b{font-size:.95rem}
+html.cmp .lotinfo .lp{font-size:.78rem}html.cmp .lotinfo .lp b{font-size:1.05rem}
+html.cmp .lotinfo div{margin:0}
+/* портрет: на столе просим повернуть телефон */
+html.portrait #game.on::before{content:"↻  Поверните телефон горизонтально";position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;text-align:center;padding:24px;
+  background:#0b0605;color:#f0a24c;font-size:1.3rem;font-weight:700;letter-spacing:.03em;line-height:1.5}
 </style>
 </head>
 <body>
 <div id="loadScr"><img src="ui/throbber.webp" alt=""></div>
+<svg id="tutDim" aria-hidden="true"><defs>
+  <filter id="tdb" filterUnits="userSpaceOnUse" x="0" y="0" width="100%" height="100%"><feGaussianBlur stdDeviation="3.2"/></filter>
+  <mask id="tdm" maskUnits="userSpaceOnUse" x="0" y="0" width="100%" height="100%"><rect width="100%" height="100%" fill="#fff"/><g id="tdh" fill="#000" filter="url(#tdb)"></g></mask></defs>
+  <rect width="100%" height="100%" fill="rgba(6,3,0,.6)" mask="url(#tdm)"/></svg>
 <div id="tutShield"></div><div id="tutFrames"></div>
 <div class="tut" id="tut"><img class="tm" src="ui/merchant.webp" alt=""><div class="tt">Лавр Золотозуб</div><div class="tbox"><div class="tn">Лавр Золотозуб</div><div class="tx" id="tutTx"></div><div class="tbtns" id="tutBtns"></div></div><button class="tskip" id="tutSkip">Пропустить обучение</button></div>
 <div class="modal" id="authM"><div class="sheet auth" id="authS"></div></div>
-<div class="modal" id="profM"><div class="sheet auth" id="profS"></div></div>
-<div id="intro"><video id="introV" src="ui/intro.mp4" playsinline preload="auto"></video></div>
+<div class="modal" id="profM"><div class="sheet prof" id="profS"></div></div>
+<div class="modal" id="setM"><div class="sheet settings" id="setS"></div></div>
+<div id="intro"><video id="introV" src="ui/intro.mp4" playsinline preload="auto"></video><div id="introTap" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:#000;color:#fff;font:28px/1 sans-serif;letter-spacing:.1em;z-index:2">Нажмите</div></div>
 
 <!-- ЭКРАН 1: вход -->
 <section id="home" class="screen menuscr on">
@@ -970,7 +1264,7 @@ ul.players li .who{display:flex;align-items:center}
     </div>
     <button id="create">Создать лобби</button>
     <button id="tutBtn" class="ghost">🎓 Обучение</button>
-    <button id="rulesHome" class="ghost">📜 Правила игры</button>
+    <div class="row mrow2"><button id="rulesHome" class="ghost">📜 Правила</button><button id="settingsHome" class="ghost">⚙ Настройки</button></div>
   </div>
   <div class="panel profcard" id="profCard" title="Открыть профиль">
     <div class="pava" id="pAva"></div>
@@ -979,6 +1273,7 @@ ul.players li .who{display:flex;align-items:center}
       <div class="plv"><span id="pLv"></span><span class="prk" id="pRk" title="Ранговая система появится позже">🔒 Ранг: —</span></div>
       <div class="pbar"><i id="pBar"></i><span id="pXp"></span></div>
     </div>
+    <div class="lvslot" id="pLvb"></div>
   </div>
   <div class="ver" id="ver"></div>
  </div>
@@ -1011,11 +1306,11 @@ ul.players li .who{display:flex;align-items:center}
   <div class="bgimg" id="bgImg"></div>
   <div class="bgimg night" id="bgNight"></div>
   <div class="hud">
-    <div>Код: <span class="code" id="gameCode"></span><div class="hint" id="ver3" style="text-align:left"></div></div>
+    <div>Код: <span class="code" id="gameCode"></span><div class="hint" id="ver3" style="text-align:left"></div><div class="hint" id="netPing" style="text-align:left;font-weight:700"></div></div>
     <div class="dayinfo" id="dayinfo"></div>
     <div class="btns">
-      <button id="sndBtn" class="ghost" title="Звук вкл/выкл">🔊</button>
       <button id="rulesBtn" class="ghost">Правила</button>
+      <button id="setBtn" class="ghost" title="Настройки">⚙ <span class="sbt">Настройки</span></button>
       <button id="exit" class="ghost">Выйти</button>
     </div>
   </div>
@@ -1043,17 +1338,19 @@ ul.players li .who{display:flex;align-items:center}
   <div class="mebar" id="mebar"></div>
   <div class="toast" id="toast"></div>
   <div class="act" id="act"></div>
-  <div class="rcol">
+  <div class="rcol" id="rcol">
   <div class="chat">
     <div class="log" id="log"></div>
     <input id="chatIn" maxlength="140" placeholder="Слухи и разговоры (Enter)" autocomplete="off">
   </div>
   <div class="scoretbl" id="scoreTbl"></div>
   </div>
+  <button class="chatT" id="chatTgl" title="Чат">💬</button>
   <div class="hand" id="hand"></div>
   <div class="pgtip" id="pgTip"></div>
   <button class="chgb" id="chgBtn" title="Поменять монеты в Банке без потерь"></button>
   <button class="sortb" id="sortBtn" title="Разложить карты по порядку"><span class="bk"></span><span class="bk"></span><span class="tx">Сортировка руки</span></button>
+  <button class="sortb memob" id="memoBtn" title="Памятка: напасти, помощники, виды партий"><span class="tr"></span><span class="tx">Памятка</span></button>
   <div class="modal" id="priceM"><div class="sheet price" id="priceS"></div></div>
   <div class="modal" id="cheatM"><div class="sheet" id="cheatS"></div></div>
   <div class="fx" id="finalX"><div class="fxhead" id="fxHead"></div><div class="fxst" id="fxSt"></div><div class="fxbar" id="fxBar"></div><button class="ghost fxskip" id="fxSkip">Пропустить анимацию</button></div>
@@ -1062,6 +1359,7 @@ ul.players li .who{display:flex;align-items:center}
   <div class="modal" id="sealM"><div class="sheet" id="sealS"></div></div>
 </section>
 <div class="modal" id="rulesM"><div class="sheet rules" id="rulesS"></div></div>
+<div class="modal" id="memoM"><div class="sheet memo" id="memoS"></div></div>
 
 <div class="modal" id="testM"><div class="sheet" id="testS"></div></div>
 <div id="netBan">Связь потеряна — переподключаемся…</div>
@@ -1083,7 +1381,24 @@ ul.players li .who{display:flex;align-items:center}
   };
   addEventListener('pointerdown', go, true);
 })();
-const VERSION = 'beta 0.9';
+const VERSION = 'beta 0.95';
+
+/* Настройки игрока (хранятся в браузере): громкость звуков и музыки, шрифт */
+const SET = {sfxOn: true, musOn: true, sfx: 1, mus: 1, font: 'sax', fontPicked: false};   // sfxOn/musOn больше не настраиваются: звук выключается ползунком в ноль
+try{
+  const raw = localStorage.getItem('kup_settings');
+  if (raw) Object.assign(SET, JSON.parse(raw));
+}catch(e){}
+SET.sfxOn = SET.musOn = true;      // старые сохранённые «выключено» сбрасываем: тумблеров в настройках больше нет, иначе звук нельзя было бы вернуть
+if (!SET.fontPicked) SET.font = 'sax';                 // шрифт по умолчанию — Saxonia, пока игрок сам не выбрал другой
+const setSave = () => { try{ localStorage.setItem('kup_settings', JSON.stringify(SET)); }catch(e){} };
+const FONTS = {
+  sax: {name: 'Saxonia Antiqua', css: '"Saxonia Antiqua","Foxcroft NF","Trebuchet MS","Segoe UI",sans-serif'},      // в Saxonia нет латиницы — её берёт Foxcroft
+  fox: {name: 'Foxcroft', css: '"Foxcroft NF","Trebuchet MS","Segoe UI",sans-serif'}
+};
+if (!FONTS[SET.font]) SET.font = 'sax';
+const applyFont = () => document.documentElement.style.setProperty('--ff', FONTS[SET.font].css);
+applyFont();
 
 /* Числа из правил. Если что-то захочется подкрутить — это здесь. */
 const RULES = {
@@ -1845,7 +2160,7 @@ let hostConn = null;                        // клиент: соединени�
 const IMG = {bread:'webp', wheat:'webp', rich:'webp', moldy:'webp', cheese:'webp', gouda:'webp', blue:'webp', wormy:'webp', apple:'webp', green:'webp', gold:'webp', rotten:'webp', pepper:'webp', cinnamon:'webp', saffron:'webp', damp:'webp', silk:'webp', wild:'webp', spider:'webp', soaked:'webp', banana:'webp', cavendish:'webp', gros:'webp', black:'webp',
   cat:'webp', auditor:'webp', rat:'webp', pest_cheese:'webp', pest_bread:'webp', pest_apple:'webp', pest_spice:'webp', pest_silk:'webp', pest_banana:'webp'};
 const CAP = {simple:'простой', gentry:'господский ×2', royal:'королевский ×3', spoiled:'порча', rat:'напасть', pest:'напасть', cat:'помощник', auditor:'помощник'};
-const STEP_MSG = {compose:'выкладывает лот', price:'называет цену', showcase:'решает про витрину', inspect:'осматривает лот', answer:'отвечает на вопрос',
+const STEP_MSG = {compose:'выкладывает лот', price:'называет почин', showcase:'решает про витрину', inspect:'осматривает лот', answer:'отвечает на вопрос',
   auction:'торгуется', pay:'платит за лот', takelot:'забирает лот', cat:'решает, играть ли Кота', rat:'выбирает карты для Крысы',
   buy:'докупает карты', return:'забирает свои карты', openpick:'вскрывает карту'};
 
@@ -1853,7 +2168,7 @@ let myHand = [], selIds = new Set(), myPeek = null, mySrc = null;
 let placed = [null, null, null], handOrder = [], autoSort = true, hd = null;   // placed — id карт, положенных на стол для лота; handOrder — порядок карт в руке (только у меня)
 let lastSeq = 0, curGid = 0, tableReady = false, hideLot = false;
 let slotSig = '', prevLot = null, toastT = 0, TEST = false, sawPlacing = false;
-const TUT = {hideT:0, bigTry:false, on:false, run:0, hl:[], key:'', ans:null, holdAns:false, keepPg:false, tm:0, ty:0, typing:false, full:'', place:0};
+const TUT = {fin:false, hideT:0, bigTry:false, bigPrice:false, insp:'', on:false, run:0, hl:[], key:'', ans:null, holdAns:false, keepPg:false, tm:0, ty:0, typing:false, full:'', place:0};
 const ui = {price:'', q:'', qpath:[], qsel:null, mode:null, actKey:'', tray:{1:0, 5:0, 10:0}, trayKey:'', trayAmt:0, bag:null, bagMode:false, lpLot:0, lpVal:null, lpAnim:null, stakeSigs:{}, stakePrev:{}};
 const seatEls = {};
 const reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -1919,11 +2234,20 @@ async function fbInit(){
    Уровень: с n на n+1 нужно 100·n опыта (100, 200, 300 …), максимум — 100 уровень. Опыт = очки (богатство), набранные за партию.
    ========================================================= */
 const PF_KEY = 'kup_profiles', PF_CUR = 'kup_cur', PF_MAXL = 100;
+/* Статистика профиля. Поражения у старых профилей (до их появления) = партии − победы; часы хранятся секундами (secs) */
+const pfLosses = p => p.losses != null ? (p.losses | 0) : Math.max(0, (p.games || 0) - (p.wins || 0));
+const pfHours = p => { const h = Math.round((p.secs || 0) / 360) / 10; return String(h).replace('.', ','); };    // 1 знак после запятой: 3,5
 const lvXp = n => 50 * n * (n - 1);                   // всего опыта, чтобы достичь уровня n
 function lvInfo(xp){
   let L = 1; while (L < PF_MAXL && xp >= lvXp(L + 1)) L++;
   const base = lvXp(L), need = L >= PF_MAXL ? 0 : lvXp(L + 1) - base;
   return {L, cur: xp - base, need, max: L >= PF_MAXL};
+}
+const lvTier = L => L >= PF_MAXL ? 20 : Math.min(19, Math.ceil(L / 5));      // 1–5 → 1-й значок … 91–99 → 19-й, 100 → 20-й
+function lvBadge(L, cls){
+  const b = el('span', 'lvb' + (cls ? ' ' + cls : '') + (L > 99 ? ' l3' : ''));
+  b.style.backgroundImage = 'url(ui/lv/lv' + String(lvTier(L)).padStart(2, '0') + '.webp)';
+  b.append(el('b', null, String(L))); b.title = 'Уровень ' + L; return b;
 }
 const pfRank = L => null;                              // ранговая система появится позже
 let PROFS = {}, PROF = {cur: null}, AVS = {};          // PROFS — все профили этого браузера; AVS — аватарки и уровни игроков за столом
@@ -1955,14 +2279,21 @@ function setAva(e, info, name){
 }
 function pfPersist(patch){      // сохранить изменения профиля: в облако или локально
   const p = PROF.cur; if (!p) return;
-  if (FB.state === 'on' && p.uid) FB.db.ref('users/' + p.uid).update(patch).catch(e => toast('Не удалось сохранить профиль: ' + fbAuthErr(e)));
+  if (FB.state === 'on' && p.uid){
+    const ref = FB.db.ref('users/' + p.uid), fail = e => toast('Не удалось сохранить профиль: ' + fbAuthErr(e));
+    ref.update(patch).catch(e => {           // правила базы ещё старые (без losses/secs) — сохраняем хотя бы прежние поля, чтобы опыт не терялся
+      if (!('losses' in patch || 'secs' in patch)) return fail(e);
+      const old = Object.assign({}, patch); delete old.losses; delete old.secs; ref.update(old).catch(fail);
+    });
+  }
   else pfSave();
 }
 function pfRender(){
   const p = PROF.cur, card = $('profCard'); if (!card) return;
-  if (!p){ $('pNm').textContent = FB.state === 'wait' ? 'Подключаюсь…' : 'Профиль не выбран'; $('pLv').textContent = FB.state === 'wait' ? 'Связь с сервером' : 'Нажми, чтобы войти'; $('pBar').style.width = '0'; $('pXp').textContent = ''; setAva($('pAva'), null, '?'); return; }
+  if (!p){ $('pNm').textContent = FB.state === 'wait' ? 'Подключаюсь…' : 'Профиль не выбран'; $('pLv').textContent = FB.state === 'wait' ? 'Связь с сервером' : 'Нажми, чтобы войти'; $('pRk').style.display = 'none'; $('pLvb').innerHTML = ''; $('pBar').style.width = '0'; $('pXp').textContent = ''; setAva($('pAva'), null, '?'); return; }
   const li = lvInfo(p.xp || 0);
-  $('pNm').textContent = p.name; $('pLv').textContent = 'Уровень ' + li.L;
+  $('pNm').textContent = p.name; $('pLv').textContent = ''; $('pRk').style.display = '';
+  const lvs = $('pLvb'); lvs.innerHTML = ''; lvs.append(lvBadge(li.L));
   $('pBar').style.width = (li.max ? 100 : Math.min(100, li.cur / li.need * 100)) + '%';
   $('pXp').textContent = li.max ? 'максимум' : li.cur + ' / ' + li.need + ' опыта';
   setAva($('pAva'), p, p.name);
@@ -2042,7 +2373,7 @@ function openAuth(first, tab){
     [nm, pw, pw2].forEach(i => i.addEventListener('keydown', e => { if (e.key === 'Enter') go(); }));
     if (FB.state !== 'on'){ const imp = el('button', 'lnk', '📂 Загрузить профиль из файла'); imp.onclick = () => pfImport(er, () => { mode = 'in'; draw(); }); S_.append(imp); }
     if (!first || PROF.cur){ const x = btn('Закрыть', closeAuth, {ghost: true}); S_.append(x); }
-    el_hint(S_, first ? (FB.state === 'on' ? 'Аккаунт хранится на сервере: входи с любого устройства по нику и паролю.' : 'Сервер не подключён — профиль хранится в этом браузере. Чтобы играть на другом устройстве, сохрани его в файл (в окне профиля).') : '');
+    el_hint(S_, first ? (FB.state === 'on' ? 'Аккаунт хранится на сервере: входи с любого устройства по нику и паролю.' : (FIREBASE_CONFIG.apiKey ? '⚠ Сервер аккаунтов недоступен (проверь интернет/VPN и обнови страницу). Пока профиль хранится только в этом браузере.' : '⚠ Облачные аккаунты не подключены (не заполнен FIREBASE_CONFIG). Профиль живёт только в этом браузере и не виден с других устройств и браузеров. Чтобы перенести его, сохрани файл профиля.')) : '');
     setTimeout(() => nm.focus(), 50);
   };
   draw(); $('authM').classList.add('on');
@@ -2056,7 +2387,7 @@ function pfImport(er, done){
     r.onload = () => {
       try{
         const d = JSON.parse(r.result), p = d && d.kup === 1 && d.p; if (!p || !p.name || !p.hash || !p.salt) throw 0;
-        const k = pfKey(p.name); if (!PROFS[k] || (PROFS[k].xp || 0) <= (p.xp || 0)) PROFS[k] = {name: String(p.name).slice(0, 16), salt: String(p.salt), hash: String(p.hash), xp: +p.xp || 0, av: String(p.av || ''), games: +p.games || 0, wins: +p.wins || 0, pts: +p.pts || 0, lastGid: 0, t: +p.t || Date.now()};
+        const k = pfKey(p.name); if (!PROFS[k] || (PROFS[k].xp || 0) <= (p.xp || 0)) PROFS[k] = {name: String(p.name).slice(0, 16), salt: String(p.salt), hash: String(p.hash), xp: +p.xp || 0, av: String(p.av || ''), games: +p.games || 0, wins: +p.wins || 0, pts: +p.pts || 0, losses: p.losses != null ? +p.losses || 0 : null, secs: +p.secs || 0, lastGid: 0, t: +p.t || Date.now()};
         pfSave(); er.style.color = '#8fe3a0'; er.textContent = 'Профиль «' + PROFS[k].name + '» загружен. Войди с его паролем'; done(k);
       }catch(e){ er.style.color = ''; er.textContent = 'Это не файл профиля'; }
     };
@@ -2064,38 +2395,113 @@ function pfImport(er, done){
   };
   f.click();
 }
-/* окно профиля */
+/* окно профиля: карточка 3:2 на затемнённом фоне ярмарки; слева аватарка со значком уровня, справа имя, опыт и статистика */
 function openProf(){
   const p = PROF.cur; if (!p) return openAuth(true);
   const S_ = $('profS'); S_.innerHTML = '';
   const li = lvInfo(p.xp || 0);
-  S_.append(el('h3', null, 'Профиль'));
-  const av = el('div', 'pava big'); av.title = 'Сменить аватарку'; setAva(av, p, p.name); av.onclick = () => pfPickAva(d => { p.av = d; pfPersist({av: d}); pfRender(); openProf(); });
-  S_.append(av, el('div', 'hint', 'Нажми на аватарку, чтобы поставить свою картинку'));
-  const nm = el('div', 'pnm', p.name); nm.style.textAlign = 'center'; nm.style.fontSize = '1.4rem'; S_.append(nm);
-  const bar = el('div', 'pbar'); bar.style.fontSize = '1rem';
-  const bi = el('i'); bi.style.width = (li.max ? 100 : li.cur / li.need * 100) + '%'; bar.append(bi, el('span', null, li.max ? 'Максимальный уровень' : li.cur + ' / ' + li.need + ' опыта до ' + (li.L + 1) + ' уровня'));
-  S_.append(el('div', null, 'Уровень ' + li.L), bar);
-  const rk = el('div', 'rankbox'); rk.innerHTML = '🔒 Ранг: <b>скоро</b><br><small>Ранговая система появится позже</small>'; S_.append(rk);
+  const grid = el('div', 'pgrid'), left = el('div', 'pleft'), right = el('div', 'pright');
+  const emb = el('div', 'pemb');
+  const av = el('div', 'pava'); av.title = 'Сменить аватарку'; setAva(av, p, p.name); av.onclick = () => pfPickAva(d => { p.av = d; pfPersist({av: d}); pfRender(); openProf(); });
+  emb.append(av, lvBadge(li.L));
+  left.append(emb, el('div', 'hint', 'Нажми на аватарку, чтобы поставить свою картинку'));
+  right.append(el('div', 'ptitle', 'Профиль купца'), el('div', 'pname', p.name));
+  const lvl = el('div', 'lvline'); lvl.innerHTML = 'Уровень <b>' + li.L + '</b>'; lvl.append(el('span', null, li.max ? 'максимум' : 'до ' + (li.L + 1) + ' уровня: ' + (li.need - li.cur)));
+  const bar = el('div', 'pbar'), bi = el('i'); bi.style.width = (li.max ? 100 : li.cur / li.need * 100) + '%';
+  bar.append(bi, el('span', null, li.max ? 'Максимальный уровень' : li.cur + ' / ' + li.need + ' опыта'));
+  right.append(lvl, bar);
   const st = el('div', 'stats');
-  [['Партий сыграно', p.games || 0], ['Побед', p.wins || 0], ['Всего очков', p.pts || 0], ['Всего опыта', p.xp || 0]].forEach(([a, b]) => st.append(el('span', null, a), el('b', null, String(b))));
-  S_.append(st);
-  if (p.av){ const rm = el('button', 'lnk', 'Убрать аватарку'); rm.onclick = () => { p.av = ''; pfPersist({av: ''}); pfRender(); openProf(); }; S_.append(rm); }
+  [['Партий сыграно', p.games || 0], ['Побед', p.wins || 0], ['Поражений', pfLosses(p)], ['Часов', pfHours(p)]].forEach(([a, b]) => { const c = el('div', 'stat'); c.append(el('small', null, a), el('b', null, String(b))); st.append(c); });
+  const rk = el('div', 'rankbox'); rk.innerHTML = '<span>🔒 Ранг: <b>скоро</b></span><small>Ранговая система появится позже</small>';
+  right.append(st, rk);
+  const act = el('div', 'pact'), lks = el('div', 'lks');
+  if (p.av){ const rm = el('button', 'lnk', 'Убрать аватарку'); rm.onclick = () => { p.av = ''; pfPersist({av: ''}); pfRender(); openProf(); }; lks.append(rm); }
   const ex = el('button', 'lnk', '💾 Сохранить профиль в файл (для переноса)'); if (FB.state === 'on') ex.style.display = 'none'; ex.onclick = () => {
     const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify({kup: 1, p})], {type: 'application/json'}));
     a.download = 'kupecheskoe-' + pfKey(p.name) + '.json'; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 3000);
   };
-  S_.append(ex, btn(FB.state === 'on' ? 'Выйти из профиля' : 'Сменить профиль', () => { $('profM').classList.remove('on'); if (FB.state === 'on'){ FB.auth.signOut().catch(() => {}); FB.uid = null; PROF.cur = null; pfRender(); } else pfSetCur(null); openAuth(true, 'in'); }, {ghost: true}), btn('Закрыть', () => $('profM').classList.remove('on')));
+  lks.append(ex);
+  act.append(lks, btn('Закрыть', () => $('profM').classList.remove('on')));
+  right.append(act);
+  grid.append(left, right); S_.append(grid);
   $('profM').classList.add('on');
 }
+/* настройки: громкость звуков и музыки, шрифт игры, смена профиля */
+function switchProfile(){
+  $('setM').classList.remove('on'); $('profM').classList.remove('on');
+  if (FB.state === 'on'){ FB.auth.signOut().catch(() => {}); FB.uid = null; PROF.cur = null; pfRender(); } else pfSetCur(null);
+  openAuth(true, 'in');
+}
+function makeRange(val, onInput, onChange){
+  const r = el('div', 'rng'), ch = el('div', 'rch'), fill = el('div', 'rfill'); ch.append(fill);
+  r.append(el('div', 'rtrack'), ch, el('div', 'rthumb'));
+  r.tabIndex = 0; r.setAttribute('role', 'slider'); r.setAttribute('aria-valuemin', 0); r.setAttribute('aria-valuemax', 100);
+  let v = Math.max(0, Math.min(1, val));
+  const paint = () => { r.style.setProperty('--v', v); r.setAttribute('aria-valuenow', Math.round(v * 100)); };
+  const set = nv => { v = Math.round(Math.max(0, Math.min(1, nv)) * 100) / 100; paint(); onInput(v); };
+  const at = e => { const c = ch.getBoundingClientRect(); return (e.clientX - c.left) / c.width; };       // 0 — начало канавки, 1 — её конец
+  r.onpointerdown = e => { if (r.parentNode && r.parentNode.classList.contains('off')) return; e.preventDefault(); r.focus(); r.setPointerCapture(e.pointerId); r.classList.add('drag'); set(at(e)); };
+  r.onpointermove = e => { if (r.classList.contains('drag')) set(at(e)); };
+  r.onpointerup = r.onpointercancel = () => { if (!r.classList.contains('drag')) return; r.classList.remove('drag'); if (onChange) onChange(v); };
+  r.onkeydown = e => {
+    const k = e.key, d = k === 'ArrowRight' || k === 'ArrowUp' ? .05 : k === 'ArrowLeft' || k === 'ArrowDown' ? -.05 : 0;
+    if (d) set(v + d); else if (k === 'Home') set(0); else if (k === 'End') set(1); else return;
+    e.preventDefault(); if (onChange) onChange(v);
+  };
+  paint(); return r;
+}
+function openSettings(){
+  const S_ = $('setS'); S_.innerHTML = '';
+  S_.append(el('h3', null, '⚙ Настройки'), el('div', 'setsec', 'Звук'));
+  const slider = (title, hint, volKey, preview) => {
+    const w = el('div', 'setrow'), top = el('div', 'settop'), tt = el('div'); tt.append(el('b', null, title), el('small', null, hint)); top.append(tt);
+    const row = el('div', 'slr'), out = el('output', null, Math.round(SET[volKey] * 100) + '%');
+    const rg = makeRange(SET[volKey], v => { SET[volKey] = v; out.textContent = Math.round(v * 100) + '%'; rg.classList.toggle('off', v <= 0); setSave(); }, () => { if (preview) preview(); });
+    rg.setAttribute('aria-label', title + ': громкость'); rg.classList.toggle('off', SET[volKey] <= 0);
+    row.append(rg, out); w.append(top, row); return w;
+  };
+  S_.append(
+    slider('Звуки', 'карты, монеты, кнопки, голос Лавра', 'sfx', () => sfx('takecoin', .8)),
+    slider('Музыка', 'меню и шум рынка за столом', 'mus', null),
+    el('div', 'setsec', 'Шрифт игры'));
+  const fw = el('div', 'fonts');
+  Object.entries(FONTS).forEach(([k, f]) => {
+    const o = el('div', 'fopt' + (SET.font === k ? ' on' : '')); o.tabIndex = 0; o.setAttribute('role', 'button');
+    const fs = el('div', 'fs', 'Честное Купеческое!'); fs.style.fontFamily = f.css; o.append(fs, el('small', null, f.name));
+    const pick = () => { SET.font = k; SET.fontPicked = true; setSave(); applyFont(); fw.querySelectorAll('.fopt').forEach(x => x.classList.toggle('on', x === o)); };
+    o.onclick = pick; o.onkeydown = e => { if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); pick(); } };
+    fw.append(o);
+  });
+  S_.append(fw);
+  const inGame = $('game').classList.contains('on');            // за столом профиль не меняем — только звук и шрифт
+  if (!inGame) S_.append(el('div', 'setsec', 'Профиль'));
+  const pr = el('div', 'profrow'), who = el('div', 'whoami'), pc = PROF.cur;
+  if (pc){ const a = el('div', 'pava'); setAva(a, pc, pc.name); who.append(a, el('b', null, pc.name), lvBadge(lvInfo(pc.xp || 0).L, 'sm')); }
+  else who.append(el('b', null, 'Профиль не выбран'));
+  pr.append(who, btn(FB.state === 'on' ? 'Выйти из профиля' : (pc ? 'Сменить профиль' : 'Войти в профиль'), switchProfile, {ghost: true}));
+  if (!inGame) S_.append(pr);
+  const ft = el('div', 'setfoot'); ft.append(btn('Закрыть', () => $('setM').classList.remove('on'))); S_.append(ft);
+  $('setM').classList.add('on');
+}
+/* Сколько длилась партия: считаем от момента, когда клиент увидел начало игры, до момента, когда появились итоги.
+   Это просто две метки времени в памяти — в базу ничего не пишется, пока партия не закончится (см. pfAward). */
+const PLAY = {gid: -1, t0: 0, t1: 0};
+function playMark(){
+  if (S.phase === 'game' && PLAY.gid !== S.gid){ PLAY.gid = S.gid; PLAY.t0 = Date.now(); PLAY.t1 = 0; }
+  else if (S.phase === 'over' && PLAY.gid === S.gid && !PLAY.t1) PLAY.t1 = Date.now();
+}
+const playSecs = () => (PLAY.gid === S.gid && PLAY.t0 && PLAY.t1) ? Math.max(0, Math.min(6 * 3600, Math.round((PLAY.t1 - PLAY.t0) / 1000))) : 0;
 /* начисление опыта: очки партии (богатство) = опыт. Один раз за партию, после подиума; тренировка и тест не считаются */
 function pfAward(){
   const p = PROF.cur, F = S.final; if (!p || !F || F.stage !== 'podium' || BOTS || TEST) return;
   const gk = code + ':' + S.gid; if (p.lastGid === gk) return;
   const row = F.rows.find(r => r.id === myId()); if (!row) return;
   const before = lvInfo(p.xp || 0).L, gain = Math.max(0, row.total | 0);
-  p.lastGid = gk; p.xp = (p.xp || 0) + gain; p.pts = (p.pts || 0) + gain; p.games = (p.games || 0) + 1; if (F.winners.includes(row.id)) p.wins = (p.wins || 0) + 1;
-  pfPersist({xp: p.xp, pts: p.pts, games: p.games, wins: p.wins || 0, lastGame: gk}); pfRender();
+  const won = F.winners.includes(row.id), lost0 = pfLosses(p);
+  p.lastGid = gk; p.xp = (p.xp || 0) + gain; p.pts = (p.pts || 0) + gain; p.games = (p.games || 0) + 1; if (won) p.wins = (p.wins || 0) + 1;
+  p.losses = lost0 + (won ? 0 : 1);
+  p.secs = (p.secs || 0) + playSecs();            // время за партиями копится в памяти и уходит в базу ОДНИМ запросом вместе с итогами партии — отдельных записей нет
+  pfPersist({xp: p.xp, pts: p.pts, games: p.games, wins: p.wins || 0, losses: p.losses, secs: p.secs, lastGame: gk}); pfRender();
   const after = lvInfo(p.xp).L;
   toast('+' + gain + ' опыта' + (after > before ? ' · новый уровень: ' + after + '!' : ''));
 }
@@ -2106,6 +2512,9 @@ function needName(){      // профиль обязателен перед со
 }
 pfRender();
 $('profCard').onclick = () => openProf();
+$('settingsHome').onclick = () => openSettings();
+$('setBtn').onclick = () => openSettings();
+$('setM').addEventListener('click', e => { if (e.target === $('setM')) $('setM').classList.remove('on'); });
 $('authM').addEventListener('click', e => { if (e.target === $('authM') && PROF.cur) closeAuth(); });
 $('profM').addEventListener('click', e => { if (e.target === $('profM')) $('profM').classList.remove('on'); });
 const authStart = () => { if (FB.state !== 'on') pfLoad(); pfRender(); if (!PROF.cur) openAuth(true); else $('authM').classList.remove('on'); };
@@ -2124,6 +2533,7 @@ const plural = (n, a, b, c) => { const m = n % 100, k = n % 10; return (m > 10 &
    2) «ретранслятор»: MQTT поверх обычного WebSocket (wss) на публичных брокерах. WebRTC и STUN не нужны,
       работает там же, где открываются обычные сайты. Брокеров несколько — хватит, чтобы дошёл любой.
    Соединение у всех транспортов одинаковое: {peer, open, send(m), close(), on('data'|'close'|'error', fn)}. */
+const MQ_DELAY = 2200;           // через сколько мс клиент подключает публичные брокеры, если лучшие пути ещё молчат
 const MQTT_URLS = ['wss://broker.hivemq.com:8884/mqtt', 'wss://broker.emqx.io:8084/mqtt', 'wss://test.mosquitto.org:8081'];
 const mqT = (c, s) => 'kup1/' + c + '/' + s;
 const mqHost = u => { try{ return new URL(u).hostname.replace(/^(broker|test)\./, ''); }catch(e){ return u; } };
@@ -2196,6 +2606,17 @@ function mkConn(id, sendFn){
   return {peer: id, open: true, send: sendFn, close(){ if (h.close) h.close(); }, on(ev, fn){ h[ev] = fn; return this; }, _e(ev, ...a){ if (h[ev]) h[ev](...a); }};
 }
 let fbStops = [], fbConns = {}, fbRoot = null, fbEvts = [], fbGid = -1, fbQ = false;
+function pingShow(){      // «пинг» в углу стола: сколько идёт действие до хоста и обратно
+  const e = $('netPing'); if (!e) return;
+  let ms = 0;
+  if (isHost){ const v = Object.values((H && H.rtt) || {}); ms = v.length ? Math.max(...v) : 0; }
+  else ms = NET.rtt || 0;
+  if (!ms){ e.textContent = ''; return; }
+  const tag = netTags[0] ? ' · ' + netTags[0].replace('ретранслятор ', 'relay ') : '';
+  e.textContent = '● ' + ms + ' мс' + (isHost ? ' (худший игрок)' : '') + tag;
+  e.style.color = ms < 150 ? '#8fe3a0' : ms < 400 ? '#ffd36a' : '#ff8a93';
+  e.title = ms < 150 ? 'Связь отличная' : ms < 400 ? 'Связь средняя: действия идут с заметной задержкой' : 'Связь плохая: действия будут сильно запаздывать. Попробуй другой VPN/прокси или Firebase-режим';
+}
 const NET = {uid:null, last:0, seen:0, rec:0, tick:0, rt:0};   // клиент: свой постоянный id, номер последнего снимка, когда слышали хоста, идёт ли переподключение
 const RTC_CFG = {iceServers:[{urls:'stun:stun.l.google.com:19302'}, {urls:'stun:stun1.l.google.com:19302'}, {urls:'stun:global.stun.twilio.com:3478'}, {urls:'stun:stun.cloudflare.com:3478'}]};
 function netStop(){
@@ -2257,7 +2678,8 @@ function resync(pid, withState){
 function hostTick(){
   if (!isHost) return;
   const now = Date.now();
-  Object.keys(conns).forEach(id => { const c = conns[id]; if (c && c.open) c.send({t:'hb', v: S.ver || 0}); });
+  Object.keys(conns).forEach(id => { const c = conns[id]; if (c && c.open) c.send({t:'hb', v: S.ver || 0, ts: now, r: (H.rtt && H.rtt[id]) || 0}); });
+  pingShow();
   S.players.slice().forEach(p => {
     if (p.host || String(p.id).startsWith('bot')) return;
     const seen = H.seen[p.id] || (H.seen[p.id] = now);
@@ -2387,7 +2809,7 @@ function hostReceive(c, m){
   if (!p) return;
   H.seen[pid] = now;
   if (p.off){ p.off = 0; addLog(p.name + ' снова в игре'); commit(); }
-  if (m.t === 'ack'){ if ((m.v | 0) < (m.hv | 0)) resync(pid, true); return; }   // отстал от хоста — значит, потерял снимок: досылаем
+  if (m.t === 'ack'){ if (m.ts) (H.rtt || (H.rtt = {}))[pid] = Math.max(1, Date.now() - m.ts); if ((m.v | 0) < (m.hv | 0)) resync(pid, true); return; }   // отстал от хоста — значит, потерял снимок: досылаем
   if (m.t === 'sync'){ resync(pid, true); return; }
   if (m.t === 'bye'){ dropPlayer(pid); return; }
   if (m.t === 'ping'){ addLog(p.name + ': пинг'); return commit(); }
@@ -2464,7 +2886,7 @@ function connectTo(rejoin){
         if (!$('lobby').classList.contains('on') && !$('game').classList.contains('on')) enterLobby();
         applyState(m.state); showNet();
       }
-      if (m.t === 'hb') conn.send({t:'ack', v: NET.last, hv: m.v | 0});      // «я жив, вот какой снимок у меня»
+      if (m.t === 'hb'){ conn.send({t:'ack', v: NET.last, hv: m.v | 0, ts: m.ts}); NET.rtt = m.r | 0; pingShow(); }      // «я жив, вот какой снимок у меня»
       if (m.t === 'avs'){ AVS = m.avs || {}; if (S.players.length) render(); }
       if (m.t === 'hand') setHand(m.cards, m.newIds);
       if (m.t === 'peek') setPeek(m);
@@ -2529,7 +2951,10 @@ function connectTo(rejoin){
       if (conn && won === conn) conn._e('close');
       else if (!won) bad(tag, was ? 'связь оборвалась' : 'не открылся', false);
     });
-    mq.open();
+    // публичные брокеры — самый медленный путь: даём шанс Firebase/WebRTC и подключаем их, только если те не успели
+    const fast = fbOn() || window.Peer;
+    const st = setTimeout(() => { if (!won) mq.open(); else mq.stop(); }, fast ? MQ_DELAY : 0);
+    kills.push(() => clearTimeout(st));
   });
   if (!total) return homeErr('Нет доступных способов связи');
   netTm = setTimeout(() => { if (!won) giveUp(); }, 14000);
@@ -2549,7 +2974,11 @@ function netErr(e){
 }
 
 /* ---------- Общее ---------- */
-function send(m){ isHost ? hostReceive({peer:'host', send(){}}, m) : hostConn && hostConn.open && hostConn.send(m); }
+function send(m){
+  if (isHost) return hostReceive({peer:'host', send(){}}, m);
+  if (hostConn && hostConn.open) return hostConn.send(m);
+  toast('Нет связи с хостом — подожди, переподключаюсь…');
+}
 function leave(){
   clearTimeout(NET.rt); NET.rec = 0; showRec(false);
   try{
@@ -2643,7 +3072,7 @@ function sealEl(state, mini){
 
 /* ---------- Загрузка: до стола — чёрный экран с троббером, пока не прогрузится вся графика ---------- */
 const LOAD = {on:false, done:false};
-const LOAD_UI = ['bag.webp','bg.webp','bg_night.webp','btn_blue.webp','btn_ghost.webp','btn_input.webp','btn_yellow.webp','claws.webp','cloth.webp','coin1.webp','coin10.webp','coin5.webp','dialog.webp','dlgbox.webp','dlgtab.webp','final_bg.webp','menu_bg.webp','merchant.webp','moon.webp','panel.webp','paper.webp','paper_gold.webp','plaque.webp','plate.webp','seal.webp','sign.webp','sun.webp','throbber.webp','tray.webp'];
+const LOAD_UI = ['bag.webp','bg.webp','bg_night.webp','btn_blue.webp','btn_ghost.webp','btn_input.webp','btn_yellow.webp','claws.webp','cloth.webp','coin1.webp','coin10.webp','coin5.webp','dialog.webp','dlgbox.webp','dlgtab.webp','final_bg.webp','menu_bg.webp','profile_bg.webp','rng_track.webp','rng_thumb1.webp','rng_thumb2.webp','rng_thumb3.webp','rng_thumb4.webp','merchant.webp','moon.webp','panel.webp','paper.webp','paper_gold.webp','plaque.webp','plate.webp','seal.webp','sign.webp','sun.webp','throbber.webp','tray.webp'];
 function loadGate(){
   if (LOAD.on) return;
   LOAD.on = true; const sc = $('loadScr'); sc.classList.remove('out'); sc.classList.add('on');
@@ -2661,6 +3090,7 @@ function loadGate(){
 }
 /* ---------- Интерфейс ---------- */
 function render(){
+  playMark();
   if (S.phase === 'lobby'){ bedStop(); musStart(); $('bgNight').classList.remove('on'); renderLobby(); show('lobby'); $('finalX').classList.remove('on'); if (FX.key){ FX.key = ''; FX.tok++; } return; }
   if (!$('game').classList.contains('on')) loadGate();
   show('game'); fitBg(); bedStart(); musStop();
@@ -2670,7 +3100,7 @@ function render(){
 function renderLobby(){
   $('plist').innerHTML = '';
   S.players.forEach(p => {
-    const li = el('li'); const n = el('span', 'who'); const pv = el('span', 'pav'), inf = avOf(p.id); setAva(pv, inf, p.name); n.append(pv, p.name + (inf && inf.lv ? '  · ур. ' + inf.lv : '') + (p.off ? '  · нет связи…' : '')); const t = el('span', 'tag', p.host ? 'хост' : String(p.id).startsWith('bot') ? 'бот' : (p.id === myPid ? 'ты' : ''));
+    const li = el('li'); const n = el('span', 'who'); const pv = el('span', 'pav'), inf = avOf(p.id); setAva(pv, inf, p.name); n.append(pv, p.name); if (inf && inf.lv) n.append(lvBadge(inf.lv, 'sm')); if (p.off) n.append('  · нет связи…'); const t = el('span', 'tag', p.host ? 'хост' : String(p.id).startsWith('bot') ? 'бот' : (p.id === myPid ? 'ты' : ''));
     li.append(n, t); $('plist').append(li);
   });
   const n = S.players.length;
@@ -2787,8 +3217,10 @@ function directive0(){
 }
 
 /* чат/журнал: ник продавца подсвечивается плашкой */
+const CH = {n: 0};
 function fillLog(lg){
   if (!lg) return;
+  if (lg.id === 'log'){ const n = S.log.filter(it => it.c).length; if (n > CH.n && !$('rcol').classList.contains('chatopen')) $('chatTgl').classList.add('dot'); CH.n = n; }
   const sellerName = (S.phase === 'game' && S.seller) ? nm(S.seller) : null;
   lg.innerHTML = '';
   S.log.forEach(it => {
@@ -2813,8 +3245,13 @@ function renderTable(){
   opps.forEach((p, j) => {
     seen.add(p.id);
     const t = (j + 1) / (opps.length + 1);          // 0..1 вдоль верхней дуги (слева направо)
-    const x = 50 - 44 * Math.cos(Math.PI * t);
-    const y = 50 - 31 * Math.sin(Math.PI * t) - 8 * Math.pow(Math.sin(Math.PI * t), 8);   // место по центру чуть выше, чтобы не наезжать на лот
+    const cm = document.documentElement.classList.contains('cmp');       // компактный режим: дуга уже и ниже, чтобы не лезть под верхнюю плашку
+    let cx = Math.cos(Math.PI * t), x = 50 - (cm ? (Math.abs(cx) < .5 ? 47 : 41.5 + (1 - Math.min(1, innerWidth / 1130)) * 14) : 44) * cx;
+    const two = cm && opps.length === 2;                       // за столом втроём: соперники сверху по краям лота, чтобы не лезть на колоду и сброс
+    if (two) x = 50 + (j ? 26 : -26);
+    let yy = null;
+    if (cm && opps.length === 3){ const dk = (1 - Math.min(1, innerWidth / 1130)) * 20, P = [[16.4 - dk,43],[36,19.5],[83.6 + dk,43]][j]; x = P[0]; yy = P[1]; }   // вчетвером: слева, сверху слева от лота и справа — центр лота свободен
+    const y = yy != null ? yy : two ? 17 : cm ? Math.max(17, 59 - 27 * Math.sin(Math.PI * t) - 22 * Math.pow(Math.sin(Math.PI * t), 8)) : 50 - 31 * Math.sin(Math.PI * t) - 8 * Math.pow(Math.sin(Math.PI * t), 8);   // место по центру чуть выше, чтобы не наезжать на лот
     let e = seatEls[p.id];
     if (!e){
       e = el('div', 'seat');
@@ -2992,6 +3429,7 @@ function renderMe(){
   }
   mid.append(sealBox);
   mb.append(top, mid);
+  document.documentElement.style.setProperty('--mbh', mb.offsetHeight + 'px');       // высота моей панели: над ней в компактном режиме встают кнопки
   fillStake($('myStk'), sk, me, mb);
   if ($('changeM').classList.contains('on')) openChange();
 }
@@ -3096,7 +3534,7 @@ function renderLot(){
   if (!L){ info.style.display = 'none'; return; }
   info.style.display = '';
   const lt = el('div', 'lt'); lt.append('Лот ', el('b', null, nm(S.seller)));
-  if (L.price == null){ info.append(lt, el('div', 'lp', 'Цена не названа')); return; }
+  if (L.price == null){ info.append(lt, el('div', 'lp', 'Почин не назван')); return; }
   /* «Ставка Х монет»: до первой ставки — цена продавца, дальше — текущая ставка; при изменении число «пересчитывается» с анимацией */
   const A = S.auction, val = S.pay ? S.pay.amount : (A && A.by ? A.high : L.price);
   const bv = el('b', null, String(val));
@@ -3115,7 +3553,7 @@ function renderLot(){
       tick();
     }
   }
-  const lp = el('div', 'lp'); lp.append((S.pay || (A && A.by !== null)) ? 'Ставка ' : 'Цена ', bv, ' ' + plural(val, 'монета', 'монеты', 'монет'));
+  const lp = el('div', 'lp'); lp.append((S.pay || (A && A.by !== null)) ? 'Ставка ' : 'Почин ', bv, ' ' + plural(val, 'монета', 'монеты', 'монет'));
   info.append(lt, lp);
 }
 function slotClick(i){
@@ -3146,7 +3584,7 @@ function actSig(){
   const me = myId(), mp = meP();
   const A = S.auction, L = S.lot;
   return JSON.stringify([S.phase, S.step, S.turn, S.seller, L && L.n, L && L.opened, L && L.cards.map(c => c.open), A && [A.high, A.by, A.passed.includes(me)],
-    mp.coins, mp.purse, mp.seal, [...selIds].join(), ui.mode, ui.qpath, ui.qsel, S.info, S.pay, S.todo, S.takeTitle, myHand.filter(c => c.k === 'auditor').length]);
+    mp.coins, mp.purse, mp.seal, [...selIds].join(), ui.mode, ui.qpath, ui.qsel, S.info, S.pay, S.todo, S.takeTitle, myHand.filter(c => c.k === 'auditor').length, TUT.on && TUT.insp]);
 }
 function renderAct(){
   const A = $('act');
@@ -3284,9 +3722,9 @@ function buildAct(A){
 
   if (S.step === 'compose' && turnMe) return false;      // подсказок нет: мигающие карты в руке и пустые места на столе
   if (S.step === 'price' && turnMe){                     // карты уже на столе: сначала рассказываем о товаре, цену — по кнопке
-    const r = row(btn('Назвать цену', () => openPrice()));
+    const r = row(btn('Назвать почин', () => openPrice()));
     r.style.justifyContent = 'center';
-    add(el('div', 'big sh', 'Назвать цену лота?'), r);
+    add(el('div', 'big sh', 'Назвать почин лота?'), r);
     return false;
   }
   if (S.step === 'showcase' && turnMe){
@@ -3344,12 +3782,13 @@ function buildAct(A){
         row(btn('Назад', () => { ui.mode = null; ui.actKey = ''; renderAct(); }, {ghost:true})));
       return false;
     }
+    const tl = k => TUT.on && TUT.insp !== k;       // в обучении доступна только та кнопка осмотра, которую сейчас объясняет Лавр
     const canOpen = mp.coins >= RULES.openCost && !L.opened && L.cards.some(c => !c.open);
     A.classList.add('cmp');
-    const g = row(btn('Расспрос', () => { ui.mode = 'ask'; ui.qpath = []; ui.qsel = null; ui.actKey = ''; renderAct(); }, {dis: mp.coins < RULES.askCost, sub: priceTag(RULES.askCost)}),
-          btn('Вскрытие', () => { ui.mode = 'open'; ui.actKey = ''; renderAct(); }, {dis: !canOpen, sub: priceTag(RULES.openCost)}),
-          btn('Ревизор', () => { ui.mode = 'auditor'; ui.actKey = ''; renderAct(); }, {dis: !aud, sub: priceTag(0, 'бесплатно')}),
-          btn('Пропустить', () => send({t:'insp', a:'skip'}), {ghost:true}));
+    const g = row(btn('Расспрос', () => { ui.mode = 'ask'; ui.qpath = []; ui.qsel = null; ui.actKey = ''; renderAct(); }, {dis: mp.coins < RULES.askCost || tl('ask'), sub: priceTag(RULES.askCost)}),
+          btn('Вскрытие', () => { ui.mode = 'open'; ui.actKey = ''; renderAct(); }, {dis: !canOpen || tl('open'), sub: priceTag(RULES.openCost)}),
+          btn('Ревизор', () => { ui.mode = 'auditor'; ui.actKey = ''; renderAct(); }, {dis: !aud || tl('aud'), sub: priceTag(0, 'бесплатно')}),
+          btn('Пропустить', () => send({t:'insp', a:'skip'}), {ghost:true, dis: TUT.on}));
     g.classList.add('g2');
     add(el('div', 't c', 'Осмотр лота'), g);
     return false;
@@ -3382,7 +3821,7 @@ function buildAct(A){
       };
       A.classList.add('bagp');
       const br = el('div', 'bidrow'); br.append(btn('Ставка', go), w.bag, btn('Пас', () => { resetTray(); send({t:'pass'}); }, {ghost:true}));
-      const cur = el('div', 'bagsub', (Au.by !== null ? 'Ставка ' + Au.high : 'Цена ' + L.price));
+      const cur = el('div', 'bagsub', (Au.by !== null ? 'Ставка ' + Au.high : 'Почин ' + L.price));
       add(el('div', 't c', 'Ставка или пас'), br, txt, cur);
       w.update();
       return true;
@@ -3429,8 +3868,7 @@ function buildAct(A){
 }
 
 /* ---------- Звук: шум рынка (зацикленный, с плавным входом) и звуки карт ---------- */
-const SND = {mute: false, bedVol: .2};
-try{ SND.mute = localStorage.getItem('kup_mute') === '1'; }catch(e){}
+const SND = {bedVol: .2};
 const SFX = {};
 /* Звуки кнопок: наведение (tipoff1-3) и нажатие (click1-3) — вариант случайный, подряд не повторяется */
 const UIS = {tipoff: -1, click: -1};
@@ -3448,10 +3886,10 @@ document.addEventListener('click', e => {
   uiSnd('click', .8);
 }, true);
 function sfx(name, vol, delay, rate){
-  if (SND.mute) return;
+  if (!SET.sfxOn || SET.sfx <= 0) return;
   const go = () => {
     const P = SFX[name] || (SFX[name] = {i: 0, a: Array.from({length: 4}, () => { const a = new Audio('sfx/' + name + '.mp3'); a.preload = 'auto'; return a; })});
-    const a = P.a[P.i++ % P.a.length]; a.volume = Math.min(1, vol == null ? 1 : vol); a.playbackRate = rate || 1;
+    const a = P.a[P.i++ % P.a.length]; a.volume = Math.min(1, (vol == null ? 1 : vol) * SET.sfx); a.playbackRate = rate || 1;
     try{ a.currentTime = 0; }catch(e){}
     const r = a.play(); if (r && r.catch) r.catch(() => {});
   };
@@ -3461,14 +3899,14 @@ function sfx(name, vol, delay, rate){
 const BED = {a: null, b: null, cur: null, nxt: null, m: 0, want: false, tm: 0, last: 0};
 function bedTick(){
   const now = performance.now(), dt = Math.min(250, now - BED.last); BED.last = now;
-  BED.m = Math.max(0, Math.min(1, BED.m + (BED.want && !SND.mute ? dt : -dt) / (BED.want ? 3000 : 1200)));
+  BED.m = Math.max(0, Math.min(1, BED.m + (BED.want && SET.musOn ? dt : -dt) / (BED.want ? 3000 : 1200)));
   const X = 4000, c = BED.cur, n = BED.nxt;
   if (c && !n && c.duration && (c.duration - c.currentTime) * 1000 < X){ BED.nxt = BED.cur === BED.a ? BED.b : BED.a; BED.nxt.g = 0; BED.nxt.currentTime = 0; const r = BED.nxt.play(); if (r && r.catch) r.catch(() => {}); }
   if (BED.nxt){
     BED.cur.g = Math.max(0, BED.cur.g - dt / X); BED.nxt.g = Math.min(1, BED.nxt.g + dt / X);
     if (BED.nxt.g >= 1){ BED.cur.pause(); BED.cur = BED.nxt; BED.nxt = null; }
   }
-  [BED.a, BED.b].forEach(a => { if (a) a.volume = Math.max(0, Math.min(1, SND.bedVol * BED.m * (a.g == null ? 1 : a.g))); });
+  [BED.a, BED.b].forEach(a => { if (a) a.volume = Math.max(0, Math.min(1, SND.bedVol * SET.mus * BED.m * (a.g == null ? 1 : a.g))); });
   if (!BED.want && BED.m <= 0){ [BED.a, BED.b].forEach(a => a && a.pause()); BED.cur = BED.nxt = null; clearInterval(BED.tm); BED.tm = 0; }
 }
 function bedStart(){
@@ -3484,14 +3922,14 @@ function bedStop(){ BED.want = false; }
 const MUS = {a: null, b: null, cur: null, nxt: null, m: 0, want: false, tm: 0, last: 0, vol: .4};
 function musTick(){
   const now = performance.now(), dt = Math.min(250, now - MUS.last); MUS.last = now;
-  MUS.m = Math.max(0, Math.min(1, MUS.m + (MUS.want && !SND.mute ? dt : -dt) / (MUS.want ? 2500 : 1500)));
+  MUS.m = Math.max(0, Math.min(1, MUS.m + (MUS.want && SET.musOn ? dt : -dt) / (MUS.want ? 2500 : 1500)));
   const X = 4000, c = MUS.cur, n = MUS.nxt;
   if (c && !n && c.duration && (c.duration - c.currentTime) * 1000 < X){ MUS.nxt = MUS.cur === MUS.a ? MUS.b : MUS.a; MUS.nxt.g = 0; MUS.nxt.currentTime = 0; const r = MUS.nxt.play(); if (r && r.catch) r.catch(() => {}); }
   if (MUS.nxt){
     MUS.cur.g = Math.max(0, MUS.cur.g - dt / X); MUS.nxt.g = Math.min(1, MUS.nxt.g + dt / X);
     if (MUS.nxt.g >= 1){ MUS.cur.pause(); MUS.cur = MUS.nxt; MUS.nxt = null; }
   }
-  [MUS.a, MUS.b].forEach(a => { if (a) a.volume = Math.max(0, Math.min(1, MUS.vol * MUS.m * (a.g == null ? 1 : a.g))); });
+  [MUS.a, MUS.b].forEach(a => { if (a) a.volume = Math.max(0, Math.min(1, MUS.vol * SET.mus * MUS.m * (a.g == null ? 1 : a.g))); });
   if (!MUS.want && MUS.m <= 0){ [MUS.a, MUS.b].forEach(a => a && a.pause()); MUS.cur = MUS.nxt = null; clearInterval(MUS.tm); MUS.tm = 0; }
 }
 function musStart(){
@@ -3506,12 +3944,6 @@ function musStop(){ MUS.want = false; }
 ['pointerdown', 'keydown'].forEach(ev => document.addEventListener(ev, () => {
   [MUS, BED].forEach(o => { if (o.want && o.cur && o.cur.paused) o.cur.play().catch(() => {}); });
 }, true));
-function sndUI(){ $('sndBtn').textContent = SND.mute ? '🔇' : '🔊'; }
-$('sndBtn').onclick = () => {
-  SND.mute = !SND.mute; try{ localStorage.setItem('kup_mute', SND.mute ? '1' : '0'); }catch(e){}
-  sndUI(); if (!SND.mute && BED.want && !BED.tm) bedStart(); if (!SND.mute && MUS.want && !MUS.tm) musStart();
-};
-sndUI();
 
 /* Фон-стол: картинка (1790×1179, синее сукно: центр 896,545, размер ≈1215×480) подгоняется под область стола */
 function fitBg(){
@@ -3614,9 +4046,10 @@ function renderFinal(){
 }
 function finUI(){
   const F = S.final, bar = $('fxBar'); if (!F) return;
-  bar.innerHTML = ''; $('fxSkip').style.display = FX.done ? 'none' : '';
+  bar.innerHTML = ''; $('fxSkip').style.display = FX.done ? 'none' : ''; if (F.stage !== 'podium') $('finalX').classList.remove('tutend');
   if (!FX.done) return;
   if (F.stage === 'podium'){
+    if (TUT.on){ $('finalX').classList.add('tutend'); return; }                       // обучение: после итогов выход — через реплику Лавра
     const r = el('div', 'row'); r.append(btn('Вернуться в лобби', () => send({t:'restart'})), btn('Выйти', leave, {ghost:true})); bar.append(r);
   } else {
     const me = myId(), pend = S.players.filter(p => !F.ready[p.id]);
@@ -3763,9 +4196,9 @@ function openCheat(){
     '<p><b>Цена партии</b> (простых карт одного товара после порчи): ' + tri10 + '. Господская карта товара ×2, королевская ×3, множители перемножаются. ' +
     'Каждая испорченная карта убирает 1 простую карту своего товара. Богатство — сумма шести партий. Монеты очков не дают.</p>' +
     '<p><b>День:</b> утренний подвоз (' + RULES.supplyCards + ' карты и ' + RULES.morningCoins + ' монет) → утренний торг → вечерний подвоз (' + RULES.supplyCards + ' карты) → вечерний торг. В первый день утреннего подвоза нет; в последний день берёшь только ' + RULES.morningCoins + ' монет.</p>' +
-    '<p><b>Торговый ход продавца:</b> лот из 3 закрытых карт → цена (потом не менять) → витрина (по желанию) → осмотр → торги → развязка.</p>' +
+    '<p><b>Торговый ход продавца:</b> лот из 3 закрытых карт → почин (потом не менять) → витрина (по желанию) → осмотр → торги → развязка.</p>' +
     '<p><b>Осмотр</b> (каждый покупатель — одно действие): Расспрос −' + RULES.askCost + ' (вопрос выбирается из списка, ответ «да/нет» определяют карты лота — продавец соврать не может), Вскрытие −' + RULES.openCost + ' (одна карта лота лицом вверх, один раз за лот), Ревизор (сбросить, тайно смотришь весь лот). Слухи — бесплатно, чат.</p>' +
-    '<p><b>Торги:</b> первая ставка не меньше цены, дальше минимум +1, нельзя ставить больше своих монет. Спасовал — вышел. <b>Печать купца</b> (один раз за игру, после первой ставки): торги сразу заканчиваются, лот твой; платишь последнюю ставку, но не меньше ' + RULES.sealMin + ' (недостающее доплачивается автоматически, монеты сразу уходят продавцу); если монет не хватает, Печать не сработает.</p>' +
+    '<p><b>Торги:</b> первая ставка не меньше почина (начальной цены лота), дальше минимум +1, нельзя ставить больше своих монет. Спасовал — вышел. <b>Печать купца</b> (один раз за игру, после первой ставки): торги сразу заканчиваются, лот твой; платишь последнюю ставку, но не меньше ' + RULES.sealMin + ' (недостающее доплачивается автоматически, монеты сразу уходят продавцу); если монет не хватает, Печать не сработает.</p>' +
     '<p><b>Продан:</b> победитель платит ставку продавцу и забирает 3 карты. Напасти срабатывают сразу (Кот отменяет одну): сначала Вредители (вся партия товара в колоду), потом Крысы (2 карты из самой большой партии в сброс). Продавец берёт ' + RULES.freeCard + ' карту бесплатно и может докупить до ' + RULES.buyMax + ' по ' + RULES.buyCost + ' мон.</p>' +
     '<p><b>Не продан:</b> товары лота (даже испорченные) открыто в сброс, Напасти и помощники возвращаются продавцу.</p>';
   const r = el('div', 'row'); r.append(btn('Закрыть', () => $('cheatM').classList.remove('on')), btn('Полные правила', () => { $('cheatM').classList.remove('on'); openRules(); }, {ghost:true})); s.append(r);
@@ -3778,7 +4211,7 @@ const smScale = () => ((ui.cwid || 490) * .1143) / 90;
 /* платок: на нём лежит лот; появляется и уходит покадровой анимацией (кадры 0..8, 90 мс), уход — те же кадры задом наперёд */
 let clothF = -1, clothWant = false, clothTm = null;
 function fitCloth(){
-  const w = innerWidth < 701 ? Math.min(innerWidth * .92, innerHeight * .58) : Math.min(innerWidth * .40, innerHeight * .68, 700);
+  const w = document.documentElement.classList.contains('cmp') ? Math.min(innerWidth * .36, innerHeight * .74, 440) : innerWidth < 701 ? Math.min(innerWidth * .92, innerHeight * .58) : Math.min(innerWidth * .40, innerHeight * .68, 700);
   const v = Math.round(Math.max(300, w));
   if (ui.cwid !== v){ ui.cwid = v; document.documentElement.style.setProperty('--cwid', v + 'px'); }
 }
@@ -3798,7 +4231,7 @@ function clothSet(want){
   if (!clothTm && (want ? clothF < 8 : clothF >= 0)) clothTm = setInterval(clothTick, 90);
 }
 function clothReset(){ clearInterval(clothTm); clothTm = null; clothWant = false; clothF = -1; clothPaint(); }
-const handCardW = () => innerWidth < 700 ? 104 : Math.round(Math.min(168, Math.max(112, innerHeight * .185)));
+const handCardW = () => document.documentElement.classList.contains('cmp') ? Math.round(Math.min(108, Math.max(70, innerHeight * .165))) : innerWidth < 700 ? 104 : Math.round(Math.min(168, Math.max(112, innerHeight * .185)));
 /* ---- порядок карт в руке: у каждого игрока свой, хранится только у него ---- */
 const SORT_RANK = {royal:0, gentry:1, simple:2, spoiled:3};
 const SORT_SPEC = {cat:0, pest:1, rat:2, auditor:3};
@@ -3851,6 +4284,8 @@ function hvSet(i){
 }
 document.addEventListener('pointermove', e => {
   if (e.pointerType !== 'mouse') return;
+  /* курсор над окном Лавра, «щитом» обучения, итогами партии или любым окном — карты руки под ними не наводятся (и не звучат) */
+  if (e.target && e.target.closest && e.target.closest('.tut,#tutShield,.fx,.modal,#intro,#loadScr')) return hvSet(-1);
   const h = $('hand'), kids = h.children, n = kids.length;
   if (!n || hd || !$('game').classList.contains('on')) return hvSet(-1);
   const hr = h.getBoundingClientRect(), x = e.clientX - hr.left;
@@ -4071,7 +4506,7 @@ function unplace(i){
 }
 
 /* кнопка «выставить» под тремя картами: карты ложатся в лот и видны всем; окно с ценой само НЕ открывается —
-   сначала продавец рассказывает о товаре («Расскажите о своём товаре»), потом жмёт «Назвать цену» */
+   сначала продавец рассказывает о товаре («Расскажите о своём товаре»), потом жмёт «Назвать почин» */
 function closePrice(){ $('priceM').classList.remove('on'); }
 function putLot(){
   if (!composeMe() || placed.some(x => x == null)) return;
@@ -4080,7 +4515,7 @@ function putLot(){
 function openPrice(){
   if (!(S.phase === 'game' && S.step === 'price' && S.turn === myId())) return;
   const m = $('priceM'), box = $('priceS'); box.innerHTML = '';
-  const MX = TUT.on ? 3 : 9999;      // в обучении лот должен купиться — цену выше 3 не дадим
+  const MX = 9999;
   let v = Math.min(MX, Math.max(1, Math.floor(Number(ui.price) || 1)));
   const num = el('input', 'pnum'); num.type = 'number'; num.min = 1; num.max = MX; num.value = v;
   const set = x => { v = Math.min(MX, Math.max(1, Math.floor(Number(x) || 1))); num.value = v; };
@@ -4088,16 +4523,18 @@ function openPrice(){
   const minus = el('button', 'pbtn', '−'), plus = el('button', 'pbtn', '+');
   minus.onclick = () => set(Number(num.value) - 1);
   plus.onclick = () => set(Number(num.value) + 1);
-  const ok = el('button', 'pok', 'Назвать цену');
+  const ok = el('button', 'pok', 'Назвать почин');
   ok.onclick = () => {
-    set(num.value); ui.price = v;
+    set(num.value);
+    if (TUT.on && v > RULES.startCoins){ TUT.bigPrice = true; return; }      // обучение: у бота только стартовые монеты — больше почин не назвать, Лавр объяснит
+    ui.price = v;
     if (!(S.step === 'price' && S.turn === myId())) return closePrice();
     closePrice(); send({t:'price', price: v});
   };
   num.onkeydown = e => { if (e.key === 'Enter') ok.click(); };
   const prow = el('div', 'prow'); prow.append(minus, num, plus);
   const back = el('button', 'ghost', 'Ещё расскажу о товаре'); back.onclick = closePrice;
-  box.append(el('h3', null, 'Назови цену лота'), el('p', null, 'Цену менять нельзя.'), prow, ok, back);
+  box.append(el('h3', null, 'Назови почин лота'), el('p', null, 'Почин менять нельзя.'), prow, ok, back);
   m.classList.add('on'); num.focus(); num.select();
 }
 function clearSel(){ if (!selIds.size || S.step === 'rat') return; selIds = new Set(); [...$('hand').children].forEach(c => c.classList.remove('sel')); send({t:'select', n:0}); ui.actKey = ''; renderAct(); }
@@ -4140,13 +4577,13 @@ function srcFor(e){
   if (e.type === 'coins') return coinAnchor(e.from);
   return center($('deck'));
 }
-/* Продавец назвал цену: число выезжает по центру стола, снизу «Стартовая цена», потом число уходит в поле цены лота */
+/* Продавец назвал почин: число выезжает по центру стола, снизу «Почин», потом число уходит в поле почина лота */
 function priceFx(price){
   const target = () => document.querySelector('#lotinfo .lp b');
   const done = () => { ui.priceFx = false; const b = target(); if (b) b.style.visibility = ''; };
   if (reduce || !document.body.animate){ done(); return; }
   document.querySelectorAll('.pricefx').forEach(x => x.remove());
-  const w = el('div', 'pricefx'), n = el('div', 'pn', String(price)), l = el('div', 'pl', 'Стартовая цена');
+  const w = el('div', 'pricefx'), n = el('div', 'pn', String(price)), l = el('div', 'pl', 'Почин');
   w.append(n, l); document.body.append(w);
   sfx('hit', .7);
   const IN = 560, HOLD = 1700, OUT = 750;
@@ -4224,7 +4661,7 @@ function flyIn(g, from, i, s0){
   fly({face: g.card, flip: true, from, to: center(e), s0, s1: handCardW() / 90, r0: -12, r1: 0, dur: reduce ? 1 : 900, delay: i * 150, done: fin});
   setTimeout(fin, 1500 + i * 150);
 }
-/* Напасть: карты выходят на стол, Напасть бьёт по картам (трясутся и краснеют), потом всё уходит — в колоду (Вредитель) или в сброс (Крыса).
+/* Напасть: Вредитель — карты выходят на стол, он бьёт по ним (трясутся и краснеют), потом всё уходит в колоду. Крыса ест: карты по одной уходят в неё сверху вниз, исчезая снизу вверх (три укуса с хрустом), и сама крыса уходит в сброс.
    Кот: Напасть и Кот выходят на стол, Кот несколько раз царапает Напасть, обе карты улетают в сброс. */
 function flyNap(e){
   if (reduce) return;
@@ -4277,7 +4714,52 @@ function flyNap(e){
       }, t1);
       return;
     }
-    /* Вредитель / Крыса */
+    /* Крыса ест товар: карты по одной «въезжают» в крысу сверху и исчезают снизу вверх — тремя укусами с хрустом */
+    if (e.kind === 'rat' || e.kind === 'pest'){          // Вредитель ест так же, как Крыса, но втрое быстрее: 2 укуса вместо 3 и карты идут почти конвейером
+      const isRat = e.kind === 'rat', big = sB * 1.15, Hr = 140 * big, Hv = 140 * sB;
+      const ratP = {x: c0.x, y: c0.y + Hr * .3}, ratTop = ratP.y - Hr / 2, L = ratTop + Hr * .27;        // L — линия пасти (на уровне головы крысы): всё, что ниже, уже съедено
+      const rowY = ratTop - 4 - Hv / 2;
+      const nf = mk(e.nap, from(e.nap.id), s0, -6);
+      move(nf, {p: from(e.nap.id), s: s0, r: -6}, {p: ratP, s: big, r: 0}, 900, 0);
+      const vs = e.cards.map((c, i) => {
+        const p = {x: c0.x + (i - (n - 1) / 2) * sw, y: rowY}, st = from(c.id), f = mk(c, st, s0, -6);
+        move(f, {p: st, s: s0, r: -6}, {p, s: sB, r: 0}, 900, 150 + i * 130); return {f, p, c};
+      });
+      const CRUMB = e.kind === 'pest' ? ['#b9d86a', '#8fae4a', '#e6f2b0', '#5f7a2c'] : ['#e2c28a', '#c89a55', '#f2e2b8', '#8d6130'];
+      const BITES = isRat ? 3 : 2, BT = isRat ? 330 : 185, SL = isRat ? 260 : 130, DR = isRat ? 300 : 150;
+      let lastCr = -1;
+      const crunch = () => { let k; do { k = Math.random() * 3 | 0; } while (k === lastCr); lastCr = k; sfx('crunch' + (k + 1), isRat ? .9 : .7, 0, (isRat ? .94 : 1.08) + Math.random() * .14); };
+      const crumbs = (x0, y0, w) => {
+        for (let q = 0; q < 7; q++){
+          const d = el('i'), sz = 3 + Math.random() * 5, x = x0 + (Math.random() - .5) * w, dx = (Math.random() - .5) * 90, up = 22 + Math.random() * 38;
+          d.style.cssText = 'position:fixed;left:' + x + 'px;top:' + y0 + 'px;width:' + sz + 'px;height:' + sz + 'px;border-radius:' + (Math.random() < .5 ? '50%' : '2px') + ';background:' + CRUMB[q % 4] + ';pointer-events:none;z-index:66;box-shadow:0 1px 1px rgba(0,0,0,.5)';
+          document.body.append(d);
+          d.animate([{transform: 'translate(0,0) rotate(0)', opacity: 1}, {transform: 'translate(' + dx * .6 + 'px,' + (-up) + 'px) rotate(120deg)', opacity: 1, offset: .4}, {transform: 'translate(' + dx + 'px,' + (up * .4 + 26) + 'px) rotate(260deg)', opacity: 0}], {duration: 520 + Math.random() * 220, easing: 'ease-out'}).onfinish = () => d.remove();
+        }
+      };
+      const chew = () => nf.animate([{transform: T(ratP, big, 0)}, {transform: T({x: ratP.x + 2, y: ratP.y + 5}, big * 1.06, -2.2), offset: .35}, {transform: T({x: ratP.x - 2, y: ratP.y + 1}, big * 1.02, 1.6), offset: .7}, {transform: T(ratP, big, 0)}], {duration: BT - 30, easing: 'ease-out'});
+      const edge = Y => {                                          // нижний край съеденной карты: зубчики (Y — высота оставшейся части в «родных» пикселях карты)
+        let pts = '0 0,100% 0,100% ' + Y + 'px'; for (let k = 9; k >= 1; k--) pts += ',' + (k * 10) + '% ' + (Y - (k % 2 ? 0 : 7)) + 'px'; return 'polygon(' + pts + ',0 ' + Y + 'px)';
+      };
+      const tA = 1500 + n * 130 + 150, per = SL + DR + BITES * BT + (isRat ? 120 : 50), stepT = isRat ? per : Math.round(per * .6);
+      vs.forEach((v, i) => {
+        const t0 = tA + i * stepT, face = v.f.firstChild, topY = v.p.y - Hv / 2, d1 = L - (v.p.y + Hv / 2);      // d1 — сколько проехать, чтобы нижний край дошёл до пасти
+        const Tt = dy => T({x: ratP.x, y: v.p.y + dy}, sB, 0), Yat = dy => Math.max(0, (L - topY - dy) / sB);
+        setTimeout(() => { v.f.animate([{transform: T(v.p, sB, 0)}, {transform: Tt(0)}], {duration: SL, easing: 'ease-in-out', fill: 'forwards'}); }, t0);
+        setTimeout(() => { v.f.animate([{transform: Tt(0)}, {transform: Tt(d1)}], {duration: DR, easing: 'ease-in', fill: 'forwards'}); }, t0 + SL);
+        for (let k = 1; k <= BITES; k++) setTimeout(() => {
+          const a = d1 + Hv * (k - 1) / BITES, b = d1 + Hv * k / BITES;
+          crunch(); chew(); crumbs(ratP.x, L, 90 * sB);
+          v.f.animate([{transform: Tt(a)}, {transform: Tt(b)}], {duration: BT - 60, easing: 'cubic-bezier(.3,.9,.4,1)', fill: 'forwards'});
+          face.animate([{clipPath: edge(Yat(a))}, {clipPath: edge(Yat(b))}], {duration: BT - 60, easing: 'cubic-bezier(.3,.9,.4,1)', fill: 'forwards'});
+          if (k === BITES) setTimeout(() => v.f.remove(), BT - 40);
+        }, t0 + SL + DR + (k - 1) * BT);
+      });
+      const tB = tA + (n - 1) * stepT + per + 150;
+      setTimeout(() => move(nf, {p: ratP, s: big, r: 0}, {p: disc, s: .7, r: 0}, 1000, 0, {fade: true, done: () => nf.remove()}), tB);
+      return;
+    }
+    /* Вредитель */
     const napP = {x: c0.x, y: c0.y - 80}, big = sB * 1.15, dest = e.kind === 'pest' ? deckC : disc;
     const nf = mk(e.nap, from(e.nap.id), s0, -6);
     move(nf, {p: from(e.nap.id), s: s0, r: -6}, {p: napP, s: big, r: 0}, 900, 0);
@@ -4475,6 +4957,7 @@ $('lobbyChatIn').addEventListener('keydown', e => { if (e.key === 'Enter'){ cons
 $('chgBtn').append(coinEl(10), el('span', 'ar', '⇄'), coinEl(5), el('span', 'tx', 'Размен'));
 $('chgBtn').onclick = openChange;
 $('sortBtn').onclick = sortHandNow;
+$('chatTgl').onclick = () => { const o = $('rcol').classList.toggle('chatopen'); $('chatTgl').classList.toggle('on', o); if (o){ $('chatTgl').classList.remove('dot'); $('log').scrollTop = 1e9; } };
 document.addEventListener('keydown', e => { if (e.key === 'Escape'){ if (hd) dragEnd({type:'pointercancel'}); if (ui.mode === 'ask') askBack(); else if (ui.bagMode && ui.mode === 'open') bagBack(); clearSel(); ['cheatM', 'rulesM', 'discM', 'changeM', 'sealM'].forEach(id => $(id).classList.remove('on')); } });
 window.addEventListener('resize', () => { fitBg(); if (S.phase === 'game'){ renderTable(); buildHand(); } });
 $('roomCode').onclick = () => navigator.clipboard && navigator.clipboard.writeText(code);
@@ -4586,7 +5069,7 @@ const RULES_HTML = `
 <ol>
 <li><b>Выложите лот.</b> Выберите из своего склада ровно 3 карты любых типов и положите их закрытыми в ряд в центре стола. Позиции считаются слева направо: 1, 2, 3.</li>
 <li><b>Откройте витрину (по желанию).</b> Бесплатно переверните одну карту лота лицом вверх, чтобы привлечь покупателей. Закрыть её обратно нельзя.</li>
-<li><b>Назовите цену.</b> Назовите стартовую цену — целое число монет, не меньше 1. После этого менять её нельзя.</li>
+<li><b>Назовите почин.</b> Почин — это начальная цена лота, с которой начинаются торги. Назовите её целым числом монет, не меньше 1. После этого менять почин нельзя.</li>
 <li><b>Проведите осмотр.</b> Начиная с левого соседа продавца, каждый покупатель может один раз за этот лот выполнить одно действие осмотра или пропустить его.</li>
 <li><b>Проведите торги.</b> Покупатели по очереди называют ставки или пасуют.</li>
 <li><b>Проведите развязку.</b> Лот передаётся победителю торгов в закрытую. Затем применяются эффекты специальных карт, если они есть.</li>
@@ -4605,7 +5088,7 @@ const RULES_HTML = `
 <ol>
 <li>Первым ходит левый сосед продавца. Далее покупатели действуют по кругу.</li>
 <li>В свой ход игрок либо называет ставку, либо пасует.</li>
-<li>Первая ставка должна быть не меньше цены, которую назвал продавец. Каждая следующая ставка — минимум на 1 монету выше предыдущей. (Особое правило Печати купца описано ниже.)</li>
+<li>Первая ставка должна быть не меньше почина, который назвал продавец. Каждая следующая ставка — минимум на 1 монету выше предыдущей. (Особое правило Печати купца описано ниже.)</li>
 <li>Нельзя ставить больше монет, чем у вас есть. Продавец в торгах не участвует и свой лот купить не может.</li>
 <li>Игрок, который спасовал, больше не участвует в торгах за этот лот.</li>
 <li>Торги заканчиваются, когда все, кроме игрока, сделавшего последнюю ставку, спасовали. Он выигрывает и платит свою ставку.</li>
@@ -4676,6 +5159,74 @@ function openRules(){
 }
 $('rulesM').addEventListener('click', e => { if (e.target === $('rulesM')) $('rulesM').classList.remove('on'); });
 
+/* ---------- Памятка: напасти, помощники, виды партий, печать ---------- */
+const MEMO_NAP = ['rat', ...PORD.map(pr => 'pest_' + (pr === 'spice' ? 'spice' : pr))];
+function memoText(k){
+  const d = CARDS[k];
+  if (k === 'rat') return [d.name, 'Срабатывает при покупке лота: вы выбираете 2 карты из своей самой большой партии, и они уходят крысе. Крыса — в сброс. Если она досталась вам из колоды, а не из лота, вам ничего не грозит.'];
+  if (d.kind === 'pest') return [d.name, 'Срабатывает при покупке лота: вся ваша партия «' + prodName(d.prod) + '» замешивается обратно в колоду. Вредитель — в сброс.'];
+  if (k === 'cat') return [d.name, 'Отменяет одну Напасть (Крысу или Вредителя), попавшуюся в купленном лоте. Кот и Напасть уходят в сброс.'];
+  if (k === 'auditor') return [d.name, 'Позволяет тайно посмотреть все 3 карты лота. Это одно из действий осмотра.'];
+  return [d.name, ''];
+}
+const MEMO_SEAL = 'При использовании вы мгновенно забираете лот. Но минимальная оплата — 10 монет. Если ставка ниже, разницу платите вы.';
+function openMemo(){
+  const s = $('memoS'); s.innerHTML = '';
+  const face = (k, w) => { const c = mkFace({k}); if (w) c.style.setProperty('--w', w + 'px'); return c; };
+  const fig = (c, cap) => { const f = el('div', 'mm-fig'); f.append(c, cap); return f; };
+  const descBox = hint => el('div', 'mm-desc hint', hint);
+  /* ряд карт: нажатие подсвечивает карту и показывает короткое описание под рядом */
+  const pickRow = (keys, box, hint) => {
+    const row = el('div', 'mm-row');
+    keys.forEach(k => {
+      const c = face(k); c.classList.add('mm-c');
+      c.onclick = () => {
+        row.querySelectorAll('.mm-c.on').forEach(x => x.classList.remove('on')); c.classList.add('on');
+        const t = memoText(k); box.className = 'mm-desc'; box.replaceChildren(el('b', null, t[0]), document.createTextNode(' — ' + t[1]));
+        sfx('perebor', .3);
+      };
+      row.append(fig(c, el('div', 'mm-cap', CARDS[k].name)));
+    });
+    return row;
+  };
+  const box = descBox('Нажми на карту, чтобы узнать, что она делает.');
+  const col = (title, ...n) => { const c = el('div', 'mm-col'); c.append(el('div', 'mm-sec', title), ...n); return c; };
+  const top = el('div', 'mm-grid'); top.append(col('Напасти', pickRow(MEMO_NAP, box)), col('Специальные карты', pickRow(['cat', 'auditor'], box)));
+  s.append(el('h3', null, '📖 Памятка'), top, box);
+  /* партии: нажал на товар — выехали четыре карты: испорченные, обычные, господские, королевские */
+  const four = el('div', 'mm-row mm-four'), fh = el('div', 'mm-desc hint', 'Нажми на партию — увидишь все её карты.');
+  four.append(fh);
+  const kindKey = (pr, kind) => Object.values(CARDS).find(c => c.prod === pr && c.kind === kind).k;
+  const prow = el('div', 'mm-row mm-prow');
+  PRODUCTS.forEach(pr => {
+    const c = face(kindKey(pr.id, 'simple')); c.classList.add('mm-c');
+    c.onclick = () => {
+      prow.querySelectorAll('.mm-c.on').forEach(x => x.classList.remove('on')); c.classList.add('on');
+      four.innerHTML = '';
+      [['spoiled', 'Испорченные'], ['simple', 'Обычные'], ['gentry', 'Господские'], ['royal', 'Королевские']].forEach(([kind, lbl], i) => {
+        const k = kindKey(pr.id, kind), f = fig(face(k), el('div', 'mm-cap')); f.style.setProperty('--i', i);
+        f.lastChild.append(el('b', null, lbl), document.createTextNode(CARDS[k].name)); four.append(f);
+      });
+      sfx('perebor', .3);
+    };
+    prow.append(fig(c, el('div', 'mm-cap', pr.name)));
+  });
+  const bot = el('div', 'mm-grid'); bot.append(col('Виды партий', prow), col('Карты партии', four));
+  s.append(bot);
+  /* печать купца — справа внизу */
+  const bub = el('div', 'mm-bub', MEMO_SEAL), seal = el('div', 'mm-seal'), img = el('img'); img.src = 'ui/seal.webp'; img.alt = ''; img.draggable = false;
+  seal.tabIndex = 0; seal.setAttribute('role', 'button'); seal.title = 'Печать купца';
+  seal.append(img, el('small', null, 'Печать купца'));
+  const flip = () => { const on = !bub.classList.contains('on'); bub.classList.toggle('on', on); seal.classList.toggle('on', on); sfx('perebor', .3); };
+  seal.onclick = flip; seal.onkeydown = e => { if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); flip(); } };
+  const ft = el('div', 'mm-foot'); ft.append(btn('Закрыть', () => $('memoM').classList.remove('on')), bub, seal);
+  s.append(ft); s.scrollTop = 0;
+  $('memoM').classList.add('on');
+}
+$('memoBtn').onclick = openMemo;
+$('memoM').addEventListener('click', e => { if (e.target === $('memoM')) $('memoM').classList.remove('on'); });
+
+
 
 /* ---------- Обучение: сценарий Лавра Золотозуба ----------
    Игра настоящая (ты и один бот), но ведёт её сценарий: диалоги идут по порядку, всё лишнее закрыто «щитом» —
@@ -4700,6 +5251,15 @@ function tutGive(pid, k){
   const c = H.deck.splice(i, 1)[0]; hand(pid).push(c); sortHand(pid); return c;
 }
 /* найти на экране то, что подсветить: селектор, элемент, список элементов, функция или {list:[…]} */
+/* Рамка рука-целиком: у контейнера #hand рамка выходит меньше самих карт (карты в руке приподняты и торчат за его границы),
+   поэтому берём объединение прямоугольников самих карт. Остальные элементы — как есть. */
+function tutBox(e){
+  const r = e.getBoundingClientRect(), o = e.id === 'hand' ? null : {left: r.left, top: r.top, right: r.right, bottom: r.bottom, width: r.width, height: r.height, el: e};
+  if (o) return o;
+  let l = 1e9, t = 1e9, rr = -1e9, b = -1e9;
+  [...e.children].forEach(c => { const q = c.getBoundingClientRect(); if (q.width < 3 || q.height < 3) return; l = Math.min(l, q.left); t = Math.min(t, q.top); rr = Math.max(rr, q.right); b = Math.max(b, q.bottom); });
+  return l > rr ? {left: r.left, top: r.top, right: r.right, bottom: r.bottom, width: r.width, height: r.height} : {left: l, top: t, right: rr, bottom: b, width: rr - l, height: b - t};
+}
 function tutRects(){
   const out = [];
   const one = h => {
@@ -4709,28 +5269,69 @@ function tutRects(){
     else if (v && v.nodeType) v = [v]; else v = v || [];
     v = v.filter(e => { if (!e || !e.isConnected) return false; const r = e.getBoundingClientRect(), cs = getComputedStyle(e); return r.width > 3 && r.height > 3 && cs.display !== 'none' && cs.visibility !== 'hidden'; });
     if (!v.length) return;
-    let l = 1e9, t = 1e9, r = -1e9, b = -1e9; const items = v.map(e => e.getBoundingClientRect());
+    let l = 1e9, t = 1e9, r = -1e9, b = -1e9; const items = v.map(tutBox);
     items.forEach(q => { l = Math.min(l, q.left); t = Math.min(t, q.top); r = Math.max(r, q.right); b = Math.max(b, q.bottom); });
     out.push({l, t, r, b, items});
   };
   TUT.hl.forEach(one);
   return out;
 }
+/* табула очков: выезжает в центр и растёт на ~25%; tutTblDrop возвращает на место */
+function tutTblLift(){
+  const t = $('scoreTbl'), col = t.parentNode; clearTimeout(TUT.tblT);
+  t.style.transition = 'none'; t.style.transform = 'none'; t.classList.add('lift'); col.classList.add('lift');
+  const r = t.getBoundingClientRect(); if (r.width < 3) return;
+  const W = innerWidth, Hh = innerHeight, cmp = document.documentElement.classList.contains('cmp'), s = Math.min(1.25, W * .92 / r.width, (cmp ? (Hh - 5 - 195 - 56) : Hh * .6) / r.height), h = r.height * s;
+  let top = Math.min(Hh - 12 - h, Math.max((Hh - h) / 2, Math.min(Hh * .32, 220)));      // по центру, но ниже окна Лавра
+  if (document.documentElement.classList.contains('cmp')){                                   // на телефоне окно Лавра занимает до 170px снизу — таблица целиком над ним
+    const wt = Hh - 5 - Math.max($('tut').offsetHeight, 195); top = Math.max(40, Math.min(top, wt - 8 - h));
+  }
+  const zm = parseFloat(getComputedStyle(t).zoom) || 1;                                       // zoom таблицы (телефон) масштабирует и сдвиг в transform
+  const dx = ((W - r.width * s) / 2 - r.left) / zm, dy = (top - r.top) / zm;
+  void t.offsetWidth;
+  t.style.transition = 'transform .65s cubic-bezier(.2,.9,.3,1)'; t.style.transform = 'translate(' + Math.round(dx) + 'px,' + Math.round(dy) + 'px) scale(' + s.toFixed(3) + ')';
+}
+function tutTblDrop(){
+  const t = $('scoreTbl'), col = t.parentNode; if (!t.classList.contains('lift')) return;
+  t.style.transition = 'transform .5s ease'; t.style.transform = 'none';
+  clearTimeout(TUT.tblT); TUT.tblT = setTimeout(() => { t.classList.remove('lift'); col.classList.remove('lift'); t.style.transition = t.style.transform = ''; }, 550);
+}
 function tutLoop(){
   if (!TUT.on) return;
-  const rs = tutRects(), sh = $('tutShield'), W = innerWidth, Hh = innerHeight, p = 7;
-  sh.classList.add('on'); sh.classList.toggle('clear', !rs.length);
-  let d = 'M0 0H' + W + 'V' + Hh + 'H0Z';
-  rs.forEach(r => { const x = Math.max(0, r.l - p), y = Math.max(0, r.t - p), w = Math.min(W, r.r + p) - x, h = Math.min(Hh, r.b + p) - y; d += ' M' + x.toFixed(1) + ' ' + y.toFixed(1) + 'h' + w.toFixed(1) + 'v' + h.toFixed(1) + 'h-' + w.toFixed(1) + 'Z'; });
-  const key = d + '|' + rs.map(r => r.items.length).join();
-  if (key !== TUT.key){
-    TUT.key = key;
-    sh.style.clipPath = rs.length ? 'path(evenodd,"' + d + '")' : 'none';
-    const fr = $('tutFrames'); fr.innerHTML = '';
-    rs.forEach(r => r.items.forEach(q => {
-      const f = el('div', 'tfr'); f.style.left = (q.left - 3) + 'px'; f.style.top = (q.top - 3) + 'px'; f.style.width = (q.width + 0) + 'px'; f.style.height = (q.height + 0) + 'px'; fr.append(f);
-    }));
+  if (TUT.fin){ $('tutShield').classList.remove('on'); $('tutDim').classList.remove('on'); $('tutFrames').innerHTML = ''; TUT.key = ''; if (TUT.place){ TUT.place = 0; tutPlace([]); } return; }       // финал обучения: идёт подсчёт очков, «щит» не нужен — кликать можно по итогам
+  const rs = tutRects(), sh = $('tutShield'), dim = $('tutDim'), W = innerWidth, Hh = innerHeight;
+  sh.classList.add('on'); dim.classList.toggle('on', rs.length > 0);
+  const isCard = q => !!(q.el && q.el.classList && q.el.classList.contains('card'));
+  /* дыры по каждому подсвеченному элементу: у карт — по контуру (скруглённый вырез с запасом под свечение), у остальных — под рамку */
+  const holes = [];
+  rs.forEach(r => r.items.forEach(q => { const c = isCard(q), p = c ? 13 : 9; holes.push([Math.max(0, q.left - p), Math.max(0, q.top - p), Math.min(W, q.right + p), Math.min(Hh, q.bottom + p), c ? Math.min(22, q.width * .17) : 18]); }));
+  const xs = [0, W], ys = [0, Hh]; holes.forEach(q => { xs.push(q[0], q[2]); ys.push(q[1], q[3]); });
+  const ux = [...new Set(xs)].sort((a, b) => a - b), uy = [...new Set(ys)].sort((a, b) => a - b);
+  let d = '';           // щит для нажатий = экран минус объединение дыр (набор непересекающихся ячеек: перекрытия дыр не «схлопываются»)
+  for (let j = 0; j < uy.length - 1; j++){
+    const y0 = uy[j], y1 = uy[j + 1], my = (y0 + y1) / 2; let run = null;
+    const flush = () => { if (run){ d += 'M' + run[0].toFixed(1) + ' ' + y0.toFixed(1) + 'H' + run[1].toFixed(1) + 'V' + y1.toFixed(1) + 'H' + run[0].toFixed(1) + 'Z'; run = null; } };
+    for (let i = 0; i < ux.length - 1; i++){
+      const x0 = ux[i], x1 = ux[i + 1], mx = (x0 + x1) / 2;
+      if (holes.some(q => mx > q[0] && mx < q[2] && my > q[1] && my < q[3])) flush();
+      else if (run) run[1] = x1; else run = [x0, x1];
+    }
+    flush();
   }
+  const key = holes.map(h => h.map(Math.round).join(',')).join(';');
+  if (key !== TUT.key){
+    TUT.key = key; sh.style.clipPath = rs.length ? 'path("' + d + '")' : 'none';
+    $('tdh').innerHTML = holes.map(h => '<rect x="' + h[0].toFixed(1) + '" y="' + h[1].toFixed(1) + '" width="' + (h[2] - h[0]).toFixed(1) + '" height="' + (h[3] - h[1]).toFixed(1) + '" rx="' + h[4].toFixed(1) + '"/>').join('');
+  }
+  const hlSet = new Set(); rs.forEach(r => r.items.forEach(q => { if (isCard(q)) hlSet.add(q.el); }));
+  document.querySelectorAll('#hand .card.tuthl').forEach(e => { if (!hlSet.has(e)) e.classList.remove('tuthl'); });
+  hlSet.forEach(e => e.classList.add('tuthl'));
+  /* рамки — только вокруг не-карт (кнопки, панели, таблица…); элементы переиспользуются, поэтому анимация не сбрасывается, а рамка едет за целью */
+  const fr = $('tutFrames'), fl = [];
+  rs.forEach(r => r.items.forEach(q => { if (!isCard(q)) fl.push([q.left - 4, q.top - 4, q.width + 8, q.height + 8]); }));
+  while (fr.children.length > fl.length) fr.lastChild.remove();
+  while (fr.children.length < fl.length){ const f = el('div', 'tfr'); f.style.transition = 'none'; fr.append(f); requestAnimationFrame(() => { f.style.transition = ''; }); }   // новая рамка появляется сразу на месте
+  fl.forEach((b, i) => { const f = fr.children[i]; f.style.left = b[0] + 'px'; f.style.top = b[1] + 'px'; f.style.width = b[2] + 'px'; f.style.height = b[3] + 'px'; });
   if (TUT.place){ TUT.place = 0; tutPlace(rs); }
 }
 /* окно внизу, а если подсвеченное лежит под ним — сверху */
@@ -4744,20 +5345,86 @@ function lavrVoice(){                                    // по одному и
   let i; do { i = Math.random() * 10 | 0; } while (i === lavrLast);
   lavrLast = i; sfx('lavr' + (i + 1), .7);
 }
+/* ---- Подсветка слов в репликах Лавра ----
+   В тексте любой реплики можно писать [[слово]] — оно будет выделено золотым. Цвет: [[слово|r]] красный, [[слово|g]] зелёный, [[слово|b]] синий.
+   Или вызывать hi('слово') / hi('слово', 'r') — удобно внутри шаблонных строк:  say(`Бери ${hi('шёлк')} и ${hi('сыр', 'g')}!`).
+   Остальной текст экранируется, так что <, > и & в репликах безопасны. Печать идёт по словам, подсветка не ломается. */
+const hi = (t, c) => '[[' + t + (c ? '|' + c : '') + ']]';
+const tutEsc = t => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+function tutParse(text){                                  // текст с [[разметкой]] → слова; слово = список кусков {s, c}
+  const words = []; let open = false;                      // open: предыдущее слово ещё не закончилось пробелом (знак препинания прилипает к нему)
+  const add = (s0, c0) => { (c0 ? [{s: s0, c: c0}] : autoSplit(s0)).forEach(sg => add1(sg.s, sg.c)); };
+  const add1 = (s, c) => {
+    (s.match(/\S+\s*|\s+/g) || []).forEach((tok, i) => {
+      const part = {s: tok, c: c || ''};
+      if (words.length && (open && i === 0 || !tok.trim())) words[words.length - 1].push(part);
+      else words.push([part]);
+      open = !/\s$/.test(tok);
+    });
+  };
+  const re = /\[\[([\s\S]+?)(?:\|([a-z]+))?\]\]/g; let last = 0, m;
+  while ((m = re.exec(text))){ if (m.index > last) add(text.slice(last, m.index), ''); add(m[1], m[2] || 'y'); last = re.lastIndex; }
+  if (last < text.length) add(text.slice(last), '');
+  return words;
+}
+/* Автоподсветка: ключевые слова красятся сами (Господские — бирюзовые, Королевские — золотые, порча — болотные, напасти — красные, помощники — синие),
+   монеты, очки и иксы — крупнее; «названия кнопок» в кавычках — подчёркнуты. Свой акцент и настроение — [[слово|класс]]: j радость, a возмущение, i издёвка, w шёпот. */
+const L_ = '(?<![а-яёА-ЯЁ])', E_ = '(?![а-яёА-ЯЁ])';
+const AUTO = [
+  [new RegExp(L_ + '(?:господск|бирюзов)[а-яё]*', 'gi'), () => 't'],
+  [new RegExp(L_ + 'королевск[а-яё]*', 'gi'), () => 'k'],
+  [new RegExp('(?:(?<![0-9])\\d+\\s+)?' + L_ + '(?:гнил|порч|испорчен|мочён|заплесневел)[а-яё]*', 'gi'), () => 's'],
+  [new RegExp('(?:(?<![0-9])\\d+\\s+)?' + L_ + '(?:обычн[а-яё]*|сер(?:ые|ый|ых))' + E_ + '(?:\\s+(?:товар|карт)[а-яё]*)?', 'gi'), () => 'z'],
+  [new RegExp(L_ + 'печат[а-яё]*(?:\\s+купца)?', 'gi'), () => 'p'],
+  [new RegExp(L_ + '(?:крыс|вредител|напаст|невезух)[а-яё]*', 'gi'), () => 'r'],
+  [new RegExp(L_ + '(?:кот(?:а|у|ом|е|ы|ов)?|ревизор[а-яё]*)' + E_, 'gi'), () => 'b'],
+  [new RegExp(L_ + '[хx×]\\s?([23])(?![0-9])', 'gi'), m => 'x' + m[1]],
+  [new RegExp('\\d+\\s+очк[а-яё]*|' + L_ + 'одн[а-яё]+\\s+очк[а-яё]*', 'gi'), () => 'n'],
+  [new RegExp('\\d+\\s+(?:монет[а-яё]*|деревянных)|' + L_ + '(?:одн[а-яё]+|две|три)\\s+монет[а-яё]*', 'gi'), () => 'c'],
+  [/"([^"\s](?:[^"\n]{0,38}[^"\s])?)"|«([^»\s](?:[^»\n]{0,38}[^»\s])?)»/g, () => 'y', true]
+];
+function autoSplit(str){
+  let segs = [{s: str, c: ''}];
+  AUTO.forEach(([re, cls, inner]) => {
+    const out = [];
+    segs.forEach(sg => {
+      if (sg.c){ out.push(sg); return; }
+      let last = 0, m; re.lastIndex = 0;
+      while ((m = re.exec(sg.s))){
+        let a = m.index, b = m.index + m[0].length;
+        if (inner){ const g = m[1] != null ? m[1] : m[2]; a += 1; b = a + g.length; }          // кавычки остаются обычными, красится только название
+        if (a > last) out.push({s: sg.s.slice(last, a), c: ''});
+        out.push({s: sg.s.slice(a, b), c: cls(m)}); last = b;
+      }
+      if (last < sg.s.length) out.push({s: sg.s.slice(last), c: ''});
+    });
+    segs = out;
+  });
+  return segs;
+}
+/* у слов-«блоков» (радость, возмущение, цифры) пробел в конце уходит за пределы span, иначе браузер его съедает и слова слипаются */
+const HW_BLOCK = new Set(['j', 'a', 'i', 'c', 'n', 'x2', 'x3']);
+const tutHtml = words => words.map(w => w.map(p => {
+  if (!p.c) return tutEsc(p.s);
+  if (HW_BLOCK.has(p.c)){ const m = p.s.match(/^([\s\S]*?)(\s*)$/); return '<span class="hw hw-' + p.c + '">' + tutEsc(m[1]) + '</span>' + m[2]; }
+  return '<span class="hw hw-' + p.c + '">' + tutEsc(p.s) + '</span>';
+}).join('')).join('');
 function tutType(text){
-  const tx = $('tutTx'); clearInterval(TUT.ty); clearTimeout(TUT.ty); TUT.full = text;
-  if (window.TUT_FAST || reduce){ tx.textContent = text; TUT.typing = false; return; }
-  const words = text.match(/\S+\s*/g) || [];             // слово вместе с пробелом после него
-  let i = 0, out = ''; TUT.typing = true; tx.textContent = '';
+  const tx = $('tutTx'); clearInterval(TUT.ty); clearTimeout(TUT.ty);
+  const words = tutParse(text); TUT.full = tutHtml(words);
+  tx.classList.remove('done');
+  if (window.TUT_FAST || reduce){ tx.classList.add('done'); tx.innerHTML = TUT.full; TUT.typing = false; return; }
+  let i = 0; TUT.typing = true; tx.innerHTML = '';
   const step = () => {
     if (!TUT.typing) return;
     if (i >= words.length){ TUT.typing = false; return; }
-    const w = words[i++]; out += w; tx.textContent = out; lavrVoice();
-    TUT.ty = setTimeout(step, 70 + 16 * w.trim().length + (/[.,!?…:;–-]$/.test(w.trim()) ? 140 : 0));
+    const w = words[i++]; tx.insertAdjacentHTML('beforeend', tutHtml([w])); lavrVoice();
+    const plain = w.map(p => p.s).join('').trim();
+    TUT.ty = setTimeout(step, 70 + 16 * plain.length + (/[.,!?…:;–-]$/.test(plain) ? 140 : 0));
   };
   step();
 }
-const tutFinish = () => { if (TUT.typing){ clearTimeout(TUT.ty); TUT.typing = false; $('tutTx').textContent = TUT.full; return true; } return false; };
+const tutFinish = () => { if (TUT.typing){ clearTimeout(TUT.ty); TUT.typing = false; $('tutTx').classList.add('done'); $('tutTx').innerHTML = TUT.full; return true; } return false; };
 /* реплика Лавра: o.hl — что подсветить (остальное закрыто), o.next — подпись кнопки (false — без кнопки, дальше идёт по делу) */
 function say(text, o){
   o = o || {};
@@ -4772,11 +5439,17 @@ function say(text, o){
   });
 }
 $('tutTx').onclick = () => { tutFinish(); };
+/* реплика без кнопки, после которой нужно действие на столе: пока Лавр не договорил, всё закрыто — подсветка (hl) открывается только в конце реплики */
+async function sayWait(text, hl){
+  say(text, {hl: [], next: false});
+  await until(() => !TUT.typing);
+  TUT.hl = hl; TUT.key = '';
+}
 /* нужна мелочь: подсказываем Размен, пока ok() не станет истиной */
 async function tutChange(ok, still, first, msg){
   let f = first;
   while (still() && !ok()){
-    await say(f ? 'Нету мелких монет? Не беда! Ты всегда можешь попросить размен у банка' : (msg || 'Мелочи всё ещё маловато — поменяй ещё.'), {hl:['#chgBtn'], next:false});
+    await say(f ? 'Нету мелких монет? Не беда! Ты всегда можешь попросить [[размен]] у банка' : (msg || 'Мелочи всё ещё маловато — поменяй ещё.'), {hl:['#chgBtn'], next:false});
     await until(() => $('changeM').classList.contains('on') || !still());
     if (!still()) return;
     if (f) await say('Я надеюсь, хотя бы тут тебе все понятно.', {hl:['#changeS'], next:false});
@@ -4790,52 +5463,82 @@ async function tutScript(){
   const live = () => TUT.on && TUT.run === run;
   await until(() => !LOAD.on);
   await tutSleep(900);
-  await say('Здорово, разгильдяй! Я Лавр Золотозуб. Торгую тридцать лет и ни разу не прогорел. Зуб даю!');
-  await say('Зачем ты здесь? Ты же купец, конечно, продавать товар!');
-  await say('Тут собрались лучшие торговцы, чтобы продавать друг другу товар. Правда, не всегда он надлежащего качества...');
-  await say('Так вот, малец, на всё про всё будет пара дней, за которые весь мусор... кхм, то есть товар должен быть продан, а ты - на руках иметь самый богатый склад.', {hl:['#dayinfo .daypl']});
-  await say('Видишь эту табулу? Тут показаны очки за определенный товар. Чем больше у тебя на руках товара одного вида - тем больше очков, все просто!', {hl:['#scoreTbl']});
+  await say('Здорово, разгильдяй! Я [[Лавр Золотозуб]]. Торгую [[тридцать лет]] и ни разу не прогорел. [[Зуб даю!|j]]');
+  await say('Не знаешь, что делать? [[Отставить сомнения!|j]] Отныне ты - [[Купец]], а значит, [[чутьё и смекалка]] должны быть в крови!');
+  await say('На этой ярмарке друг другу продают товары лучшие купцы всего бела света! И каждый хочет уйти с карманами пошире. Потому и товар может быть... [[не без подвоха|i]].');
+  await say('Так что слушай сюда, салага! На всё про всё будет лишь [[пара дней]]. А как время выйдет - чтобы и [[склад ломился]], и [[кошель трещал]]!', {hl:['#dayinfo .daypl']});
+  tutTblLift(); await tutSleep(700);
+  await say('Видишь эту [[табулу]]? Тут расписаны [[очки]] за одинаковый товар. Чем больше одного и того же добра наберёшь, тем [[выше награда]].', {hl:['#scoreTbl']});
+  TUT.hl = []; tutTblDrop(); await tutSleep(250);        // «Дальше» нажато — затемнение и рамка уходят, пока раздаются карты
 
   /* --- партия: целая партия сыра в руке --- */
   ['silk', 'silk', 'silk', 'silk', 'silk', 'silk', 'silk', 'silk', 'wild', 'wild', 'spider'].forEach(k => tutGive(me, k));
   emit('take', {by: me, n: 11}); commit();          // 'take' летит карта за картой, а не только первые четыре
   await tutSleep(3800);
+  await say('Раздал тебе всю товарную партию одного вида. Учти, что в реальном случае такая ситуация - [[диковинка]]!');
   const simpleCheese = () => handEls(d => d.kind === 'simple' && d.prod === 'silk');
-  await say('Смотри, это обычные карты, они и дают очки, нажми на любую из них, тебе покажет сколько очков получается', {hl:[simpleCheese], next:false});
+  await say('Серые - обычный товар, они и приносят очки. [[Жми на любую!|j]]', {hl:[simpleCheese], next:false});
   await until(() => $('pgTip').classList.contains('on'));
   TUT.keepPg = true;
-  await say('Ага, что-то не так, верно? Это потому, что в руке есть «Господские» и «Королевские» товары', {hl:[simpleCheese, '#pgTip']});
-  await say('Вот эти красавцы умножают твою партию, бирюзовые карты - Господские, их на партию всего две в колоде, каждая умножает на х2', {hl:[() => handEls(d => d.kind === 'gentry' && d.prod === 'silk'), '#pgTip']});
-  await say('А вот это, товар высшего сорта - Королевский. Он на партию всего в единственном экземпляре! И умножает её на х3.', {hl:[() => handEls(d => d.kind === 'royal' && d.prod === 'silk'), '#pgTip']});
+  { const h = $('hand'); h.classList.remove('pgon'); h.querySelectorAll('.pg').forEach(c => c.classList.remove('pg')); }   // карты больше не светятся — выделена только плашка очков
+  await say('У тебя 8 обычных карт одного вида - "[[Шёлк]]". А значит очков за эту товарную партию - [[36|n]]!', {hl:['#pgTip']});
+  await say('Но видишь эти [[маркеры умножения]]? А всё потому, что в руке есть "Господские" и "Королевские" товары!', {hl:['#pgTip']});
+  await say('Вот эти бирюзовые красавцы - Господские. Их на партию всего две штуки. Каждая [[умножает партию]] х2.', {hl:[() => handEls(d => d.kind === 'gentry' && d.prod === 'silk'), '#pgTip']});
+  await say('А это товар высшего сорта - Королевский! Он на партию всего один. И [[умножает]] её на х3.', {hl:[() => handEls(d => d.kind === 'royal' && d.prod === 'silk'), '#pgTip']});
   TUT.keepPg = false; hidePg();
 
   /* --- крыса --- */
   tutGive(me, 'rat'); emit('draw', {by: me, n: 1}); commit(); await tutSleep(1800);
-  await say('Ты посмотри! К тебе на склад забежала крыса! Бывает и такое. Крыса съедает две карты твоей самой лучшей партии, какие отдавать - выбор за тобой.', {hl:['#hand']});
+  await say('[[Ты гляди.|w]] К тебе на склад пробралась крыса! Если ты её у кого-то купил - [[беда!|a]] Она съест [[две карты]] твоей самой дорогой партии.', {hl:['#hand']});
   { const c = hand(me).find(x => x.k === 'rat'); H.res = {buyer: me, naps: [c], ci: 0, queue: []}; H.tut.after = () => { S.step = null; S.turn = null; S.info = null; H.res = null; }; catPhase(); commit(); }
   await until(() => S.step === 'rat' && S.turn === me);
-  await say('Выбери две карты — они уйдут крысе.', {hl:['#hand', '#act'], next:false});
+  await say('Выбери [[две карты]] и они уйдут крысе. Но не переживай если получил её с раздачи, тогда она станет твоим [[верным оружием]] против купцов!', {hl:['#hand', '#act'], next:false});
   await until(() => S.step !== 'rat'); tutHide(); TUT.hl = [];
-  await tutSleep(5200);
+  await tutSleep(7200);                                  // крыса съедает две карты ~7 секунд
 
   /* --- напасть и кот --- */
   const pestK = 'pest_silk';
   tutGive(me, pestK); emit('draw', {by: me, n: 1}); commit(); await tutSleep(1800);
-  await say('Да чтож такое! Невезуха твое второе имя? Это же ' + CARDS[pestK].name + '! Весь товар «' + prodName('silk') + '» идет коту под хвост... Кот! Точно, товар еще можно спасти!', {hl:[() => handEls(d => d.k === pestK)]});
+  await say('Да чтож такое! [[Невезуха|a]] твое второе имя? Это же Вредитель - "' + hi(CARDS[pestK].name, 'r') + '"! Весь товар "' + hi(prodName('silk')) + '" идет [[коту под хвост|a]]...', {hl:[() => handEls(d => d.k === pestK)]});
   tutGive(me, 'cat'); emit('draw', {by: me, n: 1}); commit(); await tutSleep(1800);
+  await say('Кот! Точно, товар еще можно [[спасти!|j]]', {hl:[() => handEls(d => d.kind === 'cat')]});
   { const c = hand(me).find(x => x.k === pestK); H.res = {buyer: me, naps: [c], ci: 0, queue: []}; H.tut.after = () => { S.step = null; S.turn = null; S.info = null; H.res = null; }; catPhase(); commit(); }
   await until(() => S.step === 'cat' && S.turn === me);
-  await say('Всего лишь у тебя на руках должен находиться "Кот" он нейтрализует любую выпавшую напасть и уходит вместе с ней в сброс.', {hl:['#act', () => handEls(d => d.kind === 'cat')], next:false});
+  await say('Если на руках есть Кот, он убивает любую купленную напасть(Крыса, Вредитель) и [[уходит с ней в сброс]].', {hl:['#act', () => handEls(d => d.kind === 'cat')], next:false});
   await until(() => S.step !== 'cat'); TUT.hl = []; tutHide();
   await tutSleep(5200);
-  await say('Не переживай, если ты подобрал напасть из колоды - твой товар не пострадает, теперь это твое оружие против других купцов. Также, если ты не смог продать напасть, тоже не переживай, она вернётся тебе в руку и ты снова сможешь попытаться её втюхать');
+  await say('Не переживай, если ты подобрал напасть с колоды. По аналогии с крысой твой товар не пострадает. Зато её можно кому-нибудь [[подкинуть!|j]]');
+
+  /* --- новая рука: чистим старые карты и выдаём набор для уроков про Ревизора и гниль --- */
+  { const old = hand(me).splice(0); if (old.length){ H.deck.push(...old); shuffle(H.deck); emit('toss', {by: me, n: old.length}); } }
+  commit(); await tutSleep(1200);
+  const newHand = ['silk', 'silk', 'silk', 'soaked', 'soaked', 'wild', 'pepper', 'pepper', 'damp', 'bread', 'bread', 'rich', 'auditor'];
+  const given = newHand.filter(k => tutGive(me, k)).length;
+  emit('take', {by: me, n: given}); commit();
+  await tutSleep(4400);
 
   /* --- ревизор --- */
-  tutGive(me, 'auditor'); emit('draw', {by: me, n: 1}); commit(); await tutSleep(1800);
-  await say('О! Ревизор, ты что, подкупил охрану? Теперь, когда придёт время смотреть чужой товар, можешь ею воспользоваться и тайно подсмотреть, что же запрятано в лоте!', {hl:[() => handEls(d => d.kind === 'auditor')]});
+  await say('О! Ревизор, ты что, подкупил охрану? Теперь, когда придёт время смотреть чужой товар, можешь ею воспользоваться и [[тайно|w]] подсмотреть, что же запрятано в лоте!', {hl:[() => handEls(d => d.kind === 'auditor')]});
+
+  /* --- гнилые товары --- */
+  const rotten = () => handEls(d => d.kind === 'spoiled');
+  TUT.keepPg = false; hidePg();
+  await say('А это гниль. Товары могут быть и испорченными, нажми на один', {hl:[rotten], next:false});
+  await until(() => $('pgTip').classList.contains('on'));
+  TUT.keepPg = true;                                     // подсказка партии остаётся, пока Лавр объясняет таблицу
+  await say('Каждый гнилой товар в партии убавляет [[1 нормальный товар]].', {hl:['#scoreTbl', '#pgTip']});
+  TUT.keepPg = false; hidePg();
+  const tblRow = n => $('scoreTbl').querySelector('.str[data-n="' + n + '"]');
+  [3, 1].forEach(n => { const r = tblRow(n); if (r) r.classList.add('hl'); });
+  TUT.keepPg = true;                                     // чтобы тап по реплике не гасил подсвеченные строки таблицы
+  tutTblLift(); await tutSleep(700);
+  await say('Если у тебя было 3 шёлка, они бы дали 6 очков. Но 2 мочёных шёлка отбирают [[2 карты]] и итог 1 очко.', {hl:['#scoreTbl']});
+  await say('Избавляйся от гнилья, иначе в конце партии они [[сильно подпортят]] твой результат', {hl:['#scoreTbl']});
+  tutTblDrop();
+  TUT.keepPg = false; hidePg(); TUT.hl = [];
 
   /* --- старт: 20 монет и печать --- */
-  await say('Ну, купцы тебя уже заждались, скорее бери начальные 20 монет и печать купца, и начнём же игру!', {hl:['#bank'], next:false});
+  await say('Ну, купцы тебя уже заждались, скорее бери начальные 20 монет и печать купца, и начнём же [[игру!|j]]', {hl:['#bank'], next:false});
   setTodo({host: {coins: 20, seal: 1}, bot1: {coins: 20, seal: 1}}, beginDay, 'Раздача'); commit();
   await until(() => { const t = myTodo(); return !t || !t.coins; });
   TUT.hl = ['#sealPile'];
@@ -4843,28 +5546,37 @@ async function tutScript(){
 
   /* --- продаём --- */
   await until(() => S.step === 'compose' && S.turn === me);
-  let stage = '';
+  let stage = '', lotSaid = 0;
   const stg = (k, text, hl) => { if (stage !== k){ stage = k; say(text, {hl, next:false}); } };
   await until(() => {
     if (S.step !== 'compose' && S.step !== 'price') return true;
-    if ($('priceM').classList.contains('on')) stg('p', 'Цена это минимум, с которого начнутся торги. Назови её и жми «Назвать цену».', ['#priceS']);
-    else if (S.step === 'price') stg('n', 'Карты на столе, их уже видят все. Расскажи купцам о товаре, а когда будешь готов - жми «Назвать цену».', ['#act']);
+    if ($('priceM').classList.contains('on')){
+      if (TUT.bigPrice){        // попытка назвать почин больше 20 монет: кнопка не сработала, Лавр объясняет
+        TUT.bigPrice = false; stage = 'w';
+        say('[[Так не пойдёт,|a]] у противников нет столько денег! Я верю в твои навыки продажника. Но [[деньги из воздуха]] не создают даже маги.', {hl:['#priceS']}).then(() => { stage = ''; });
+      } else if (stage !== 'w') stg('p', '[[Почин]] - это минимум, с которого начнутся торги. Назови его и жми "Назвать почин".', ['#priceS']);
+    }
+    else if (S.step === 'price' && lotSaid < 2){
+      if (!lotSaid){ lotSaid = 1; stage = 'l'; say('Учти, если выставляешь [[плохой товар|s]], полагайся только на свои [[навыки убеждения]]. Сможешь убедить людей, что товар хороший? Тогда, возможно, они купят даже 3 гнили.', {hl:['#slots']}).then(() => { lotSaid = 2; }); }
+    }
+    else if (S.step === 'price') stg('n','Карты на столе, их уже видят все. Оборванец не знает языка, но с нормальными торговцами ты бы уже давно спорил о качестве товара. Как закончишь - жми "Назвать почин".', ['#act']);
     else if (placed.every(x => x != null)) stg('g', 'Не дурно, жми выставить.', ['#lotgo']);
-    else stg('c', 'Гляди, ты сейчас продавец. Выбери три любые карты своего товара и выложи на платок - это то, что ты продаешь.', ['#hand', '#slots']);
+    else stg('c', 'Гляди, ты сейчас [[продавец]]. Выбери [[три любые карты]] своего товара и выложи на платок - это то, что ты продаешь.', ['#hand', '#slots']);
     return false;
   });
-  await say('Но мало кто захочет покупать товар вслепую. Ты можешь бесплатно открыть витрину - одну карту лота. Заманивай покупателей. Ну или можешь не открывать, кнопка "Без витрины" тоже сойдёт', {hl:['#slots', '#act'], next:false});
+  await say('Но мало кто захочет покупать товар [[вслепую|w]]. Ты можешь [[бесплатно]] открыть [[витрину]] - одну карту лота. Самое то для [[заманухи]].', {hl:['#slots', '#act'], next:false});
   await until(() => S.step !== 'showcase');
   tutHide(); TUT.hl = [];
   await until(() => { const t = myTodo(); return t && t.cards > 0 && S.takeTitle === 'Карта за продажу'; });
-  await say('За продажу бесплатная карта. Бери из колоды.', {hl:['#deck'], next:false});
+  await say('Оборванец глуповат и сразу купил твой лот, но учти, что [[настоящие продавцы не такие|i]].');
+  await say('За продажу [[бесплатная карта]]. Бери из колоды.', {hl:['#deck'], next:false});
   await until(tutTodoDone);
   tutHide(); TUT.hl = [];
   await until(() => S.step === 'buy' && S.turn === me);
   TUT.bigTry = false;
   const buying = () => live() && S.step === 'buy' && S.turn === me;
   const canPay4 = () => !!findExact(freePurse(), 4);
-  await Promise.race([say('Докупка. Карта стоит 4 монеты, взять можно до двух. Кидай монеты в мешочек. Или жми «Отказаться», если жалко.', {hl:['#act', '#mebar']}), until(() => !buying()), until(() => TUT.bigTry && !TUT.typing && buying())]);
+  await Promise.race([say('Также ты можешь докупить карты до двух раз. Каждая стоит 4 монеты. Купишь? Может, тебе [[повезёт!|j]]', {hl:['#act', '#mebar']}), until(() => !buying()), until(() => TUT.bigTry && !TUT.typing && buying())]);
   if (buying() && !canPay4()) await tutChange(canPay4, buying, true);
   TUT.bigTry = false;
   let ph = '';
@@ -4878,10 +5590,12 @@ async function tutScript(){
 
   /* --- покупаем лот бота --- */
   await until(() => S.step === 'inspect' && S.turn === me && S.seller !== me);
-  await tutChange(() => meP().purse[1] >= 7, () => live() && S.step === 'inspect', false, 'Для расспроса и вскрытия нужна мелочь: поменяй ещё.');
-  await say('Теперь ты покупатель. У тебя есть несколько платных действий, давай по порядку.', {hl:[() => actBtn('Расспрос')], next:false});
+  const insp = k => { TUT.insp = k; ui.actKey = ''; renderAct(); };      // какая кнопка осмотра сейчас доступна (остальные и «Пропустить» заперты)
+  insp('ask');
+  await tutChange(() => meP().purse[1] >= 7, () => live() && S.step === 'inspect', false, 'Для действий дальше нужна мелочь: поменяй еще.');
+  await say('Теперь ты [[покупатель]]. У тебя есть несколько [[платных действий]], давай по порядку.', {hl:[() => actBtn('Расспрос')], next:false});
   await until(() => ui.mode === 'ask');
-  await say('Это расспрос, заплатив купцу честные две монеты, тот обязан ответить честно, но лишь "Да" или "Нет". Давай-ка узнаем, есть ли в лоте напасть', {hl:[() => actBtn('Напасть')], next:false});
+  await say('Это [[расспрос]], заплатив купцу чистые 2 монеты, тот обязан ответить [[честно]], но лишь "[[Да|g]]" или "[[Нет|p]]". Давай-ка узнаем, есть ли в лоте напасть', {hl:[() => actBtn('Напасть')], next:false});
   await until(() => ui.qpath.length > 0 || ui.qsel);
   if (!ui.qsel){
     await say('Спрашивай, что хочешь. Просто спросить про напасть, или что-то конкретное? – Выбор за тобой.', {hl:['#act'], next:false});
@@ -4889,22 +5603,26 @@ async function tutScript(){
   }
   tutHide(); TUT.hl = ['#act', '#mebar']; TUT.holdAns = true; TUT.place = 1;
   await until(() => TUT.ans);
-  await say('Купец честно ответил, только этот ответ слышали все за столом. Теперь решай, покупать или нет.', {hl:[() => TUT.ans]});
+  await say('Купец честно ответил, только этот ответ [[слышали все]] за столом. Теперь решай, покупать или нет.', {hl:[() => TUT.ans]});
   if (TUT.ans){ TUT.ans.remove(); TUT.ans = null; } TUT.holdAns = false;
   await until(() => S.step === 'inspect' && S.turn === me);
-  await say('Ай нет, я еще тут не договорил, теперь объясню "Вскрытие".', {hl:[() => actBtn('Вскрытие')], next:false});
+  insp('open');
+  await say('Хотя погоди. Я еще не все рассказал в Осмотре. Теперь объясню "Вскрытие".', {hl:[() => actBtn('Вскрытие')], next:false});
   await until(() => ui.mode === 'open');
   tutHide(); TUT.hl = ['#act', '#mebar'];
   await until(() => S.step === 'openpick');
-  await say('Можешь открыть одну из карт, но её увидят все, всё просто.', {hl:['#slots'], next:false});
+  await say('В нём платишь - [[раскрываешь одну карту]], которую видят все. Азбучная истина.', {hl:['#slots'], next:false});
   await until(() => S.step === 'inspect' && S.turn === me);
-  await say('Конечно, самое лучшее, это когда у тебя есть Ревизор. Им ты можешь увидеть все карты в лоте', {hl:[() => actBtn('Ревизор')], next:false});
+  insp('aud');
+  await say('Конечно, самое лучшее, это когда у тебя есть Ревизор. Им ты можешь увидеть [[все карты]] в лоте', {hl:[() => actBtn('Ревизор')], next:false});
   await until(() => ui.mode === 'auditor');
   TUT.hl = ['#act', () => handEls(d => d.kind === 'auditor')]; TUT.place = 1;
   await until(() => S.step === 'auction');
-  await say('Ладно с этими осмотрами. Цена лота всего одна монета, смотри! Кидай скорее её в мешочек и жми «Ставка».', {hl:['#act', '#mebar'], next:false});
+  insp('');
+  await say('[[Вуаля!|j]] Закрытые карты теперь помечены своим названием. Другие этого [[не видят|w]].', {hl:['#slots']});
+  await say('Ладно с этими осмотрами. Почин всего одна монета! Кидай скорее её в мешочек и жми "Ставка".', {hl:['#act', '#mebar'], next:false});
   await until(() => S.step === 'pay' && S.turn === me);
-  await say('Ого, удивительно, но ты сразу выиграл торги, поздравляю! Теперь плати.', {hl:['#act', '#mebar'], next:false});
+  await say('Ого, "[[удивительно|i]]", ты сразу выиграл торги, [[поздравляю!|j]] Теперь плати.', {hl:['#act', '#mebar'], next:false});
   await until(() => S.step === 'takelot');
   await say('Лот твой, забирай карты', {hl:['#slots'], next:false});
   await until(() => S.step !== 'takelot');
@@ -4912,23 +5630,37 @@ async function tutScript(){
 
   /* --- вечер, утро, староста --- */
   await until(() => S.round === 'e');
-  await say('Время убегает. Уже вечер, а это означает что? Вечерний подвоз, конечно!', {hl:['#dayinfo .daypl']});
+  await say('[[Время убегает.|a]] Уже [[вечер]], а это означает что? [[Вечерний подвоз]], конечно!', {hl:['#dayinfo .daypl']});
   H.tut.eve(); commit();                                                  // карты можно брать только теперь
-  await say('Бери 2 карты из колоды, это вечерний подвоз. Каждый вечер, кроме последнего дня, ты будешь добирать по 2 карты', {hl:['#deck'], next:false});
+  await sayWait('Бери [[2 карты]] из колоды, это [[вечерний подвоз]]. Каждый вечер, кроме последнего дня, ты будешь это делать', ['#deck']);
   await until(() => !!H.tut.next); tutHide(); TUT.hl = [];
-  await say('Что в последнем? Кризис, милок. Торговать придётся чем есть.');
+  await say('Что в последнем дне? [[Недород|a]], голубчик. Торговать придётся, чем есть.');
   { const f = H.tut.next; H.tut.next = null; f(); commit(); }              // наступает утро второго дня
   await until(() => S.round === 'm' && S.day === 2); tutHide();
-  await say('После еще одного круга пришло утро. Время скоротечно, но наступил новый день, а значит время "Утреннего подвоза".', {hl:['#dayinfo .daypl']});
-  await say('Утром вам платят за работу, так что каждый утренний подвоз по мимо двух карт ты будешь получать по 5 монет, монеты придут даже в последний день.', {hl:['#bank', '#deck'], next:false});
+  await say('Представь, что прошёл круг. Теперь наступило [[утро]]. Утром, вестимо, "Утренний подвоз" подкатывает.', {hl:['#dayinfo .daypl']});
+  await sayWait('Утром вам платят за службу. Так что каждый такой подвоз на милость - 5 деревянных, сверх [[2-х карт]]. Оплата придёт даже в последний день.', ['#bank', '#deck']);
   await until(() => !myTodo() || tutTodoDone());
   tutHide(); TUT.hl = [];
   await until(() => S.step === 'tutend');
-  await say('Новый день - новый староста! Староста начинает первым. Не переживай, каждый успеет им побыть.', {hl:['#dayinfo .sgn']});
-  await say('Чуть не забыл! Печать купца.', {hl:[() => $('mebar').querySelector('.seal') || $('mebar')]});
-  await say('Используй её когда хочешь, если ты не продавец. Заберешь лот мгновенно. Только... Один нюанс, дешево забрать не получится, минимум - 10 деревянных. Если использовал на ставке ниже, разница покроется из твоего кармана, учти.', {hl:[() => $('mebar').querySelector('.seal') || $('mebar')]});
-  await say('Ну, основы ты понял. Дальше уже не моя забота, возвращайся в меню и покажи, кто самый главный торгаш!');
-  await say('И помни, в этой игре самое важное - это общение. Хвали свой товар, лги, клянись прадедом, что товар хороший. Коммуникация, вот в чём главный секрет «Честное Купеческое!». Удачи на ярмарке!', {next:'В меню'});
+  await say('Новый день - новый [[староста]]! Он начинает первым. Не переживай, каждый успеет им побывать.', {hl:['#dayinfo .sgn']});
+  await say('[[Чуть не забыл!|j]] Печать купца.', {hl:[() => $('mebar').querySelector('.seal') || $('mebar')]});
+  await say('Используй её когда захочешь, если ты не продавец. [[Тотчас лот твой!|j]] Только вот... [[загвоздка|a]]. Дёшево урвать никто тебе не позволит. Ниже 10 монет не возьмут. Коли ставка ниже, [[разницу из твоего кармана вытрясут!|a]]', {hl:[() => $('mebar').querySelector('.seal') || $('mebar')]});
+  await say('Ну, основы рассказал, всё-равно ты мало что понял. Но это уже не моя забота, кнопка "[[Правила|b]]" всегда перед тобой.');
+  await say('И помни, здесь самое важное - это [[общение]]. Хвали свой товар, лги, клянись прадедом, что товар хороший. Коммуникация, вот в чём главный секрет «Честное Купеческое!». [[Удачи на ярмарке!|j]]');
+  await say('А теперь [[ярмарка закрывается!|a]] Посмотрим, кто сколько нажил и кто из вас [[лучший негоциант]].', {next:'Подсчёт очков'});
+
+  await tutFinale();
+}
+/* Подсчёт очков в конце обучения. Оборванцу «случайно» достаётся вся партия яблок (10 обычных, 2 господских, 1 королевская) — он и выигрывает */
+async function tutFinale(){
+  TUT.fin = true;
+  { const apples = [...Array(CARDS.apple.n).fill('apple'), ...Array(CARDS.green.n).fill('green'), ...Array(CARDS.gold.n).fill('gold')];
+    H.hands.bot1 = apples.map((k, i) => ({id: 9000 + i, k})); }
+  finishGame(); commit();
+  await until(() => S.final && S.final.stage === 'podium' && FX.done);
+  await tutSleep(1800);
+  TUT.hl = [];
+  await say('Тебе ещё [[учиться и учиться]]. Не недооценивай [[оборванцев!|a]]', {next:'В меню'});
   tutStop(); leave();
 }
 function tutStart(){
@@ -4939,14 +5671,15 @@ function tutStart(){
   H.tut = {after: null};
   ['bread', 'bread', 'bread', 'apple', 'apple', 'pepper'].forEach(k => tutGive('bot1', k));
   commit();
-  clearInterval(TUT.tm); TUT.on = true; TUT.run++; TUT.hl = []; TUT.key = ''; TUT.ans = null; TUT.holdAns = false; TUT.keepPg = false;
+  clearInterval(TUT.tm); TUT.on = true; TUT.fin = false; TUT.run++; TUT.hl = []; TUT.key = ''; TUT.ans = null; TUT.holdAns = false; TUT.keepPg = false; TUT.bigPrice = false; TUT.insp = '';
   TUT.tm = setInterval(tutLoop, 80);
   tutScript().catch(e => console.error(e));
 }
 function tutStop(){
-  TUT.on = false; TUT.run++; clearInterval(TUT.tm); clearTimeout(TUT.ty); TUT.typing = false; TUT.tm = 0; TUT.hl = [];
-  $('tut').classList.remove('on', 'top'); $('tutShield').classList.remove('on'); $('tutShield').style.clipPath = ''; $('tutFrames').innerHTML = '';
+  TUT.on = false; TUT.fin = false; TUT.insp = ''; TUT.bigPrice = false; TUT.run++; clearInterval(TUT.tm); clearTimeout(TUT.ty); TUT.typing = false; TUT.tm = 0; TUT.hl = [];
+  $('tut').classList.remove('on', 'top'); $('tutShield').classList.remove('on'); $('tutDim').classList.remove('on'); $('tutShield').style.clipPath = ''; $('tutFrames').innerHTML = '';
   if (TUT.ans){ TUT.ans.remove(); TUT.ans = null; }
+  tutTblDrop(); document.querySelectorAll('#hand .card.tuthl').forEach(e => e.classList.remove('tuthl'));
 }
 $('tutBtn').onclick = tutStart;
 try{ if (!localStorage.getItem('kup_tutseen')) $('tutBtn').classList.add('glow'); }catch(e){ $('tutBtn').classList.add('glow'); }
@@ -4958,10 +5691,14 @@ $('tutSkip').onclick = () => { tutStop(); leave(); };
   const finish = () => { if (done) return; done = true; box.classList.add('out'); musStart(); setTimeout(() => box.remove(), 700); };
   v.addEventListener('playing', () => { if (v.duration) setTimeout(finish, Math.max(0, (v.duration - v.currentTime - .5) * 1000)); }, {once: true});
   v.addEventListener('ended', finish); v.addEventListener('error', finish);
-  box.addEventListener('pointerdown', finish);
-  const r = v.play();
-  if (r && r.catch) r.catch(() => { v.muted = true; v.play().catch(finish); });   // автозапуск со звуком запрещён — играем без звука
-  setTimeout(finish, 9000);
+  const tap = $('introTap'); let started = false;
+  box.addEventListener('pointerdown', () => {
+    if (started) return finish();
+    started = true; tap.remove();
+    const r = v.play();
+    if (r && r.catch) r.catch(() => { v.muted = true; v.play().catch(finish); });
+    setTimeout(finish, 9000);
+  });
 })();
 </script>
 </body>
